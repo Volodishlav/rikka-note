@@ -1,0 +1,41 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 前端依赖和构建产物
+node_modules
+dist
+dist-ssr
+*.local
+
+# Tauri 相关忽略项（关键调整）
+# 忽略 Rust 构建产物（target 文件夹）
+src-tauri/target/
+# 忽略 Tauri 生成的临时文件（如安卓项目中间产物）
+src-tauri/gen/
+# 忽略 Tauri 开发环境配置（非必要）
+src-tauri/.tauri/
+# 忽略 Tauri 本地缓存（如依赖下载缓存）
+src-tauri/.cargo/
+
+# 编辑器配置
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 其他可能的冗余文件
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
