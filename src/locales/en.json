@@ -1,0 +1,15 @@
+{
+  "navigation": {
+    "record": "Record",
+    "write": "Write",
+    "search": "Search"
+  },
+  "common": {
+    "settings": "Settings",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "editor": {
+    "placeholder": "Start writing..."
+  }
+}
