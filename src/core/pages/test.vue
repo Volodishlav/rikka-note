@@ -3,6 +3,8 @@ import { ref, computed, onMounted } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { useI18n } from '@/hooks/useI18n.ts'
 import { useSettingStore } from '@/stores/setting'
+// 导入UI组件库
+import { UiButton, UiInput, UiDialog, UiToast, UiTooltip } from '@/components/ui'
 
 const { t, changeLocale } = useI18n()
 const settingStore = useSettingStore()
@@ -48,6 +50,44 @@ onMounted(() => {
     }
   })
 })
+
+// ========== UI组件测试相关状态 ==========
+// Button测试
+const buttonClicked = ref(false)
+const buttonLoading = ref(false)
+
+async function handleButtonClick() {
+  buttonLoading.value = true
+  buttonClicked.value = true
+  await new Promise(resolve => setTimeout(resolve, 1000))
+  buttonLoading.value = false
+}
+
+// Input测试
+const inputValue = ref('')
+const inputError = ref(false)
+
+function handleInputChange(e: Event) {
+  const target = e.target as HTMLInputElement
+  inputValue.value = target.value
+  inputError.value = target.value.length < 3
+}
+
+// Dialog测试
+const dialogOpen = ref(false)
+
+// Toast测试
+const toastVisible = ref(false)
+const toastType = ref<'success' | 'error' | 'info' | 'warning'>('info')
+const toastMessage = ref('这是一条Toast消息')
+
+function showToast(type: 'success' | 'error' | 'info' | 'warning') {
+  toastType.value = type
+  toastVisible.value = true
+}
+
+// Tooltip测试
+const tooltipContent = ref('这是一个Tooltip提示')
 </script>
 
 <template>
@@ -90,6 +130,150 @@ onMounted(() => {
       <button type="submit">Greet</button>
     </form>
     <p>{{ greetMsg }}</p>
+
+    <!-- ========== UI组件测试区域 ========== -->
+    <div class="ui-test-section">
+      <h2 class="text-2xl font-bold mb-6">UI组件库测试</h2>
+
+      <!-- Button组件测试 -->
+      <div class="test-card">
+        <h3 class="text-xl font-semibold mb-4">Button组件</h3>
+        <div class="flex flex-wrap gap-4">
+          <UiButton variant="primary" @click="handleButtonClick">
+            主要按钮
+          </UiButton>
+          <UiButton variant="secondary">
+            次要按钮
+          </UiButton>
+          <UiButton variant="destructive">
+            危险按钮
+          </UiButton>
+          <UiButton variant="ghost">
+            幽灵按钮
+          </UiButton>
+          <UiButton variant="primary" size="sm">
+            小按钮
+          </UiButton>
+          <UiButton variant="primary" size="lg">
+            大按钮
+          </UiButton>
+          <UiButton variant="primary" :loading="true">
+            加载按钮
+          </UiButton>
+          <UiButton variant="primary" disabled>
+            禁用按钮
+          </UiButton>
+        </div>
+        <p class="mt-4 text-sm text-muted-foreground">
+          按钮点击状态: {{ buttonClicked ? '已点击' : '未点击' }}
+        </p>
+      </div>
+
+      <!-- Input组件测试 -->
+      <div class="test-card">
+        <h3 class="text-xl font-semibold mb-4">Input组件</h3>
+        <div class="flex flex-col gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">标准输入框</label>
+            <UiInput placeholder="请输入内容" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">带值的输入框</label>
+            <UiInput v-model="inputValue" placeholder="至少3个字符" @input="handleInputChange" :error="inputError" />
+            <p v-if="inputError" class="mt-1 text-xs text-destructive">
+              内容长度至少3个字符
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">小尺寸输入框</label>
+            <UiInput size="sm" placeholder="小尺寸" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">大尺寸输入框</label>
+            <UiInput size="lg" placeholder="大尺寸" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">禁用输入框</label>
+            <UiInput placeholder="禁用" disabled />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">只读输入框</label>
+            <UiInput placeholder="只读" readonly value="只读内容" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Dialog组件测试 -->
+      <div class="test-card">
+        <h3 class="text-xl font-semibold mb-4">Dialog组件</h3>
+        <UiButton variant="primary" @click="dialogOpen = true">
+          打开对话框
+        </UiButton>
+        
+        <UiDialog v-model="dialogOpen" :className="'my-dialog'">
+          <div class="p-6">
+            <h4 class="text-lg font-semibold mb-3">对话框标题</h4>
+            <p class="mb-4">
+              这是对话框的内容区域。你可以在这里放置任何你想要的内容，包括表单、图片、文本等。
+            </p>
+            <div class="flex justify-end gap-2">
+              <UiButton variant="ghost" @click="dialogOpen = false">
+                取消
+              </UiButton>
+              <UiButton variant="primary" @click="dialogOpen = false">
+                确认
+              </UiButton>
+            </div>
+          </div>
+        </UiDialog>
+      </div>
+
+      <!-- Toast组件测试 -->
+      <div class="test-card">
+        <h3 class="text-xl font-semibold mb-4">Toast组件</h3>
+        <div class="flex flex-wrap gap-4">
+          <UiButton variant="primary" @click="showToast('success')">
+            成功Toast
+          </UiButton>
+          <UiButton variant="primary" @click="showToast('error')">
+            错误Toast
+          </UiButton>
+          <UiButton variant="primary" @click="showToast('warning')">
+            警告Toast
+          </UiButton>
+          <UiButton variant="primary" @click="showToast('info')">
+            信息Toast
+          </UiButton>
+        </div>
+        
+        <UiToast
+          v-model:visible="toastVisible"
+          :type="toastType"
+          :message="toastMessage"
+          :duration="3000"
+          :closable="true"
+        />
+      </div>
+
+      <!-- Tooltip组件测试 -->
+      <div class="test-card">
+        <h3 class="text-xl font-semibold mb-4">Tooltip组件</h3>
+        <div class="flex flex-wrap gap-8">
+          <UiTooltip content="顶部提示" position="top">
+            <UiButton variant="primary">顶部Tooltip</UiButton>
+          </UiTooltip>
+          <UiTooltip content="右侧提示" position="right">
+            <UiButton variant="primary">右侧Tooltip</UiButton>
+          </UiTooltip>
+          <UiTooltip content="底部提示" position="bottom">
+            <UiButton variant="primary">底部Tooltip</UiButton>
+          </UiTooltip>
+          <UiTooltip content="左侧提示" position="left">
+            <UiButton variant="primary">左侧Tooltip</UiButton>
+          </UiTooltip>
+        </div>
+      </div>
+    </div>
   </main>
 </template>
 
@@ -245,5 +429,49 @@ button {
 
 #greet-input {
   margin-right: 5px;
+}
+
+/* ========== UI组件测试区域样式 ========== */
+.ui-test-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.test-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+}
+
+.test-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dark .test-card {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+/* Dialog自定义样式 */
+.my-dialog {
+  max-width: 500px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .ui-test-section {
+    padding: 1rem;
+  }
+  
+  .test-card {
+    padding: 1.5rem;
+  }
+  
+  .test-card .flex {
+    flex-direction: column;
+  }
 }
 </style>
