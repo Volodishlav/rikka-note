@@ -1,24 +1,11 @@
 <script setup lang="ts">
 // CoreLayout - 核心布局组件
+import AppSidebar from '@/components/AppSidebar.vue'
 </script>
 
 <template>
   <div class="core-layout">
-    <!-- 侧边栏 - 只保留指定的导航链接 -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <h2>核心功能菜单</h2>
-      </div>
-      <nav class="sidebar-nav">
-        <router-link to="/core/record" class="nav-item">
-          记录页面
-        </router-link>
-        <router-link to="/core/test" class="nav-item">
-          测试页面
-        </router-link>
-      </nav>
-    </aside>
-    
+    <AppSidebar/>
     <!-- 主内容区域 - 渲染子路由 -->
     <main class="main-content">
       <router-view />
@@ -31,15 +18,6 @@
   display: flex;
   height: 100vh;
   overflow: hidden;
-}
-
-.sidebar {
-  width: 250px;
-  background-color: #f8fafc;
-  border-right: 1px solid #e2e8f0;
-  padding: 1rem;
-  overflow-y: auto;
-  transition: all 0.3s ease;
 }
 
 .dark .sidebar {

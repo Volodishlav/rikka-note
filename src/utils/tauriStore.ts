@@ -1,23 +1,57 @@
 // src/utils/tauriStore.ts
-import { Store } from '@tauri-apps/plugin-store'
+/**
+ * 增强版：自动适配Tauri/浏览器，支持泛型，可自定义存储文件
+ */
+type StorageOptions = {
+    filename?: string; // 自定义Tauri Store的文件名
+};
 
-export async function loadTauriStore(filename = 'store.json') {
-    return await Store.load(filename)
+/**
+ * 读取存储值（自动适配Tauri Store / localStorage）
+ * @param key 存储的键名
+ * @param options 可选配置（自定义文件名）
+ * @returns 存储的值（泛型类型）
+ */
+export async function tauriGet<T = any>(
+    key: string,
+    options: StorageOptions = { filename: 'store.json' }
+): Promise<T | undefined> {
+    try {
+        // Tauri环境：使用@tauri-apps/plugin-store
+        const { Store } = await import('@tauri-apps/plugin-store')
+        const store = await Store.load(options.filename!)
+        return await store.get<T>(key) // 保留泛型，类型安全
+    } catch (e) {
+        // 浏览器环境：使用localStorage
+        const raw = localStorage.getItem(key)
+        if (raw === null) return undefined // 没找到返回undefined
+        try {
+            return JSON.parse(raw) as T // 反序列化并指定类型
+        } catch {
+            return raw as T // 解析失败直接返回原始值（比如非JSON字符串）
+        }
+    }
 }
 
 /**
- * 读取 key 值（返回 undefined 表示没保存过）
+ * 保存存储值（自动适配Tauri Store / localStorage）
+ * @param key 存储的键名
+ * @param value 存储的值
+ * @param options 可选配置（自定义文件名）
  */
-export async function tauriGet<T = any>(key: string, filename = 'store.json'): Promise<T | undefined> {
-    const store = await loadTauriStore(filename)
-    return await store.get<T>(key)
-}
-
-/**
- * 设置 key 值并同步保存
- */
-export async function tauriSet<T = any>(key: string, value: T, filename = 'store.json'): Promise<void> {
-    const store = await loadTauriStore(filename)
-    await store.set(key, value)
-    await store.save()
+export async function tauriSet<T = any>(
+    key: string,
+    value: T,
+    options: StorageOptions = { filename: 'store.json' }
+): Promise<void> {
+    try {
+        // Tauri环境：使用@tauri-apps/plugin-store
+        const { Store } = await import('@tauri-apps/plugin-store')
+        const store = await Store.load(options.filename!)
+        await store.set(key, value)
+        await store.save()
+    } catch (e) {
+        // 浏览器环境：使用localStorage（序列化后存储）
+        localStorage.setItem(key, JSON.stringify(value))
+    }
 }
