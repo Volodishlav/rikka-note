@@ -1,159 +1,142 @@
-<script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+<template>
+  <span class="relative inline-block" ref="root">
+    <!-- Trigger -->
+    <span
+        ref="trigger"
+        class="inline-flex items-center"
+        @mouseenter="onMouseEnter"
+        @mouseleave="onMouseLeave"
+        @focus="onFocus"
+        @blur="onBlur"
+        @click="onClick"
+        :tabindex="disabled ? -1 : 0"
+        :aria-describedby="tooltipId"
+    >
+      <slot />
+    </span>
 
-/**
- * Tooltip位置选项
- */
-export type TooltipPosition = 'top' | 'right' | 'bottom' | 'left'
+    <!-- Content -->
+    <transition name="scale-fade">
+      <div
+          v-if="visible && !disabled"
+          :id="tooltipId"
+          ref="contentEl"
+          role="tooltip"
+          class="z-50 pointer-events-none bg-gray-900 text-white text-xs px-2 py-1 rounded shadow"
+          :style="contentStyle"
+      >
+        <slot name="content">
+          {{ content }}
+        </slot>
+      </div>
+    </transition>
+  </span>
+</template>
 
-/**
- * Tooltip组件属性定义
- */
-export interface TooltipProps {
-  /**
-   * 提示内容
-   */
-  content: string
-  /**
-   * 提示位置
-   * @default 'top'
-   */
-  position?: TooltipPosition
-  /**
-   * 延迟显示时间（毫秒）
-   * @default 300
-   */
-  delay?: number
-  /**
-   * 自定义类名
-   */
-  className?: string
-  /**
-   * 自定义提示框类名
-   */
-  contentClassName?: string
-}
+<script lang="ts" setup>
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 
-// 定义组件属性
-const props = withDefaults(defineProps<TooltipProps>(), {
-  position: 'top',
-  delay: 300,
-  className: '',
-  contentClassName: ''
+const props = defineProps({
+  content: { type: String, default: '' },
+  side: { type: String as () => 'top'|'bottom'|'left'|'right', default: 'top' },
+  align: { type: String as () => 'center'|'start'|'end', default: 'center' },
+  delay: { type: Number, default: 100 }, // ms
+  disabled: { type: Boolean, default: false },
+  offset: { type: Number, default: 8 },
 })
 
-// 组件状态
-const isVisible = ref(false)
-const triggerRef = ref<HTMLElement | null>(null)
-const tooltipRef = ref<HTMLElement | null>(null)
+const visible = ref(false)
+const showTimer = ref<number | null>(null)
+const hideTimer = ref<number | null>(null)
+const trigger = ref<HTMLElement | null>(null)
+const contentEl = ref<HTMLElement | null>(null)
+const root = ref<HTMLElement | null>(null)
 
-// 显示和隐藏计时器
-let showTimer: number | null = null
-let hideTimer: number | null = null
+const tooltipId = `tooltip-${Math.random().toString(36).slice(2,9)}`
 
-// 计算位置样式
-const positionClass = computed(() => {
-  switch (props.position) {
-    case 'top':
-      return 'bottom-full left-1/2 -translate-x-1/2 mb-2'
-    case 'right':
-      return 'left-full top-1/2 -translate-y-1/2 ml-2'
-    case 'bottom':
-      return 'top-full left-1/2 -translate-x-1/2 mt-2'
-    case 'left':
-      return 'right-full top-1/2 -translate-y-1/2 mr-2'
-    default:
-      return 'bottom-full left-1/2 -translate-x-1/2 mb-2'
+function scheduleShow() {
+  if (props.disabled) return
+  if (hideTimer.value) {
+    clearTimeout(hideTimer.value); hideTimer.value = null
   }
-})
-
-// 计算箭头样式
-const arrowClass = computed(() => {
-  switch (props.position) {
-    case 'top':
-      return 'bottom-0 left-1/2 -translate-x-1/2 border-b-0 border-t-background'
-    case 'right':
-      return 'left-0 top-1/2 -translate-y-1/2 border-l-0 border-r-background'
-    case 'bottom':
-      return 'top-0 left-1/2 -translate-x-1/2 border-t-0 border-b-background'
-    case 'left':
-      return 'right-0 top-1/2 -translate-y-1/2 border-r-0 border-l-background'
-    default:
-      return 'bottom-0 left-1/2 -translate-x-1/2 border-b-0 border-t-background'
-  }
-})
-
-// 显示Tooltip
-function showTooltip() {
-  if (hideTimer) {
-    clearTimeout(hideTimer)
-    hideTimer = null
-  }
-  showTimer = window.setTimeout(() => {
-    isVisible.value = true
+  showTimer.value = window.setTimeout(() => {
+    visible.value = true
+    updatePosition()
   }, props.delay)
 }
 
-// 隐藏Tooltip
-function hideTooltip() {
-  if (showTimer) {
-    clearTimeout(showTimer)
-    showTimer = null
-  }
-  hideTimer = window.setTimeout(() => {
-    isVisible.value = false
-  }, 100)
+function scheduleHide() {
+  if (showTimer.value) { clearTimeout(showTimer.value); showTimer.value = null }
+  hideTimer.value = window.setTimeout(() => (visible.value = false), 50)
 }
 
-// 组件挂载时添加事件监听
-onMounted(() => {
-  // 为触发元素添加事件监听
-  if (triggerRef.value) {
-    triggerRef.value.addEventListener('mouseenter', showTooltip)
-    triggerRef.value.addEventListener('mouseleave', hideTooltip)
-    triggerRef.value.addEventListener('focus', showTooltip)
-    triggerRef.value.addEventListener('blur', hideTooltip)
+function onMouseEnter() { scheduleShow() }
+function onMouseLeave() { scheduleHide() }
+function onFocus() { scheduleShow() }
+function onBlur() { scheduleHide() }
+function onClick() { /* allow click-through on buttons */ }
+
+function updatePosition() {
+  if (!trigger.value || !contentEl.value) return
+  const trig = trigger.value.getBoundingClientRect()
+  const cont = contentEl.value
+  const width = cont.offsetWidth, height = cont.offsetHeight
+  let top = 0, left = 0
+
+  if (props.side === 'top') {
+    top = trig.top - height - props.offset + window.scrollY
+    left = trig.left + trig.width / 2 - width / 2 + window.scrollX
+  } else if (props.side === 'bottom') {
+    top = trig.bottom + props.offset + window.scrollY
+    left = trig.left + trig.width / 2 - width / 2 + window.scrollX
+  } else if (props.side === 'left') {
+    top = trig.top + trig.height / 2 - height / 2 + window.scrollY
+    left = trig.left - width - props.offset + window.scrollX
+  } else { // right
+    top = trig.top + trig.height / 2 - height / 2 + window.scrollY
+    left = trig.right + props.offset + window.scrollX
   }
+
+  // basic viewport clamp
+  const maxLeft = document.documentElement.clientWidth - width - 8
+  left = Math.max(8, Math.min(left, maxLeft))
+  const maxTop = window.scrollY + document.documentElement.clientHeight - height - 8
+  top = Math.max(window.scrollY + 8, Math.min(top, maxTop))
+
+  contentStyle.value = {
+    position: 'absolute',
+    top: `${top}px`,
+    left: `${left}px`,
+  }
+}
+
+const contentStyle = ref<Record<string,string>>({ position:'absolute' })
+
+let resizeObs: ResizeObserver | null = null
+onMounted(() => {
+  resizeObs = new ResizeObserver(() => visible.value && updatePosition())
+  if (root.value) resizeObs.observe(root.value)
+  window.addEventListener('scroll', updatePosition, true)
+  window.addEventListener('resize', updatePosition)
 })
 
-// 组件卸载前移除事件监听
 onBeforeUnmount(() => {
-  if (triggerRef.value) {
-    triggerRef.value.removeEventListener('mouseenter', showTooltip)
-    triggerRef.value.removeEventListener('mouseleave', hideTooltip)
-    triggerRef.value.removeEventListener('focus', showTooltip)
-    triggerRef.value.removeEventListener('blur', hideTooltip)
-  }
-  
-  // 清除所有计时器
-  if (showTimer) clearTimeout(showTimer)
-  if (hideTimer) clearTimeout(hideTimer)
+  if (showTimer.value) clearTimeout(showTimer.value)
+  if (hideTimer.value) clearTimeout(hideTimer.value)
+  window.removeEventListener('scroll', updatePosition, true)
+  window.removeEventListener('resize', updatePosition)
+  if (resizeObs) resizeObs.disconnect()
 })
+
+watch(visible, (v) => { if (v) updatePosition() })
 </script>
 
-<template>
-  <div class="relative inline-block" ref="triggerRef" :class="className">
-    <!-- 触发元素插槽 -->
-    <slot></slot>
-    
-    <!-- Tooltip内容 -->
-    <div
-      v-if="isVisible"
-      ref="tooltipRef"
-      class="absolute z-50 px-3 py-1 text-xs font-medium text-white bg-black rounded shadow-lg whitespace-nowrap"
-      :class="[
-        positionClass,
-        contentClassName
-      ]"
-      role="tooltip"
-      aria-hidden="false"
-    >
-      {{ content }}
-      <!-- 箭头 -->
-      <div
-        class="absolute h-2 w-2 border-solid border-transparent border-2"
-        :class="arrowClass"
-      ></div>
-    </div>
-  </div>
-</template>
+<style scoped>
+:deep(.scale-fade-enter-active), :deep(.scale-fade-leave-active) {
+  transition: all .12s ease;
+}
+:deep(.scale-fade-enter-from) { transform: scale(.96); opacity: 0; }
+:deep(.scale-fade-enter-to) { transform: scale(1); opacity: 1; }
+:deep(.scale-fade-leave-from) { transform: scale(1); opacity: 1; }
+:deep(.scale-fade-leave-to) { transform: scale(.96); opacity: 0; }
+</style>
