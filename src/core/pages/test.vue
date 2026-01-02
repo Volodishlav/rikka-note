@@ -6,10 +6,32 @@ import { useSettingStore } from '@/stores/setting'
 // 导入UI组件库
 import { UiButton, UiInput, UiDialog, UiToast, UiTooltip } from '@/components/ui'
 
-const { t, changeLocale } = useI18n()
+const { t, changeLocale, locale } = useI18n()
 const settingStore = useSettingStore()
 const greetMsg = ref("");
 const name = ref("");
+
+// RootLayout 测试相关变量
+const isSettingInit = ref(false)
+import dayjs from 'dayjs'
+
+// 计算当前日期，使用本地化格式
+const currentDate = computed(() => {
+  // 根据当前locale动态调整日期格式
+  if (locale.value === 'en') {
+    // 英文格式: MM/DD/YYYY HH:mm:ss
+    return dayjs().format('MM/DD/YYYY HH:mm:ss')
+  } else {
+    // 中文格式: YYYY-MM-DD HH:mm:ss
+    return dayjs().format('YYYY-MM-DD HH:mm:ss')
+  }
+})
+
+// UI缩放处理方法
+function handleUiScaleChange(e: Event) {
+  const target = e.target as HTMLInputElement
+  settingStore.setUiScale(Number(target.value))
+}
 
 // 计算当前主题类名
 const themeClass = computed(() => {
@@ -49,6 +71,9 @@ onMounted(() => {
       console.log('系统主题已变化')
     }
   })
+  
+  // 标记设置已初始化
+  isSettingInit.value = true
 })
 
 // ========== UI组件测试相关状态 ==========
@@ -93,7 +118,11 @@ const tooltipContent = ref('这是一个Tooltip提示')
 <template>
   <main class="container">
     <h1>Welcome to Tauri + Vue</h1>
-    
+    <div>
+      <h1>{{ t('navigation.record') }}</h1>
+      <button @click="changeLocale('en')">EN</button>
+      <button @click="changeLocale('zh')">中文</button>
+    </div>
     <!-- 主题切换测试区域 -->
     <div class="test-section">
       <h2>主题切换测试</h2>
@@ -104,6 +133,57 @@ const tooltipContent = ref('这是一个Tooltip提示')
       <button class="theme-toggle-btn" @click="toggleTheme">
         切换主题 (当前: {{ settingStore.theme }})
       </button>
+    </div>
+
+    <!-- RootLayout 功能测试 -->
+    <div class="test-section">
+      <h2>RootLayout 功能测试</h2>
+      
+      <div class="test-item">
+        <h3>1. UI缩放测试</h3>
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center gap-2">
+            <label for="ui-scale">缩放比例: {{ settingStore.uiScale }}%</label>
+            <input 
+              id="ui-scale" 
+              type="range" 
+              min="80" 
+              max="120" 
+              step="5" 
+              :value="settingStore.uiScale" 
+              @input="handleUiScaleChange" 
+              class="flex-1"
+            >
+          </div>
+          <div class="flex gap-2">
+            <button @click="settingStore.setUiScale(80)">80%</button>
+            <button @click="settingStore.setUiScale(90)">90%</button>
+            <button @click="settingStore.setUiScale(100)">100%</button>
+            <button @click="settingStore.setUiScale(110)">110%</button>
+            <button @click="settingStore.setUiScale(120)">120%</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="test-item">
+        <h3>2. 语言切换测试</h3>
+        <div class="flex gap-2">
+          <button @click="changeLocale('zh')">中文</button>
+          <button @click="changeLocale('en')">English</button>
+        </div>
+        <p>当前语言: {{ locale }}</p>
+      </div>
+      
+      <div class="test-item">
+        <h3>3. dayjs locale 测试</h3>
+        <p>当前日期: {{ currentDate }}</p>
+        <p>日期格式会随语言切换而变化</p>
+      </div>
+      
+      <div class="test-item">
+        <h3>4. 初始化状态测试</h3>
+        <p>设置已初始化: {{ isSettingInit }}</p>
+      </div>
     </div>
 
     <!-- ========== UI组件测试区域 ========== -->

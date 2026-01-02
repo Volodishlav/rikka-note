@@ -20,13 +20,6 @@ const routes: Array<RouteRecordRaw> = [
         name: 'root',
         // 进入根时根据设备重定向到 mobile 或 core
         beforeEnter: async (to, from, next) => {
-            // 初始化所有store
-            try {
-                await initStores()
-                console.log('初始化store成功')
-            } catch (e) {
-                console.warn('初始化store失败:', e)
-            }
             // 设备检测重定向
             if (isMobileDevice()) {
                 next('/mobile/chat') // 直接重定向到聊天页面
@@ -41,7 +34,9 @@ const routes: Array<RouteRecordRaw> = [
         component: CoreLayout, // 使用CoreLayout布局组件
         children: [
             { path: 'record', name: 'core-record', component: RecordPage }, // 记录页面
-            { path: 'test', name: 'core-test', component: TestPage } // 测试页面
+            { path: 'test', name: 'core-test', component: TestPage }, // 测试页面
+            // 添加404路由，匹配所有未定义的core子路由
+            { path: ':pathMatch(.*)*', name: 'core-404', component: TestPage } // 暂时使用TestPage作为404页面
         ]
     },
     {

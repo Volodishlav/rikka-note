@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import ThemeProvider from '@/components/ThemeProvider.vue'
+import RootLayout from '@/layouts/RootLayout.vue'
 </script>
 
 <template>
-  <ThemeProvider>
+  <RootLayout>
     <!-- 路由渲染出口 - 核心修改 -->
     <router-view />
-  </ThemeProvider>
+  </RootLayout>
 </template>
 
 <style>

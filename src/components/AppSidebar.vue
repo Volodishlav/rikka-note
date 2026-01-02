@@ -6,6 +6,17 @@
       <slot name="status"></slot>
     </div>
 
+    <!-- 新增：折叠/展开切换按钮 -->
+    <button
+      class="mx-auto mb-2 p-1 rounded-md hover:bg-sidebar-accent"
+      @click="toggleCollapsed"
+      title="切换侧边栏"
+    >
+      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 18l6-6-6-6" />
+      </svg>
+    </button>
+
     <!-- Main menu -->
     <nav class="flex-1 px-1 py-2">
       <ul class="space-y-1">
@@ -27,16 +38,18 @@
       <ModeToggle />
       <router-link to="/core/setting" class="ml-auto">
         <div class="size-8 flex items-center justify-center rounded-md">
-          <!-- 用你选择的设置图标 -->
-          <svg class="size-4" viewBox="...">...</svg>
+          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
         </div>
       </router-link>
     </div>
   </aside>
 </template>
 
-<script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { tauriGet, tauriSet } from '@/utils/tauriStore'
 import { useSidebarStore } from '@/stores/sidebar'
@@ -49,7 +62,18 @@ const router = useRouter()
 const route = useRoute()
 const sidebar = useSidebarStore()
 sidebar.init().catch(err => console.error('侧边栏初始化失败：', err))
-const collapsed = sidebar.collapsed
+
+// 使用computed保持响应式
+const collapsed = computed({
+  get: () => sidebar.collapsed,
+  set: (value) => { sidebar.toggle() }
+})
+
+// 新增切换折叠状态的方法
+const toggleCollapsed = () => {
+  // 调用sidebar store的toggle方法
+  sidebar.toggle()
+}
 
 const items = ref([
   { title: '录入', url: '/core/record', icon: Highlighter },
@@ -63,7 +87,6 @@ function isActive(item: { url: string }) {
 }
 
 async function menuHandler(item: { url: string }) {
-  // 若在 /core/article 且点写作则切换文件侧边栏的行为需要你自己实现（optional）
   await router.push(item.url)
   tauriSet('currentPage', item.url)
 }
@@ -76,11 +99,15 @@ async function initImageMenu() {
   }
 }
 
-onMounted(() => {
-  initImageMenu()
+onMounted(async () => {
+  // 初始化图床菜单
+  await initImageMenu()
 })
 </script>
 
 <style scoped>
-/* 你可以微调 collapsed 的 behaviour 或 hover 展开动画 */
+/* 微调 collapsed 的 behaviour */
+.transition-width {
+  transition-property: width;
+}
 </style>

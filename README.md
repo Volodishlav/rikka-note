@@ -44,7 +44,8 @@ d:\graduation_project\rikka-note
 │   │   ├── AppSidebar.vue
 │   │   ├── AppStatus.vue
 │   │   ├── ModeToggle.vue
-│   │   └── ThemeProvider.vue
+│   │   ├── ThemeProvider.vue
+│   │   └── TooltipButton.vue
 │   ├── composables/
 │   │   └── useTheme.ts
 │   ├── core/
@@ -57,6 +58,8 @@ d:\graduation_project\rikka-note
 │   │   └── useI18n.ts
 │   ├── i18n/
 │   │   └── index.ts
+│   ├── layouts/
+│   │   └── RootLayout.vue      # 全局布局组件
 │   ├── locales/
 │   │   ├── en.json
 │   │   └── zh.json
