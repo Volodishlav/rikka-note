@@ -178,19 +178,3 @@ npm run test -- Button.spec.ts
   // ... 其他变量
 }
 ```
-
-## 版本管理
-
-遵循 Semantic Versioning (SemVer) 规范：
-
-- **MAJOR**：不兼容的API变更
-- **MINOR**：向下兼容的新功能
-- **PATCH**：向下兼容的问题修复
-
-## 贡献指南
-
-1. Fork 仓库
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开 Pull Request

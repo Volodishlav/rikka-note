@@ -4,7 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useI18n } from '@/hooks/useI18n.ts'
 import { useSettingStore } from '@/stores/setting'
 // 导入UI组件库
-import { UiButton, UiInput, UiDialog, UiToast, UiTooltip } from '@/components/ui'
+import { UiButton, UiInput, UiDialog, UiTooltip } from '@/components/ui'
 // 导入新的Toast系统
 import { useToast } from '@/composables/useToast'
 
@@ -105,15 +105,7 @@ function handleInputChange(e: Event) {
 // Dialog测试
 const dialogOpen = ref(false)
 
-// Toast测试
-const toastVisible = ref(false)
-const toastType = ref<'success' | 'error' | 'info' | 'warning'>('info')
-const toastMessage = ref('这是一条Toast消息')
 
-function showToast(type: 'success' | 'error' | 'info' | 'warning') {
-  toastType.value = type
-  toastVisible.value = true
-}
 
 // Tooltip测试
 const tooltipContent = ref('这是一个Tooltip提示')
@@ -287,36 +279,9 @@ const tooltipContent = ref('这是一个Tooltip提示')
         </UiDialog>
       </div>
 
-      <!-- Toast组件测试 -->
+      <!-- Toast系统测试 -->
       <div class="test-card">
-        <h3 class="text-xl font-semibold mb-4">Toast组件</h3>
-        <div class="flex flex-wrap gap-4">
-          <UiButton variant="primary" @click="showToast('success')">
-            成功Toast
-          </UiButton>
-          <UiButton variant="primary" @click="showToast('error')">
-            错误Toast
-          </UiButton>
-          <UiButton variant="primary" @click="showToast('warning')">
-            警告Toast
-          </UiButton>
-          <UiButton variant="primary" @click="showToast('info')">
-            信息Toast
-          </UiButton>
-        </div>
-        
-        <UiToast
-          v-model:visible="toastVisible"
-          :type="toastType"
-          :message="toastMessage"
-          :duration="3000"
-          :closable="true"
-        />
-      </div>
-
-      <!-- 新Toast系统测试 -->
-      <div class="test-card">
-        <h3 class="text-xl font-semibold mb-4">新Toast系统</h3>
+        <h3 class="text-xl font-semibold mb-4">Toast系统</h3>
         <div class="flex flex-wrap gap-4">
           <UiButton variant="primary" @click="toast.success('保存成功', '已保存')">
             成功Toast
