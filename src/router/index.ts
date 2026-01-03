@@ -2,7 +2,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import { isMobileDevice } from '@/utils/device' // 设备检测工具
 import { initStores } from '@/stores' // store初始化函数
-import { Store } from '@tauri-apps/plugin-store' // Tauri Store插件
+import { tauriGet, tauriSet } from '@/utils/tauriStore' // 持久化存储工具
 
 // 导入布局组件
 import CoreLayout from '@/core/layouts/CoreLayout.vue' // 核心布局
@@ -18,14 +18,44 @@ const routes: Array<RouteRecordRaw> = [
     {
         path: '/',
         name: 'root',
-        // 进入根时根据设备重定向到 mobile 或 core
+        // 进入根时根据设备和持久化的currentPage重定向到合适页面
         beforeEnter: async (to, from, next) => {
-            // 设备检测重定向
-            if (isMobileDevice()) {
-                next('/mobile/chat') // 直接重定向到聊天页面
-            } else {
-                next('/core/record') // 直接重定向到记录页面
+            // 初始化所有store
+            try {
+                await initStores()
+                console.log('初始化store成功')
+            } catch (e) {
+                console.warn('初始化store失败:', e)
             }
+            
+            // 读取持久化的currentPage
+            const currentPage = await tauriGet<string>('currentPage')
+            console.log('读取到的currentPage:', currentPage)
+            
+            // 设备检测
+            const isMobile = isMobileDevice()
+            console.log('设备类型检测结果:', isMobile ? 'mobile' : 'desktop')
+            
+            // 确定最终重定向路径
+            let redirectPath: string
+            
+            if (currentPage) {
+                // 检查currentPage是否有效且匹配当前设备类型
+                if (isMobile && currentPage.startsWith('/mobile/')) {
+                    redirectPath = currentPage
+                } else if (!isMobile && currentPage.startsWith('/core/')) {
+                    redirectPath = currentPage
+                } else {
+                    // currentPage无效或不匹配设备类型，使用默认路由
+                    redirectPath = isMobile ? '/mobile/chat' : '/core/record'
+                }
+            } else {
+                // 没有currentPage，使用默认路由
+                redirectPath = isMobile ? '/mobile/chat' : '/core/record'
+            }
+            
+            console.log('最终重定向路径:', redirectPath)
+            next(redirectPath)
         }
     },
     {
@@ -57,16 +87,9 @@ const router = createRouter({
 // 全局守卫：每次导航把 currentPage 保存到 Tauri store（或 localStorage）
 router.afterEach(async (to) => {
     try {
-        // 在浏览器 dev 环境 plugin-store 可能不可用，兜底到 localStorage
-        if (window.__TAURI__) {
-            const s = await Store.load('store.json')
-            await s.set('currentPage', to.fullPath)
-            await s.save()
-            console.log('路由已保存到Tauri Store:', to.fullPath)
-        } else {
-            localStorage.setItem('currentPage', to.fullPath)
-            console.log('路由已保存到localStorage:', to.fullPath)
-        }
+        // 使用封装的tauriSet函数自动适配Tauri Store/localStorage
+        await tauriSet('currentPage', to.fullPath)
+        console.log('路由已保存到持久化存储:', to.fullPath)
     } catch (e) {
         // fallback
         localStorage.setItem('currentPage', to.fullPath)
