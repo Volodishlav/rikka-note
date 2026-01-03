@@ -5,11 +5,15 @@ import { useI18n } from '@/hooks/useI18n.ts'
 import { useSettingStore } from '@/stores/setting'
 // 导入UI组件库
 import { UiButton, UiInput, UiDialog, UiToast, UiTooltip } from '@/components/ui'
+// 导入新的Toast系统
+import { useToast } from '@/composables/useToast'
 
 const { t, changeLocale, locale } = useI18n()
 const settingStore = useSettingStore()
 const greetMsg = ref("");
 const name = ref("");
+// 新Toast系统实例
+const toast = useToast()
 
 // RootLayout 测试相关变量
 const isSettingInit = ref(false)
@@ -308,6 +312,31 @@ const tooltipContent = ref('这是一个Tooltip提示')
           :duration="3000"
           :closable="true"
         />
+      </div>
+
+      <!-- 新Toast系统测试 -->
+      <div class="test-card">
+        <h3 class="text-xl font-semibold mb-4">新Toast系统</h3>
+        <div class="flex flex-wrap gap-4">
+          <UiButton variant="primary" @click="toast.success('保存成功', '已保存')">
+            成功Toast
+          </UiButton>
+          <UiButton variant="primary" @click="toast.error('操作失败', '请重试')">
+            错误Toast
+          </UiButton>
+          <UiButton variant="primary" @click="toast.warning('注意', '这是一个警告')">
+            警告Toast
+          </UiButton>
+          <UiButton variant="primary" @click="toast.info('提示', '这是一条信息')">
+            信息Toast
+          </UiButton>
+          <UiButton variant="secondary" @click="toast.show({ title: '永驻Toast', message: '手动关闭', duration: 0 })" class="ml-4">
+            永驻Toast
+          </UiButton>
+          <UiButton variant="destructive" @click="toast.clear()" class="ml-4">
+            清除所有
+          </UiButton>
+        </div>
       </div>
 
       <!-- Tooltip组件测试 -->

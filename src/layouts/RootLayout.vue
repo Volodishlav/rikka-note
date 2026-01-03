@@ -1,12 +1,15 @@
 <template>
   <ThemeProvider>
     <slot />
+    <!-- 全局Toast容器 -->
+    <ToastContainer />
   </ThemeProvider>
 </template>
 
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
 import ThemeProvider from '@/components/ThemeProvider.vue'
+import ToastContainer from '@/components/ToastContainer.vue'
 import { useSettingStore } from '@/stores/setting'
 import { useI18n } from '@/hooks/useI18n'
 import dayjs from 'dayjs'
