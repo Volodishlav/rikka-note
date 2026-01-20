@@ -80,6 +80,7 @@ const items = ref([
   { title: '写作', url: '/core/article', icon: SquarePen },
   { title: '搜索', url: '/core/search', icon: Search },
   { title: '测试', url: '/core/test', icon: Search },
+  { title: '数据测试', url: '/core/data-test', icon: Search },
 ])
 
 function isActive(item: { url: string }) {

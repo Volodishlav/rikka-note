@@ -38,6 +38,10 @@ export interface InputProps {
    * 占位符文本
    */
   placeholder?: string
+  /**
+   * 输入值（用于v-model）
+   */
+  modelValue?: string
 }
 
 // 定义组件属性
@@ -48,8 +52,20 @@ const props = withDefaults(defineProps<InputProps>(), {
   readonly: false,
   error: false,
   className: '',
-  placeholder: ''
+  placeholder: '',
+  modelValue: ''
 })
+
+// 定义事件
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+}>()
+
+// 处理输入事件
+function handleInput(e: Event) {
+  const target = e.target as HTMLInputElement
+  emit('update:modelValue', target.value)
+}
 
 // 计算输入框尺寸样式类
 const sizeClass = computed(() => {
@@ -90,6 +106,8 @@ const stateClass = computed(() => {
     :placeholder="placeholder"
     :disabled="disabled"
     :readonly="readonly"
+    :value="modelValue"
+    @input="handleInput"
     class="flex h-10 w-full rounded-md border border-input bg-background px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
     :class="[
       sizeClass,

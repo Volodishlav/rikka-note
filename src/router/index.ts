@@ -12,6 +12,7 @@ import MobileLayout from '@/mobile/layouts/MobileLayout.vue' // 移动端布局
 import RecordPage from '@/core/pages/RecordPage.vue' // 记录页面
 import ChatPage from '@/mobile/pages/ChatPage.vue' // 聊天页面
 import TestPage from '@/core/pages/test.vue' // 测试页面
+import DataTestPage from '@/core/pages/DataTestPage.vue' // 数据测试页面
 
 // 路由表 - 仅保留指定的三个路由
 const routes: Array<RouteRecordRaw> = [
@@ -65,6 +66,7 @@ const routes: Array<RouteRecordRaw> = [
         children: [
             { path: 'record', name: 'core-record', component: RecordPage }, // 记录页面
             { path: 'test', name: 'core-test', component: TestPage }, // 测试页面
+            { path: 'data-test', name: 'core-data-test', component: DataTestPage }, // 数据测试页面
             // 添加404路由，匹配所有未定义的core子路由
             { path: ':pathMatch(.*)*', name: 'core-404', component: TestPage } // 暂时使用TestPage作为404页面
         ]

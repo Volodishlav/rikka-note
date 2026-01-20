@@ -62,6 +62,9 @@ function handleClick() {
 </script>
 ```
 
+#### 组件支持特性
+- **UiInput**：支持完整的v-model双向绑定，修复了之前的输入值绑定问题
+
 ## 组件属性
 
 ### UiButton
@@ -85,6 +88,7 @@ function handleClick() {
 | error | boolean | false | 是否错误状态 |
 | className | string | '' | 自定义类名 |
 | placeholder | string | '' | 占位符文本 |
+| modelValue | string | '' | 绑定值（支持v-model双向绑定） |
 
 ### UiDialog
 

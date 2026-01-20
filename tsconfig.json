@@ -19,7 +19,8 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-
+    /* 添加 Node.js 类型支持（解决 path/__dirname 报错） */
+    "types": ["node", "vite/client"],
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
@@ -27,5 +28,6 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "references": [{ "path": "./tsconfig.node.json" }],
+  "exclude": ["src-tauri/**/*"]
 }

@@ -52,6 +52,7 @@ d:\graduation_project\rikka-note
 │   │   ├── layouts/
 │   │   │   └── CoreLayout.vue
 │   │   └── pages/
+│   │       ├── DataTestPage.vue # 数据测试页面
 │   │       ├── RecordPage.vue
 │   │       └── test.vue        # 测试页面
 │   ├── hooks/
@@ -70,6 +71,13 @@ d:\graduation_project\rikka-note
 │   │       └── ChatPage.vue
 │   ├── router/
 │   │   └── index.ts
+│   ├── db/
+│   │   ├── chats.ts
+│   │   ├── index.ts
+│   │   ├── marks.ts
+│   │   ├── notes.ts
+│   │   ├── tags.ts
+│   │   └── vector.ts
 │   ├── shared/
 │   │   ├── pages/
 │   │   │   └── NotFound.vue
@@ -116,7 +124,8 @@ d:\graduation_project\rikka-note
 - **src/main.ts** - 前端应用入口，初始化 Vue 应用
 - **src/router/index.ts** - 路由配置，定义应用页面路由
 - **src/core/layouts/CoreLayout.vue** - 桌面端核心布局组件
-- **src/core/pages/test.vue** - 功能测试页面，用于验证 Tauri 插件集成
+- **src/core/pages/DataTestPage.vue** - 数据库测试页面，用于测试各数据表的增删改查功能
+- **src/core/pages/test.vue** - UI组件测试页面，用于测试UI组件功能
 - **src/components/AppSidebar.vue** - 应用侧边栏组件
 - **src/components/ModeToggle.vue** - 主题切换组件
 - **src/components/ThemeProvider.vue** - 主题提供组件，管理全局主题
@@ -156,6 +165,14 @@ d:\graduation_project\rikka-note
 - **tsconfig.json** - TypeScript 配置
 - **tailwind.config.ts** - Tailwind CSS 配置
 - **postcss.config.mjs** - PostCSS 配置
+
+### 7. 数据库相关
+- **src/db/index.ts** - 数据库初始化和连接管理
+- **src/db/tags.ts** - 标签表操作
+- **src/db/notes.ts** - 笔记表操作
+- **src/db/marks.ts** - 标记表操作
+- **src/db/chats.ts** - 聊天记录表操作
+- **src/db/vector.ts** - 向量文档表操作
 
 ## 架构特点
 
@@ -210,6 +227,12 @@ npm install
 - 基于 Tauri Store 的安全存储
 - 支持加密存储敏感信息
 - 适配浏览器本地存储
+
+### 5. 完善的数据库功能
+- 基于 SQLite 的本地数据库存储
+- 支持标签、笔记、标记、聊天记录等多种数据类型
+- 完整的增删改查操作支持
+- 向量文档存储，支持AI语义搜索
 
 ## 技术亮点
 
