@@ -45,9 +45,12 @@ d:\graduation_project\rikka-note
 │   │   ├── AppStatus.vue
 │   │   ├── ModeToggle.vue
 │   │   ├── ThemeProvider.vue
+│   │   ├── ToastContainer.vue
+│   │   ├── ToastItem.vue
 │   │   └── TooltipButton.vue
 │   ├── composables/
-│   │   └── useTheme.ts
+│   │   ├── useTheme.ts
+│   │   └── useToast.ts
 │   ├── core/
 │   │   ├── layouts/
 │   │   │   └── CoreLayout.vue
@@ -55,12 +58,22 @@ d:\graduation_project\rikka-note
 │   │       ├── DataTestPage.vue # 数据测试页面
 │   │       ├── RecordPage.vue
 │   │       └── test.vue        # 测试页面
+│   ├── db/
+│   │   ├── chats.ts
+│   │   ├── index.ts
+│   │   ├── marks.ts
+│   │   ├── notes.ts
+│   │   ├── tags.ts
+│   │   └── vector.ts
 │   ├── hooks/
 │   │   └── useI18n.ts
 │   ├── i18n/
 │   │   └── index.ts
 │   ├── layouts/
 │   │   └── RootLayout.vue      # 全局布局组件
+│   ├── lib
+│   │   ├── path.ts
+│   │   └── workspace.ts
 │   ├── locales/
 │   │   ├── en.json
 │   │   └── zh.json
@@ -71,13 +84,6 @@ d:\graduation_project\rikka-note
 │   │       └── ChatPage.vue
 │   ├── router/
 │   │   └── index.ts
-│   ├── db/
-│   │   ├── chats.ts
-│   │   ├── index.ts
-│   │   ├── marks.ts
-│   │   ├── notes.ts
-│   │   ├── tags.ts
-│   │   └── vector.ts
 │   ├── shared/
 │   │   ├── pages/
 │   │   │   └── NotFound.vue
@@ -85,7 +91,8 @@ d:\graduation_project\rikka-note
 │   ├── stores/
 │   │   ├── index.ts
 │   │   ├── setting.ts
-│   │   └── sidebar.ts
+│   │   ├── sidebar.ts
+│   │   └── article.ts
 │   ├── utils/
 │   │   ├── device.ts
 │   │   ├── tauriStore.ts      # Tauri存储工具

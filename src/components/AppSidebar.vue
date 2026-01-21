@@ -81,6 +81,7 @@ const items = ref([
   { title: '搜索', url: '/core/search', icon: Search },
   { title: '测试', url: '/core/test', icon: Search },
   { title: '数据测试', url: '/core/data-test', icon: Search },
+  { title: '文章测试', url: '/core/article-test', icon: Search },
 ])
 
 function isActive(item: { url: string }) {
