@@ -23,18 +23,18 @@ const selectedTagId = ref<number | null>(null)
 
 // Notes表测试
 const newNoteContent = ref('')
-const newNoteTagId = ref<number>(1)
+const newNoteTagId = ref<string>('1')
 const noteByTagId = ref<Note | null>(null)
 
 // Marks表测试
 const newMark = ref<{
-  tagId: number
+  tagId: string
   type: Mark['type']
   content?: string
   desc?: string
   url: string
 }>({
-  tagId: 1,
+  tagId: '1',
   type: 'text',
   content: '',
   desc: '',
@@ -44,14 +44,14 @@ const marks = ref<Mark[]>([])
 
 // Chats表测试
 const newChat = ref<{
-  tagId: number
+  tagId: string
   content?: string
   role: Role
   type: ChatType
   image?: string
   inserted: boolean
 }>({
-  tagId: 1,
+  tagId: '1',
   content: '',
   role: 'user',
   type: 'chat',
@@ -62,12 +62,12 @@ const chats = ref<Chat[]>([])
 // Vector表测试
 const newVectorDoc = ref<{
   filename: string
-  chunk_id: number
+  chunk_id: string
   content: string
   embedding: string
 }>({
   filename: 'test.txt',
-  chunk_id: 0,
+  chunk_id: '0',
   content: '测试内容',
   embedding: JSON.stringify([0.1, 0.2, 0.3])
 })
@@ -141,7 +141,8 @@ async function deleteSelectedTag() {
 // Notes表测试函数
 async function loadNoteByTagId() {
   try {
-    noteByTagId.value = await getNoteByTagId(newNoteTagId.value)
+    const tagId = parseInt(newNoteTagId.value, 10)
+    noteByTagId.value = await getNoteByTagId(tagId)
     toast.success('加载成功', '笔记数据已加载')
   } catch (error) {
     console.error('加载笔记失败:', error)
@@ -156,7 +157,8 @@ async function addNote() {
   }
   
   try {
-    await insertNote({ tagId: newNoteTagId.value, content: newNoteContent.value.trim(), locale: 'zh', count: newNoteContent.value.trim().length.toString() })
+    const tagId = parseInt(newNoteTagId.value, 10)
+    await insertNote({ tagId, content: newNoteContent.value.trim(), locale: 'zh', count: newNoteContent.value.trim().length.toString() })
     toast.success('添加成功', '笔记已添加')
     newNoteContent.value = ''
     await loadNoteByTagId()
@@ -169,7 +171,8 @@ async function addNote() {
 // Marks表测试函数
 async function loadMarks() {
   try {
-    marks.value = await getMarks(newMark.value.tagId)
+    const tagId = parseInt(newMark.value.tagId, 10)
+    marks.value = await getMarks(tagId)
     toast.success('加载成功', '标记数据已加载')
   } catch (error) {
     console.error('加载标记失败:', error)
@@ -184,7 +187,11 @@ async function addMark() {
   }
   
   try {
-    await insertMark(newMark.value)
+    const markData = {
+      ...newMark.value,
+      tagId: parseInt(newMark.value.tagId, 10)
+    }
+    await insertMark(markData)
     toast.success('添加成功', '标记已添加')
     newMark.value.content = ''
     newMark.value.desc = ''
@@ -199,7 +206,8 @@ async function addMark() {
 // Chats表测试函数
 async function loadChats() {
   try {
-    chats.value = await getChats(newChat.value.tagId)
+    const tagId = parseInt(newChat.value.tagId, 10)
+    chats.value = await getChats(tagId)
     toast.success('加载成功', '聊天数据已加载')
   } catch (error) {
     console.error('加载聊天失败:', error)
@@ -214,7 +222,11 @@ async function addChat() {
   }
   
   try {
-    await insertChat(newChat.value)
+    const chatData = {
+      ...newChat.value,
+      tagId: parseInt(newChat.value.tagId, 10)
+    }
+    await insertChat(chatData)
     toast.success('添加成功', '聊天记录已添加')
     newChat.value.content = ''
     await loadChats()
@@ -242,12 +254,15 @@ async function addVectorDoc() {
   }
   
   try {
-    await upsertVectorDocument({
+    const vectorData = {
       ...newVectorDoc.value,
+      chunk_id: parseInt(newVectorDoc.value.chunk_id, 10),
       updated_at: Date.now()
-    })
+    }
+    await upsertVectorDocument(vectorData)
     toast.success('添加成功', '向量文档已添加/更新')
-    newVectorDoc.value.chunk_id += 1
+    const currentChunkId = parseInt(newVectorDoc.value.chunk_id, 10)
+    newVectorDoc.value.chunk_id = (currentChunkId + 1).toString()
     await loadVectorDocs()
   } catch (error) {
     console.error('添加向量文档失败:', error)
