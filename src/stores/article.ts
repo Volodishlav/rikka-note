@@ -1,15 +1,15 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { BaseDirectory, DirEntry, exists, mkdir, readDir, readTextFile, writeTextFile, stat } from '@tauri-apps/plugin-fs'
-import { Store } from '@tauri-apps/plugin-store'
-import { cloneDeep, uniq } from 'lodash-es'
-import { join } from '@tauri-apps/api/path'
+import {defineStore} from 'pinia'
+import {ref} from 'vue'
+import {BaseDirectory, DirEntry, exists, mkdir, readDir, readTextFile, stat, writeTextFile} from '@tauri-apps/plugin-fs'
+import {Store} from '@tauri-apps/plugin-store'
+import {cloneDeep, uniq} from 'lodash-es'
+import {join} from '@tauri-apps/api/path'
 
 // 导入路径/工作区工具函数
-import { getWorkspacePath, getFilePathOptions, toWorkspaceRelativePath } from '@/lib/workspace.ts'
-import { getCurrentFolder } from '@/lib/path.ts'
+import {getFilePathOptions, getWorkspacePath, toWorkspaceRelativePath} from '@/lib/workspace'
+import {computedParentPath, getCurrentFolder} from '@/lib/path'
 
-// ====== 类型定义 ======
+// 类型定义
 export type SortType = 'name' | 'created' | 'modified' | 'none'
 export type SortDirection = 'asc' | 'desc'
 
@@ -28,7 +28,7 @@ export interface Article {
     path: string
 }
 
-// ====== Store 定义 ======
+// tore 定义（基于Pinia，对齐React的Zustand逻辑）
 export const useArticleStore = defineStore('article', () => {
     // -------- 状态管理 --------
     const loading = ref(false)
@@ -65,7 +65,7 @@ export const useArticleStore = defineStore('article', () => {
         matchPosition.value = position
     }
 
-    // -------- HTML转MD配置 --------
+    // HTML转MD配置
     async function initHtml2md() {
         try {
             const store = await Store.load('store.json')
@@ -89,7 +89,30 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // -------- 文件树排序逻辑 --------
+    // 排序相关方法
+    async function setSortType(newSortType: SortType) {
+        sortType.value = newSortType
+        try {
+            const store = await Store.load('store.json')
+            await store.set('sortType', newSortType)
+            fileTree.value = sortFileTree(fileTree.value)
+        } catch (err) {
+            console.warn('Failed to save sortType:', err)
+        }
+    }
+
+    async function setSortDirection(newDirection: SortDirection) {
+        sortDirection.value = newDirection
+        try {
+            const store = await Store.load('store.json')
+            await store.set('sortDirection', newDirection)
+            fileTree.value = sortFileTree(fileTree.value)
+        } catch (err) {
+            console.warn('Failed to save sortDirection:', err)
+        }
+    }
+
+    // 文件树排序逻辑
     function sortFileTree(tree: DirTree[]): DirTree[] {
         if (sortType.value === 'none') return tree
 
@@ -99,7 +122,7 @@ export const useArticleStore = defineStore('article', () => {
             if (a.isDirectory && !b.isDirectory) return -1
             if (!a.isDirectory && b.isDirectory) return 1
 
-            let result = 0
+            let result: number
             switch (sortType.value) {
                 case 'name':
                     result = a.name.localeCompare(b.name)
@@ -141,7 +164,7 @@ export const useArticleStore = defineStore('article', () => {
         return sortedTree
     }
 
-    // -------- 更新文件统计信息（创建/修改时间） --------
+    // 更新文件统计信息（创建/修改时间）
     async function updateFileStats(basePath: string, tree: DirTree[]): Promise<DirTree[]> {
         const workspace = await getWorkspacePath()
 
@@ -171,18 +194,17 @@ export const useArticleStore = defineStore('article', () => {
         return tree
     }
 
-    // -------- 设置文件树（自动排序） --------
+    // 设置文件树（自动排序）
     function setFileTree(tree: DirTree[]) {
-        const sortedTree = sortFileTree(tree)
-        fileTree.value = sortedTree
+        fileTree.value = sortFileTree(tree)
     }
 
-    // -------- 添加文件到文件树 --------
+    // 添加文件到文件树
     function addFile(file: DirTree) {
         fileTree.value = [file, ...fileTree.value]
     }
 
-    // -------- 加载文件树（核心逻辑） --------
+    // 加载文件树
     async function loadFileTree() {
         fileTreeLoading.value = true
         fileTree.value = []
@@ -206,7 +228,7 @@ export const useArticleStore = defineStore('article', () => {
             }
 
             // 读取工作区文件
-            let dirs: DirTree[] = []
+            let dirs: DirTree[]
             if (workspace.isCustom) {
                 dirs = (await readDir(workspace.path))
                     .filter(file =>
@@ -239,7 +261,7 @@ export const useArticleStore = defineStore('article', () => {
                     }))
             }
 
-            // 递归处理工作区下的所有文件和文件夹
+            // 递归处理工作区下的所有文件和文件夹（内联函数）
             async function processEntriesRecursively(parent: string, entries: DirTree[]) {
                 const workspace = await getWorkspacePath()
                 for (const entry of entries) {
@@ -287,8 +309,7 @@ export const useArticleStore = defineStore('article', () => {
 
             // 更新文件统计信息并排序
             await updateFileStats(workspace.path, dirs)
-            const sortedDirs = sortFileTree(dirs)
-            fileTree.value = sortedDirs
+            fileTree.value = sortFileTree(dirs)
 
         } catch (error) {
             errorMsg.value = `加载文件树失败：${(error as Error).message}`
@@ -298,42 +319,23 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // -------- 空实现：兼容原接口（移除远程同步） --------
+    // 空实现（远程同步）
     async function loadCollapsibleFiles(_fullpath: string) {
-        // 无需实现：已移除远程同步功能
+        // 无需实现：已移除远程同步功能（Github/Gitee/Gitlab）
     }
 
-    // -------- 新建文件夹（根目录） --------
+    // 新建文件夹（根目录）
     async function newFolder() {
         errorMsg.value = null
         try {
             const cacheTree = cloneDeep(fileTree.value)
+            // 检查是否已有空名称的编辑中文件夹
             const exists = cacheTree.find(item => item.name === '' && item.isDirectory)
             if (exists) return
 
-            // 生成临时文件夹名称
-            const tempFolderName = `新建文件夹-${new Date().getTime()}`
-
-            // 获取工作区信息并拼接路径
-            const workspace = await getWorkspacePath()
-            let folderPath: string
-
-            if (workspace.isCustom) {
-                folderPath = await join(workspace.path, tempFolderName)
-            } else {
-                folderPath = await join('article', tempFolderName)
-            }
-
-            // 创建本地文件夹
-            if (workspace.isCustom) {
-                await mkdir(folderPath, { recursive: true })
-            } else {
-                await mkdir(folderPath, { baseDir: BaseDirectory.AppData, recursive: true })
-            }
-
-            // 更新文件树
+            // 创建内存中的编辑态空文件夹
             const node: DirTree = {
-                name: tempFolderName,
+                name: '',
                 isFile: false,
                 isDirectory: true,
                 isSymlink: false,
@@ -351,7 +353,7 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // -------- 新建文件（根目录/当前文件父目录） --------
+    // 新建文件（根目录/当前文件父目录）
     async function newFile() {
         errorMsg.value = null
         try {
@@ -413,7 +415,7 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // -------- 在指定文件夹下新建文件 --------
+    // 在指定文件夹下新建文件
     async function newFileOnFolder(path: string) {
         errorMsg.value = null
         try {
@@ -457,7 +459,7 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // -------- 在指定文件夹下新建子文件夹 --------
+    // 在指定文件夹下新建子文件夹
     async function newFolderInFolder(path: string) {
         errorMsg.value = null
         try {
@@ -470,28 +472,9 @@ export const useArticleStore = defineStore('article', () => {
             const hasEmptyFolder = currentFolder?.children?.find((item: DirTree) => item.name === '' && item.isDirectory)
             if (hasEmptyFolder) return
 
-            // 生成临时文件夹名称并拼接路径
-            const tempFolderName = `新建文件夹-${new Date().getTime()}`
-            const fullFolderPath = `${path}/${tempFolderName}`
-            const workspace = await getWorkspacePath()
-
-            let physicalPath: string
-            if (workspace.isCustom) {
-                physicalPath = await join(workspace.path, fullFolderPath)
-            } else {
-                physicalPath = await join('article', fullFolderPath)
-            }
-
-            // 创建本地子文件夹
-            if (workspace.isCustom) {
-                await mkdir(physicalPath, { recursive: true })
-            } else {
-                await mkdir(physicalPath, { baseDir: BaseDirectory.AppData, recursive: true })
-            }
-
-            // 更新文件树节点
+            // 创建内存中的编辑态空文件夹
             const node: DirTree = {
-                name: tempFolderName,
+                name: '',
                 isFile: false,
                 isDirectory: true,
                 isSymlink: false,
@@ -511,7 +494,114 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // -------- 初始化折叠列表 --------
+    // 确认创建文件夹（重命名完成后）
+    async function confirmCreateFolder(node: DirTree, newName: string) {
+        errorMsg.value = null
+        try {
+            if (!newName || newName.trim() === '') {
+                errorMsg.value = '文件夹名称不能为空'
+                return
+            }
+
+            // 获取工作区信息
+            const workspace = await getWorkspacePath()
+
+            // 计算文件夹的相对路径（和文件创建逻辑一致）
+            let folderRelativePath: string
+            if (node.parent) {
+                const parentRelativePath = computedParentPath(node.parent)
+                folderRelativePath = `${parentRelativePath}/${newName}`
+            } else {
+                folderRelativePath = newName
+            }
+
+            // 复用文件创建的正确路径逻辑
+            const pathOptions = await getFilePathOptions(folderRelativePath)
+
+            // 检查文件夹是否已存在
+            let folderExists: boolean
+            try {
+                if (workspace.isCustom) {
+                    folderExists = await exists(pathOptions.path)
+                } else {
+                    folderExists = await exists(pathOptions.path, { baseDir: pathOptions.baseDir })
+                }
+            } catch (err) {
+                folderExists = false
+            }
+
+            if (folderExists) {
+                errorMsg.value = `文件夹 "${newName}" 已存在`
+                return
+            }
+
+            // 创建文件夹（和文件创建时的目录创建逻辑一致）
+            if (workspace.isCustom) {
+                await mkdir(pathOptions.path, { recursive: true })
+            } else {
+                await mkdir(pathOptions.path, { baseDir: pathOptions.baseDir, recursive: true })
+            }
+
+            // 查找并更新节点
+            const findAndUpdateNode = (tree: DirTree[], targetNode: DirTree): boolean => {
+                for (const item of tree) {
+                    const isMatch = item.name === targetNode.name &&
+                        item.parent === targetNode.parent &&
+                        item.isDirectory === targetNode.isDirectory
+
+                    if (isMatch) {
+                        item.name = newName
+                        item.isEditing = false
+                        return true
+                    }
+                    if (item.children && findAndUpdateNode(item.children, targetNode)) {
+                        return true
+                    }
+                }
+                return false
+            }
+
+            findAndUpdateNode(fileTree.value, node)
+            fileTree.value = sortFileTree([...fileTree.value])
+
+            // 刷新文件树
+            await loadFileTree()
+
+        } catch (error) {
+            console.error('创建文件夹错误详情:', error)
+            errorMsg.value = `创建文件夹失败：${(error as Error).message}`
+        }
+    }
+
+    // 取消文件夹编辑（删除内存中的空节点）
+    function cancelFolderEdit(node: DirTree) {
+        try {
+            const removeNode = (tree: DirTree[], targetNode: DirTree): boolean => {
+                for (let i = 0; i < tree.length; i++) {
+                    const item = tree[i]
+                    const isMatch = item.name === targetNode.name &&
+                        item.parent === targetNode.parent &&
+                        item.isDirectory === targetNode.isDirectory
+
+                    if (isMatch) {
+                        tree.splice(i, 1)
+                        return true
+                    }
+                    if (item.children && removeNode(item.children, targetNode)) {
+                        return true
+                    }
+                }
+                return false
+            }
+
+            removeNode(fileTree.value, node)
+            fileTree.value = sortFileTree([...fileTree.value])
+        } catch (error) {
+            console.error('[ArticleStore] cancelFolderEdit error:', error)
+        }
+    }
+
+    // 初始化折叠列表
     async function initCollapsibleList() {
         errorMsg.value = null
         try {
@@ -531,7 +621,7 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // -------- 设置折叠列表项 --------
+    // 设置折叠列表项
     async function setCollapsibleListItem(path: string, value: boolean) {
         errorMsg.value = null
         try {
@@ -554,7 +644,7 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // -------- 展开所有文件夹 --------
+    // 展开所有文件夹
     async function expandAllFolders() {
         errorMsg.value = null
         try {
@@ -578,13 +668,18 @@ export const useArticleStore = defineStore('article', () => {
             await store.save()
 
             collapsibleList.value = uniq(folderPaths)
+
+            // 空实现：加载远程文件
+            for (const path of folderPaths) {
+                await loadCollapsibleFiles(path)
+            }
         } catch (err) {
             errorMsg.value = `展开所有文件夹失败：${(err as Error).message}`
             console.warn('Failed to expand all folders:', err)
         }
     }
 
-    // -------- 折叠所有文件夹 --------
+    // 折叠所有文件夹
     async function collapseAllFolders() {
         errorMsg.value = null
         try {
@@ -599,7 +694,7 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // -------- 切换所有文件夹状态 --------
+    // 切换所有文件夹状态
     async function toggleAllFolders() {
         if (collapsibleList.value.length > 0) {
             await collapseAllFolders()
@@ -608,7 +703,7 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // -------- 清空折叠列表 --------
+    // 清空折叠列表
     async function clearCollapsibleList() {
         errorMsg.value = null
         try {
@@ -622,7 +717,7 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // -------- 读取文章内容 --------
+    // 读取文章内容
     async function readArticle(path: string, _sha?: string, isLocale = true) {
         setLoading(true)
         errorMsg.value = null
@@ -633,7 +728,7 @@ export const useArticleStore = defineStore('article', () => {
                 let content = ''
 
                 // 检查文件是否存在
-                let fileExists = false
+                let fileExists: boolean
                 if (workspace.isCustom) {
                     fileExists = await exists(pathOptions.path)
                 } else {
@@ -662,12 +757,12 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // -------- 设置当前文章内容 --------
+    // 设置当前文章内容
     function setCurrentArticle(content: string) {
         currentArticle.value = content
     }
 
-    // -------- 保存当前文章 --------
+    // 保存当前文章
     async function saveCurrentArticle(content: string) {
         if (!content || !activeFilePath.value) return
 
@@ -678,7 +773,7 @@ export const useArticleStore = defineStore('article', () => {
             const workspace = await getWorkspacePath()
 
             // 检查文件是否存在
-            let isLocale = false
+            let isLocale: boolean
             const pathOptions = await getFilePathOptions(path)
             if (workspace.isCustom) {
                 isLocale = await exists(pathOptions.path)
@@ -686,13 +781,28 @@ export const useArticleStore = defineStore('article', () => {
                 isLocale = await exists(pathOptions.path, { baseDir: pathOptions.baseDir })
             }
 
-            // 确保目录结构存在（递归创建）
+            // 确保目录结构存在
             if (path.includes('/')) {
-                const dirOptions = await getFilePathOptions(path.substring(0, path.lastIndexOf('/')))
-                if (workspace.isCustom) {
-                    await mkdir(dirOptions.path, { recursive: true })
-                } else {
-                    await mkdir(dirOptions.path, { baseDir: dirOptions.baseDir, recursive: true })
+                let dir = ''
+                const dirPath = path.split('/')
+                for (let index = 0; index < dirPath.length - 1; index += 1) {
+                    dir += `${dirPath[index]}/`
+                    const dirOptions = await getFilePathOptions(dir)
+
+                    let dirExists = false
+                    if (workspace.isCustom) {
+                        dirExists = await exists(dirOptions.path)
+                    } else {
+                        dirExists = await exists(dirOptions.path, { baseDir: dirOptions.baseDir })
+                    }
+
+                    if (!dirExists) {
+                        if (workspace.isCustom) {
+                            await mkdir(dirOptions.path)
+                        } else {
+                            await mkdir(dirOptions.path, { baseDir: dirOptions.baseDir })
+                        }
+                    }
                 }
             }
 
@@ -723,12 +833,12 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // -------- 加载所有文章（用于搜索） --------
+    // 加载所有文章（用于搜索）
     async function loadAllArticle() {
         errorMsg.value = null
         try {
             const workspace = await getWorkspacePath()
-            let allArticles: Article[] = []
+            let allArticles: Article[]
 
             const readDirRecursively = async (dirPath: string, basePath: string, isCustomWorkspace: boolean): Promise<Article[]> => {
                 let articles: Article[] = []
@@ -790,7 +900,7 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // -------- 暴露状态和方法 --------
+    // -暴露状态和方法
     return {
         // 状态
         loading,
@@ -812,6 +922,8 @@ export const useArticleStore = defineStore('article', () => {
         setMatchPosition,
         initHtml2md,
         setHtml2mdValue,
+        setSortType,
+        setSortDirection,
         sortFileTree,
         updateFileStats,
         setFileTree,
@@ -831,6 +943,10 @@ export const useArticleStore = defineStore('article', () => {
         readArticle,
         setCurrentArticle,
         saveCurrentArticle,
-        loadAllArticle
+        loadAllArticle,
+        confirmCreateFolder,
+        cancelFolderEdit
     }
 })
+
+export default useArticleStore

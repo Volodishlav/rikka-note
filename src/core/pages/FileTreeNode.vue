@@ -19,14 +19,26 @@
         <span v-else>🖼️</span>
       </span>
 
-      <!-- 节点名称 -->
-      <span
-          class="node-name"
-          :class="{ active: isActiveFile, editing: node.isEditing }"
-          @dblclick.stop="handleDblClick"
-      >
-        {{ node.name || '未命名' }}
-      </span>
+      <!-- 节点名称 / 编辑输入框 -->
+      <template v-if="node.isEditing">
+        <input
+            ref="editInput"
+            v-model="editName"
+            class="node-edit-input"
+            @blur="handleEditConfirm"
+            @keyup.enter="handleEditConfirm"
+            @keyup.esc="handleEditCancel"
+        />
+      </template>
+      <template v-else>
+        <span
+            class="node-name"
+            :class="{ active: isActiveFile, editing: node.isEditing }"
+            @dblclick.stop="handleDblClick"
+        >
+          {{ node.name || '未命名' }}
+        </span>
+      </template>
 
       <!-- 操作按钮 -->
       <div class="node-actions">
@@ -61,7 +73,7 @@
     <ul v-if="node.isDirectory && isExpanded && node.children" class="child-nodes">
       <FileTreeNode
           v-for="child in node.children"
-          :key="child.name + (child.isDirectory ? 'dir' : 'file')"
+          :key="child.name + (child.isDirectory ? 'dir' : 'file') + (child.isEditing ? 'edit' : '')"
           :node="child"
           :depth="depth + 1"
           @open-file="$emit('open-file', $event)"
@@ -73,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, nextTick, watch } from 'vue'
 import { useArticleStore } from '@/stores/article'
 import { DirTree } from '@/stores/article'
 import { computedParentPath } from '@/lib/path'
@@ -94,6 +106,11 @@ const emit = defineEmits<{
 // Store
 const articleStore = useArticleStore()
 
+// 编辑相关状态
+const editInput = ref<HTMLInputElement>(null)
+const editName = ref('')
+const isEditing = computed(() => props.node.isEditing)
+
 // 计算当前节点的完整路径
 const nodePath = computed(() => {
   return computedParentPath(props.node)
@@ -109,13 +126,25 @@ const isActiveFile = computed(() => {
   return articleStore.activeFilePath === nodePath.value
 })
 
+// 监听编辑状态变化，自动聚焦输入框
+watch(isEditing, (newVal) => {
+  if (newVal) {
+    // 初始化编辑名称（空名称则置空，否则用现有名称）
+    editName.value = props.node.name || ''
+    // 延迟聚焦，确保DOM已更新
+    nextTick(() => {
+      editInput.value?.focus()
+      editInput.value?.select() // 全选现有内容，方便直接输入
+    })
+  }
+}, { immediate: true })
+
 // 切换文件夹展开/折叠状态
 const toggleFolder = async () => {
   await articleStore.setCollapsibleListItem(
       nodePath.value,
       !isExpanded.value
   )
-  // 如果是展开，且有远程同步逻辑（已移除），这里原本会加载远程文件
 }
 
 // 点击节点（文件夹：切换展开/折叠；文件：打开）
@@ -127,10 +156,42 @@ const handleNodeClick = () => {
   }
 }
 
-// 双击节点（仅用于编辑名称，这里简化处理）
+// 双击节点进入编辑状态
 const handleDblClick = () => {
-  // 实际项目中这里会进入重命名编辑状态
-  console.log('双击重命名:', nodePath.value)
+  // 只有文件夹支持编辑（文件重命名可按需添加）
+  if (props.node.isDirectory) {
+    props.node.isEditing = true
+  }
+}
+
+const handleEditConfirm = async () => {
+  const newName = editName.value.trim()
+  if (!newName) {
+    // 空名称直接取消编辑
+    handleEditCancel()
+    return
+  }
+
+  try {
+    // 等待创建完成
+    await articleStore.confirmCreateFolder(props.node, newName)
+    // 手动刷新文件树（确保最新状态）
+    await articleStore.loadFileTree()
+  } catch (error) {
+    console.error('确认创建文件夹失败:', error)
+    // 创建失败时恢复编辑状态
+    nextTick(() => {
+      props.node.isEditing = true
+      editInput.value?.focus()
+    })
+  }
+}
+
+// 取消编辑 - 优化版本
+const handleEditCancel = () => {
+  articleStore.cancelFolderEdit(props.node)
+  // 重置编辑名称
+  editName.value = ''
 }
 
 // 打开文件
@@ -208,6 +269,18 @@ const createFolderInFolder = () => {
 
 .node-name.editing {
   color: #e53e3e;
+}
+
+/* 编辑输入框 */
+.node-edit-input {
+  flex: 1;
+  margin: 0 8px;
+  padding: 2px 4px;
+  border: 1px solid #4299e1;
+  border-radius: 2px;
+  font-size: 14px;
+  outline: none;
+  min-width: 100px;
 }
 
 /* 操作按钮 */
