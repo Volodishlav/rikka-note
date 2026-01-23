@@ -34,11 +34,17 @@ d:\graduation_project\rikka-note
 │   │   └── vue.svg
 │   ├── components/
 │   │   ├── ui/
+│   │   │   ├── collapsible/
+│   │   │   ├── context-menu/
+│   │   │   ├── dropdown-menu/
+│   │   │   ├── input/
+│   │   │   │   ├── Input.vue
+│   │   │   │   └── index.ts
+│   │   │   ├── tooltip/
 │   │   │   ├── Button.vue
 │   │   │   ├── Dialog.vue
 │   │   │   ├── Input.vue
 │   │   │   ├── README.md
-│   │   │   ├── Toast.vue
 │   │   │   ├── Tooltip.vue
 │   │   │   └── index.ts
 │   │   ├── AppSidebar.vue
@@ -55,7 +61,18 @@ d:\graduation_project\rikka-note
 │   │   ├── layouts/
 │   │   │   └── CoreLayout.vue
 │   │   └── pages/
+│   │       ├── article/
+│   │       │   ├── FileIcon.vue
+│   │       │   ├── FileItem.vue
+│   │       │   ├── FileManager.vue
+│   │       │   ├── FileSidebar.vue
+│   │       │   ├── FileToolbar.vue
+│   │       │   ├── FolderItem.vue
+│   │       │   └── TreeItem.vue
+│   │       ├── ArticlePage.vue
+│   │       ├── ArticleTest.vue
 │   │       ├── DataTestPage.vue # 数据测试页面
+│   │       ├── FileTreeNode.vue
 │   │       ├── RecordPage.vue
 │   │       └── test.vue        # 测试页面
 │   ├── db/
@@ -73,6 +90,7 @@ d:\graduation_project\rikka-note
 │   │   └── RootLayout.vue      # 全局布局组件
 │   ├── lib
 │   │   ├── path.ts
+│   │   ├── utils.ts
 │   │   └── workspace.ts
 │   ├── locales/
 │   │   ├── en.json
@@ -89,10 +107,11 @@ d:\graduation_project\rikka-note
 │   │   │   └── NotFound.vue
 │   │   └── globals.scss
 │   ├── stores/
+│   │   ├── article.ts
+│   │   ├── clipboard.ts
 │   │   ├── index.ts
 │   │   ├── setting.ts
-│   │   ├── sidebar.ts
-│   │   └── article.ts
+│   │   └── sidebar.ts
 │   ├── utils/
 │   │   ├── device.ts
 │   │   ├── tauriStore.ts      # Tauri存储工具

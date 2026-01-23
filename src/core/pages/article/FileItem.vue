@@ -1,3 +1,4 @@
+//FileItem.vue
 <template>
   <ContextMenu>
     <ContextMenuTrigger>
@@ -32,7 +33,7 @@
           <!-- 图片文件 -->
           <div v-if="isImageFile" class="flex gap-1 items-center flex-1 select-none">
             <span :class="item.parent ? 'size-0' : 'size-4 ml-1'" />
-            <ImageIcon class="size-4" />
+            <Image class="size-4" />
             <span
                 class="text-xs flex-1 line-clamp-1"
                 draggable
@@ -117,6 +118,7 @@ import {
 } from '@tauri-apps/plugin-fs'
 import { openPath } from '@tauri-apps/plugin-opener'
 import { appDataDir, join } from '@tauri-apps/api/path'
+import { Image } from 'lucide-vue-next'
 import type { DirTree } from '@/stores/article'
 import { useArticleStore } from '@/stores/article'
 import { useToast } from '@/composables/useToast'
@@ -128,6 +130,8 @@ import {
   ContextMenuItem,
   ContextMenuSeparator
 } from '@/components/ui/context-menu'
+import useClipboardStore from '@/stores/clipboard'
+import { convertImageByWorkspace } from '@/lib/utils'
 
 interface Props {
   item: DirTree
@@ -137,6 +141,10 @@ const props = defineProps<Props>()
 
 const articleStore = useArticleStore()
 const { showToast } = useToast()
+const clipboardStore = useClipboardStore()
+const clipboardItem = computed(() => clipboardStore.clipboardItem)
+const clipboardOperation = computed(() => clipboardStore.clipboardOperation)
+const setClipboardItem = (item: any, op: 'copy' | 'cut' | 'none') => clipboardStore.setClipboardItem(item, op)
 
 const isEditing = ref(props.item.isEditing ?? false)
 const name = ref(props.item.name)
@@ -206,8 +214,14 @@ const handleCompositionEnd = (e: CompositionEvent) => {
 // 文件操作处理
 const handleSelectFile = async () => {
   if (isImageFile.value) {
-    // 图片：显示预览
-    // TODO: 实现图片预览
+    try {
+      const imgUrl = await convertImageByWorkspace(path.value)
+      // 简单方案：在新窗口打开图片（若项目已有图片预览组件，可改为触发 modal）
+      window.open(imgUrl, '_blank')
+    } catch (err) {
+      console.error('Show image failed:', err)
+      showToast({ title: 'Show image failed', variant: 'destructive' })
+    }
   } else {
     // 文件：读取内容
     articleStore.setActiveFilePath(path.value)
@@ -329,24 +343,70 @@ const handleDragStart = (e: DragEvent) => {
   e.dataTransfer!.setData('text', path.value)
 }
 
-const handleCutFile = () => {
-  // TODO: 实现剪切逻辑
-  showToast({ title: 'Cut' })
-}
-
 const handleCopyFile = () => {
-  // TODO: 实现复制逻辑
+  setClipboardItem({
+    path: path.value,
+    name: props.item.name,
+    isDirectory: false,
+    sha: props.item.sha,
+    isLocale: props.item.isLocale
+  }, 'copy')
   showToast({ title: 'Copied' })
 }
 
+const handleCutFile = () => {
+  setClipboardItem({
+    path: path.value,
+    name: props.item.name,
+    isDirectory: false,
+    sha: props.item.sha,
+    isLocale: props.item.isLocale
+  }, 'cut')
+  showToast({ title: 'Cut' })
+}
+
 const handlePasteFile = async () => {
-  // TODO: 实现粘贴逻辑
-  showToast({ title: 'Paste not implemented yet' })
+  const item = clipboardItem.value
+  if (!item) {
+    showToast({ title: 'Clipboard is empty', variant: 'destructive' })
+    return
+  }
+  if (item.isDirectory) {
+    showToast({ title: 'Pasting directories is not supported', variant: 'destructive' })
+    return
+  }
+
+  try {
+    const sourcePath = `article/${item.path}`
+    const targetDir = path.value.includes('/') ? path.value.substring(0, path.value.lastIndexOf('/')) : ''
+    const targetPath = targetDir ? `article/${targetDir}/${item.name}` : `article/${item.name}`
+
+    const existsTarget = await exists(targetPath, { baseDir: BaseDirectory.AppData })
+    if (existsTarget) {
+      const confirmOverwrite = await ask(`"${item.name}" already exists. Overwrite?`, { title: 'Confirm', kind: 'warning' })
+      if (!confirmOverwrite) return
+    }
+
+    const content = await readTextFile(sourcePath, { baseDir: BaseDirectory.AppData })
+    await writeTextFile(targetPath, content, { baseDir: BaseDirectory.AppData })
+
+    if (clipboardOperation.value === 'cut') {
+      // 删除源文件并清空剪贴板
+      await remove(sourcePath, { baseDir: BaseDirectory.AppData })
+      setClipboardItem(null, 'none')
+    }
+
+    await articleStore.loadFileTree()
+    showToast({ title: 'Pasted' })
+  } catch (err) {
+    console.error('Paste failed:', err)
+    showToast({ title: 'Paste failed', variant: 'destructive' })
+  }
 }
 
 const handleDeleteSyncFile = async () => {
-  // TODO: 实现同步文件删除逻辑
-  showToast({ title: 'Delete sync not implemented yet' })
+  // 项目中已移除/不使用远程删除时，提示或在未来实现
+  showToast({ title: 'Remote delete not enabled in this build', variant: 'destructive' })
 }
 
 const showContextMenu = () => {

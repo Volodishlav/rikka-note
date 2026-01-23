@@ -1,3 +1,4 @@
+//FolderItem.vue
 <template>
   <Collapsible>
     <CollapsibleTrigger>
@@ -13,7 +14,7 @@
                 class="transition-transform size-4"
                 :class="isExpanded && 'rotate-90'"
             />
-            <FolderIcon :is-open="isExpanded" />
+            <Folder class="size-4" />
             <input
                 v-if="isEditing"
                 ref="inputRef"
@@ -60,6 +61,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { Folder, ChevronRight } from 'lucide-vue-next'
 import type { DirTree } from '@/stores/article'
 import { useArticleStore } from '@/stores/article'
 import TreeItem from './TreeItem.vue'

@@ -1,3 +1,4 @@
+//useToast.ts
 import { reactive, readonly } from 'vue'
 // Tauri通知插件导入，使用正确的插件路径
 import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification'

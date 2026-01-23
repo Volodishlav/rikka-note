@@ -1,3 +1,4 @@
+//AppSidebar.vue
 <template>
   <aside :class="['flex flex-col h-screen bg-sidebar text-sidebar-foreground transition-width duration-200', collapsed ? 'w-12' : 'w-56']">
     <!-- Header -->

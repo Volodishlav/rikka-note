@@ -7,7 +7,7 @@
 
     <!-- 右侧编辑器 (75%) -->
     <div class="flex-1">
-      <!-- MdEditor 组件待实现 -->
+      <MdEditor />
       <div class="h-full p-4">
         <p class="text-sm text-muted-foreground">Markdown Editor (To be implemented)</p>
       </div>
@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import FileSidebar from './article/FileSidebar.vue'
-
+import MdEditor from './article/MdEditor.vue'
 // 后续会添加 MdEditor 导入
 // import MdEditor from './article/MdEditor.vue'
 </script>
