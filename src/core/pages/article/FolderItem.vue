@@ -125,8 +125,6 @@ const isExpanded = computed({
 
 const isSelected = computed(() => articleStore.selectedFolder === path.value)
 
-// --- 核心逻辑: 输入与重命名 (完全仿照 FileItem) ---
-
 // IME 输入处理（支持中文输入）
 const handleInputChange = (e: Event) => {
   const input = e.target as HTMLInputElement
