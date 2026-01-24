@@ -55,7 +55,7 @@ try {
 
 const themeResult = useTheme()
 const isDark = computed(() => {
-  return themeResult?.isDark ?? false
+  return themeResult?.theme?.value === 'dark'
 })
 
 const toast = useToast() || {
