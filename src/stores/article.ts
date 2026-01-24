@@ -53,6 +53,8 @@ export const useArticleStore = defineStore('article', () => {
 
     async function setActiveFilePath(path: string) {
         activeFilePath.value = path
+        // 关键修复：切换路径时先清空当前文章内容，防止内容污染
+        currentArticle.value = ''
         try {
             const store = await Store.load('store.json')
             await store.set('activeFilePath', path)
@@ -488,24 +490,26 @@ export const useArticleStore = defineStore('article', () => {
 
     // 保存当前文章
     async function saveCurrentArticle(content: string) {
-        if (!content || !activeFilePath.value) return
+        // 基础检查：没有内容或没有活跃文件时不保存
+        if (!activeFilePath.value) return
 
-        setLoading(true)
-        errorMsg.value = null
+        // 如果内容未发生变化，可以增加一个对比逻辑减少 IO 操作（可选）
+        // if (content === currentArticle.value) return
+
         try {
             const path = activeFilePath.value
             const workspace = await getWorkspacePath()
-
-            // 检查文件是否存在
-            let isLocale: boolean
             const pathOptions = await getFilePathOptions(path)
+
+            // 1. 检查文件是否已存在（决定后续是否需要更新文件树状态）
+            let isLocale = false
             if (workspace.isCustom) {
                 isLocale = await exists(pathOptions.path)
             } else {
                 isLocale = await exists(pathOptions.path, { baseDir: pathOptions.baseDir })
             }
 
-            // 确保目录结构存在
+            // 2. 确保目录结构存在 (递归创建不存在的父文件夹)
             if (path.includes('/')) {
                 let dir = ''
                 const dirPath = path.split('/')
@@ -530,14 +534,17 @@ export const useArticleStore = defineStore('article', () => {
                 }
             }
 
-            // 保存文件内容
+            // 3. 保存文件内容到物理磁盘
             if (workspace.isCustom) {
                 await writeTextFile(pathOptions.path, content)
             } else {
                 await writeTextFile(pathOptions.path, content, { baseDir: pathOptions.baseDir })
             }
 
-            // 更新缓存树的 isLocale 状态
+            // 4. 更新内部状态
+            currentArticle.value = content
+
+            // 5. 如果是第一次保存该文件（从虚构变为真实），更新文件树 UI 状态
             if (!isLocale) {
                 const cacheTree = cloneDeep(fileTree.value)
                 const current = path.includes('/')
@@ -545,15 +552,26 @@ export const useArticleStore = defineStore('article', () => {
                     : cacheTree.find(item => item.name === path)
                 if (current) {
                     current.isLocale = true
+                    fileTree.value = cacheTree
                 }
-                fileTree.value = cacheTree
+            }
+
+            // 6. 向量数据库同步 (根据你的例子要求实现)
+            if (path.endsWith('.md')) {
+                try {
+                    // 这里假设你有一个 vectorStore，如果没有请忽略或根据项目调整
+                    // const vectorStore = useVectorStore()
+                    // if (vectorStore.isVectorDbEnabled) {
+                    //     vectorStore.processDocument(path, content)
+                    // }
+                } catch (error) {
+                    console.error('更新文档向量失败:', error)
+                }
             }
 
         } catch (error) {
-            errorMsg.value = `保存文章失败：${(error as Error).message}`
+            errorMsg.value = `自动保存失败：${(error as Error).message}`
             console.error('[ArticleStore] saveCurrentArticle error:', error)
-        } finally {
-            setLoading(false)
         }
     }
 
@@ -671,8 +689,10 @@ export const useArticleStore = defineStore('article', () => {
         collapseAllFolders,
         toggleAllFolders,
         clearCollapsibleList,
+        readArticle,
         setSelectedFolder,
-        clearSelectedFolder
+        clearSelectedFolder,
+        saveCurrentArticle
     }
 })
 

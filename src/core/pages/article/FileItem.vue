@@ -86,13 +86,13 @@
       >
         Rename
       </ContextMenuItem>
-      <ContextMenuItem
-          :disabled="!item.sha"
-          @click="handleDeleteSyncFile"
-          class="text-red-900"
-      >
-        Delete from Sync
-      </ContextMenuItem>
+<!--      <ContextMenuItem-->
+<!--          :disabled="!item.sha"-->
+<!--          @click="handleDeleteSyncFile"-->
+<!--          class="text-red-900"-->
+<!--      >-->
+<!--        Delete from Sync-->
+<!--      </ContextMenuItem>-->
       <ContextMenuItem
           :disabled="!item.isLocale || !item.name"
           @click="handleDeleteFile"

@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed, nextTick, onScopeDispose } from 'vue'
 // 导入Vditor和样式
-import Vditor from 'vditor/dist/index.min.js'
+import Vditor from 'vditor'
 import 'vditor/dist/index.css'
 
 // 加载国际化文件
@@ -297,14 +297,6 @@ async function initEditor() {
           return 'uploaded'
         }
       },
-      // 编辑器内容变化
-      input: (value: string) => {
-        if (articleStore && typeof value === 'string') {
-          // 编辑器内容变化时的处理逻辑
-          // 注意：articleStore 不再包含 setCurrentArticle 和 saveCurrentArticle 方法
-          // 这些方法已被移除，因为它们属于文件操作逻辑，不属于状态管理
-        }
-      },
       // 初始化完成
       after: () => {
         try {
@@ -315,6 +307,19 @@ async function initEditor() {
           }
         } catch (error) {
           console.error('Failed to initialize editor content:', error)
+        }
+      },
+      // 编辑器内容变化时的自动保存
+      input: (value: string) => {
+        if (articleStore && activeFilePath.value) {
+          // 调用 Store 里的保存方法
+          articleStore.saveCurrentArticle(value)
+
+          // 如果有全局事件总线
+          // emitter.emit('editor-input')
+
+          // 处理本地图片实时预览转换
+          handleLocalImages().catch(console.error)
         }
       },
       mode: editMode.value,
@@ -520,7 +525,13 @@ watch(
         destroyEditor()
 
         if (newPath && articleStore) {
+          // 核心修复：在初始化编辑器前，先从磁盘读取新文件内容
+          // 这一步会更新 articleStore.currentArticle
+          await articleStore.readArticle(newPath)
+
           await nextTick()
+          
+          // 确保内容读取完成后再初始化
           setTimeout(() => {
             initEditor()
           }, 50)
