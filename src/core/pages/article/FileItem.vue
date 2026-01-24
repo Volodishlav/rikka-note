@@ -8,7 +8,7 @@
           path === activeFilePath && 'active',
           !isRoot && 'translate-x-5'
         ]"
-          @click="handleSelectFile"
+          @click="(e) => handleSelectFile(e)"
       >
         <!-- 编辑模式 -->
         <div v-if="isEditing" class="flex gap-1 items-center w-full select-none">
@@ -202,7 +202,8 @@ const handleCompositionEnd = (e: CompositionEvent) => {
 }
 
 // 文件操作处理
-const handleSelectFile = async () => {
+const handleSelectFile = async (e: Event) => {
+  e.stopPropagation() // 阻止事件冒泡，避免触发 FileManager 的点击事件
   if (isImageFile.value) {
     try {
       const imgUrl = await convertImageByWorkspace(path.value)

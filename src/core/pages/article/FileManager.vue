@@ -1,11 +1,12 @@
 //FileManager.vue
 <template>
   <div
-      class="flex flex-col p-0"
+      class="flex flex-col p-0 h-full"
       :class="isDragging && 'outline-2 outline-black outline-dotted -outline-offset-4'"
       @drop="handleDrop"
       @dragover="handleDragOver"
       @dragleave="handleDragLeave"
+      @click="handleClickOutside"
   >
     <div class="flex flex-col gap-0">
       <TreeItem
@@ -106,6 +107,11 @@ const handleDragOver = (e: DragEvent) => {
 const handleDragLeave = (e: DragEvent) => {
   e.preventDefault()
   isDragging.value = false
+}
+
+// 处理点击空白处的事件，清除选中的文件夹
+const handleClickOutside = () => {
+  articleStore.clearSelectedFolder()
 }
 
 // 初始化加载文件树

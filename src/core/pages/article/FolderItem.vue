@@ -283,6 +283,7 @@ const handleExpandChange = (open: boolean) => {
 }
 
 const handleFolderClick = (e: MouseEvent) => {
+  e.stopPropagation() // 阻止事件冒泡，避免触发 FileManager 的点击事件
   // 防止右键或编辑状态下触发
   if (e.button === 2 || isEditing.value) return
 
