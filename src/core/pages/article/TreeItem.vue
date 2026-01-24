@@ -1,4 +1,6 @@
+//TreeItem.vue
 <template>
+
   <!-- 文件项 -->
   <FileItem v-if="item.isFile" :item="item" />
 

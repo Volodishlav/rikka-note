@@ -1,3 +1,4 @@
+//FileToolbar.vue
 <template>
   <div class="flex justify-between items-center h-12 border-b px-2">
     <!-- 左侧按钮组 -->
@@ -127,11 +128,13 @@ import {
 import { useArticleStore } from '@/stores/article'
 import { useSettingStore } from '@/stores/setting'
 import { useToast } from '@/composables/useToast'
+import { appDataDir, join } from '@tauri-apps/api/path'
+import { exists, mkdir } from '@tauri-apps/plugin-fs'
 // import { useUsername } from '@/composables/useUsername'
 
 const articleStore = useArticleStore()
 const settingStore = useSettingStore()
-const { showToast } = useToast()
+const { show } = useToast()
 // const { username } = useUsername()
 
 // 计算属性映射到 store
@@ -149,7 +152,35 @@ const handleNewFile = debounce(async () => {
 }, 200)
 
 const handleNewFolder = debounce(async () => {
-  await articleStore.newFolder()
+  try {
+    // 获取当前选中的文件夹路径，如果没有选中则使用根目录
+    const selectedPath = articleStore.selectedFolder
+    const appData = await appDataDir()
+    const fullPath = selectedPath 
+      ? await join(appData, 'article', selectedPath) 
+      : await join(appData, 'article')
+    
+    // 生成新文件夹名
+    let newFolderName = 'New Folder'
+    let counter = 1
+    
+    // 检查文件夹是否已存在
+    while (await exists(await join(fullPath, newFolderName))) {
+      newFolderName = `New Folder ${counter}`
+      counter++
+    }
+    
+    // 创建新文件夹
+    const newFolderPath = await join(fullPath, newFolderName)
+    await mkdir(newFolderPath)
+    
+    // 重新加载文件树
+    await articleStore.loadFileTree()
+    show({ title: 'Folder created', variant: 'success' })
+  } catch (err) {
+    console.error('Create folder failed:', err)
+    show({ title: 'Create folder failed', variant: 'error' })
+  }
 }, 200)
 
 // 排序处理

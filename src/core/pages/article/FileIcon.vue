@@ -1,3 +1,4 @@
+//FileIcon.vue
 <template>
   <div class="flex items-center">
     <component :is="iconComponent" class="size-4" />

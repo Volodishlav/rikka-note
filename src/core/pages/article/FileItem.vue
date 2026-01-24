@@ -9,7 +9,6 @@
           !isRoot && 'translate-x-5'
         ]"
           @click="handleSelectFile"
-          @contextmenu.prevent="showContextMenu"
       >
         <!-- 编辑模式 -->
         <div v-if="isEditing" class="flex gap-1 items-center w-full select-none">
@@ -106,32 +105,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted } from 'vue'
-import { ask } from '@tauri-apps/plugin-dialog'
-import {
-  BaseDirectory,
-  readTextFile,
-  writeTextFile,
-  rename,
-  remove,
-  exists
-} from '@tauri-apps/plugin-fs'
-import { openPath } from '@tauri-apps/plugin-opener'
-import { appDataDir, join } from '@tauri-apps/api/path'
-import { Image } from 'lucide-vue-next'
-import type { DirTree } from '@/stores/article'
-import { useArticleStore } from '@/stores/article'
-import { useToast } from '@/composables/useToast'
+import {computed, nextTick, onMounted, ref} from 'vue'
+import {ask} from '@tauri-apps/plugin-dialog'
+import {BaseDirectory, exists, readTextFile, remove, rename, writeTextFile} from '@tauri-apps/plugin-fs'
+import {openPath} from '@tauri-apps/plugin-opener'
+import {appDataDir, join} from '@tauri-apps/api/path'
+import {Image} from 'lucide-vue-next'
+import type {DirTree} from '@/stores/article'
+import {useArticleStore} from '@/stores/article'
+import {useToast} from '@/composables/useToast'
 import FileIcon from './FileIcon.vue'
 import {
   ContextMenu,
-  ContextMenuTrigger,
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuSeparator
+  ContextMenuSeparator,
+  ContextMenuTrigger
 } from '@/components/ui/context-menu'
 import useClipboardStore from '@/stores/clipboard'
-import { convertImageByWorkspace } from '@/lib/utils'
+import {convertImageByWorkspace} from '@/lib/utils'
 
 interface Props {
   item: DirTree
@@ -140,7 +132,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const articleStore = useArticleStore()
-const { showToast } = useToast()
+const { show } = useToast()
 const clipboardStore = useClipboardStore()
 const clipboardItem = computed(() => clipboardStore.clipboardItem)
 const clipboardOperation = computed(() => clipboardStore.clipboardOperation)
@@ -184,8 +176,7 @@ const handleInputChange = (e: Event) => {
   }
 
   if (value.includes(' ')) {
-    const sanitized = value.replace(/\s+/g, '_')
-    name.value = sanitized
+    name.value = value.replace(/\s+/g, '_')
 
     nextTick(() => {
       input.setSelectionRange(cursorPos, cursorPos)
@@ -202,8 +193,7 @@ const handleCompositionEnd = (e: CompositionEvent) => {
   const cursorPos = input.selectionStart ?? 0
 
   if (value.includes(' ')) {
-    const sanitized = value.replace(/\s+/g, '_')
-    name.value = sanitized
+    name.value = value.replace(/\s+/g, '_')
 
     nextTick(() => {
       input.setSelectionRange(cursorPos, cursorPos)
@@ -220,12 +210,11 @@ const handleSelectFile = async () => {
       window.open(imgUrl, '_blank')
     } catch (err) {
       console.error('Show image failed:', err)
-      showToast({ title: 'Show image failed', variant: 'destructive' })
+      show({ title: 'Show image failed', variant: 'error' })
     }
   } else {
-    // 文件：读取内容
+    // 文件：设置为活动文件
     articleStore.setActiveFilePath(path.value)
-    await articleStore.readArticle(path.value, props.item.sha, props.item.isLocale)
   }
 }
 
@@ -269,9 +258,9 @@ const handleRename = async () => {
       )
 
       if (await exists(fullPath)) {
-        showToast({ title: 'File already exists' })
-        return
-      }
+        show({ title: 'File already exists', variant: 'warning' })
+      return
+    }
 
       await writeTextFile(fullPath, '')
     }
@@ -281,9 +270,9 @@ const handleRename = async () => {
     articleStore.setActiveFilePath(newPath)
   } catch (error) {
     console.error('Rename failed:', error)
-    showToast({
+    show({
       title: 'Rename failed',
-      variant: 'destructive'
+      variant: 'error'
     })
   }
 }
@@ -321,9 +310,9 @@ const handleDeleteFile = async () => {
     }
   } catch (error) {
     console.error('Delete failed:', error)
-    showToast({
+    show({
       title: 'Delete failed',
-      variant: 'destructive'
+      variant: 'error'
     })
   }
 }
@@ -344,35 +333,23 @@ const handleDragStart = (e: DragEvent) => {
 }
 
 const handleCopyFile = () => {
-  setClipboardItem({
-    path: path.value,
-    name: props.item.name,
-    isDirectory: false,
-    sha: props.item.sha,
-    isLocale: props.item.isLocale
-  }, 'copy')
-  showToast({ title: 'Copied' })
+  setClipboardItem({ path: path.value, name: props.item.name, isDirectory: false, sha: props.item.sha, isLocale: props.item.isLocale }, 'copy')
+  show({ title: 'Copied', variant: 'success' })
 }
 
 const handleCutFile = () => {
-  setClipboardItem({
-    path: path.value,
-    name: props.item.name,
-    isDirectory: false,
-    sha: props.item.sha,
-    isLocale: props.item.isLocale
-  }, 'cut')
-  showToast({ title: 'Cut' })
+  setClipboardItem({ path: path.value, name: props.item.name, isDirectory: false, sha: props.item.sha, isLocale: props.item.isLocale }, 'cut')
+  show({ title: 'Cut', variant: 'success' })
 }
 
 const handlePasteFile = async () => {
   const item = clipboardItem.value
   if (!item) {
-    showToast({ title: 'Clipboard is empty', variant: 'destructive' })
+    show({ title: 'Clipboard is empty', variant: 'error' })
     return
   }
   if (item.isDirectory) {
-    showToast({ title: 'Pasting directories is not supported', variant: 'destructive' })
+    show({ title: 'Pasting directories is not supported', variant: 'error' })
     return
   }
 
@@ -397,21 +374,19 @@ const handlePasteFile = async () => {
     }
 
     await articleStore.loadFileTree()
-    showToast({ title: 'Pasted' })
+    show({ title: 'Pasted', variant: 'success' })
   } catch (err) {
     console.error('Paste failed:', err)
-    showToast({ title: 'Paste failed', variant: 'destructive' })
+    show({ title: 'Paste failed', variant: 'error' })
   }
 }
 
 const handleDeleteSyncFile = async () => {
   // 项目中已移除/不使用远程删除时，提示或在未来实现
-  showToast({ title: 'Remote delete not enabled in this build', variant: 'destructive' })
+  show({ title: 'Remote delete not enabled in this build', variant: 'error' })
 }
 
-const showContextMenu = () => {
-  // Vue 的 ContextMenu 自动处理
-}
+
 
 onMounted(() => {
   if (props.item.isEditing) {

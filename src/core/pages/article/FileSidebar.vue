@@ -1,3 +1,4 @@
+//FileSidebar.vue
 <template>
   <div class="w-full h-screen flex flex-col bg-sidebar text-sidebar-foreground">
     <!-- 工具栏 -->

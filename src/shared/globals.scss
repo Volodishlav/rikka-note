@@ -3,9 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-// 引入动画插件（3.x 版本）
-@plugin 'tailwindcss-animate';
-
 // 主题变量（3.x 兼容写法）
 @layer base {
   :root {

@@ -102,6 +102,8 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useArticleStore } from '@/stores/article'
+import { appDataDir, join } from '@tauri-apps/api/path'
+import { exists, mkdir } from '@tauri-apps/plugin-fs'
 import FileTreeNode from '@/core/pages/FileTreeNode.vue'
 
 // 初始化 Store
@@ -136,7 +138,30 @@ const createNewFile = async () => {
 
 // 创建新文件夹（根目录）
 const createNewFolder = async () => {
-  await articleStore.newFolder()
+  try {
+    // 直接在根目录创建带有默认名称的文件夹
+    const appData = await appDataDir()
+    const fullPath = await join(appData, 'article')
+    
+    // 生成新文件夹名
+    let newFolderName = 'New Folder'
+    let counter = 1
+    
+    // 检查文件夹是否已存在
+    while (await exists(await join(fullPath, newFolderName))) {
+      newFolderName = `New Folder ${counter}`
+      counter++
+    }
+    
+    // 创建新文件夹
+    const newFolderPath = await join(fullPath, newFolderName)
+    await mkdir(newFolderPath)
+    
+    // 重新加载文件树
+    await articleStore.loadFileTree()
+  } catch (error) {
+    console.error('创建文件夹失败:', error)
+  }
 }
 
 // 切换所有文件夹状态

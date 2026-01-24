@@ -1,3 +1,4 @@
+//article.ts
 import {defineStore} from 'pinia'
 import {ref} from 'vue'
 import {BaseDirectory, DirEntry, exists, mkdir, readDir, readTextFile, stat, writeTextFile} from '@tauri-apps/plugin-fs'
@@ -7,7 +8,7 @@ import {join} from '@tauri-apps/api/path'
 
 // 导入路径/工作区工具函数
 import {getFilePathOptions, getWorkspacePath, toWorkspaceRelativePath} from '@/lib/workspace'
-import {computedParentPath, getCurrentFolder} from '@/lib/path'
+import {getCurrentFolder} from '@/lib/path'
 
 // 类型定义
 export type SortType = 'name' | 'created' | 'modified' | 'none'
@@ -28,7 +29,7 @@ export interface Article {
     path: string
 }
 
-// tore 定义（基于Pinia，对齐React的Zustand逻辑）
+// tore
 export const useArticleStore = defineStore('article', () => {
     // -------- 状态管理 --------
     const loading = ref(false)
@@ -43,6 +44,7 @@ export const useArticleStore = defineStore('article', () => {
     const currentArticle = ref('')
     const allArticle = ref<Article[]>([])
     const errorMsg = ref<string | null>(null)
+    const selectedFolder = ref('') // 当前选中的文件夹路径
 
     // -------- 基础状态设置方法 --------
     function setLoading(val: boolean) {
@@ -324,283 +326,6 @@ export const useArticleStore = defineStore('article', () => {
         // 无需实现：已移除远程同步功能（Github/Gitee/Gitlab）
     }
 
-    // 新建文件夹（根目录）
-    async function newFolder() {
-        errorMsg.value = null
-        try {
-            const cacheTree = cloneDeep(fileTree.value)
-            // 检查是否已有空名称的编辑中文件夹
-            const exists = cacheTree.find(item => item.name === '' && item.isDirectory)
-            if (exists) return
-
-            // 创建内存中的编辑态空文件夹
-            const node: DirTree = {
-                name: '',
-                isFile: false,
-                isDirectory: true,
-                isSymlink: false,
-                isEditing: true,
-                isLocale: true,
-                children: []
-            }
-
-            cacheTree.unshift(node)
-            fileTree.value = cacheTree
-
-        } catch (error) {
-            errorMsg.value = `新建文件夹失败：${(error as Error).message}`
-            console.error('[ArticleStore] newFolder error:', error)
-        }
-    }
-
-    // 新建文件（根目录/当前文件父目录）
-    async function newFile() {
-        errorMsg.value = null
-        try {
-            const cacheTree = cloneDeep(fileTree.value)
-            // 检查是否已有空名称的编辑中文件
-            const exists = cacheTree.find(item => item.name === '' && item.isFile)
-            if (exists) return
-
-            const path = activeFilePath.value
-            if (path.includes('/')) {
-                // 在当前活动文件的父文件夹下创建
-                const folderPath = path.split('/').slice(0, -1).join('/')
-                const currentFolder = getCurrentFolder(folderPath, cacheTree)
-
-                // 检查父文件夹是否已有空文件
-                if (currentFolder?.children?.find((item: DirTree) => item.name === '' && item.isFile)) {
-                    return
-                }
-
-                // 确保文件夹展开
-                if (!collapsibleList.value.includes(folderPath)) {
-                    collapsibleList.value.push(folderPath)
-                }
-
-                if (currentFolder) {
-                    const newFile: DirTree = {
-                        name: '',
-                        isFile: true,
-                        isSymlink: false,
-                        parent: currentFolder,
-                        isEditing: true,
-                        isDirectory: false,
-                        isLocale: true,
-                        sha: '',
-                        children: []
-                    }
-                    currentFolder.children?.unshift(newFile)
-                    fileTree.value = cacheTree
-                }
-            } else {
-                // 根目录创建
-                const newFile: DirTree = {
-                    name: '',
-                    isFile: true,
-                    isSymlink: false,
-                    parent: undefined,
-                    isEditing: true,
-                    isDirectory: false,
-                    isLocale: true,
-                    sha: '',
-                    children: []
-                }
-                cacheTree.unshift(newFile)
-                fileTree.value = cacheTree
-            }
-        } catch (error) {
-            errorMsg.value = `新建文件失败：${(error as Error).message}`
-            console.error('[ArticleStore] newFile error:', error)
-        }
-    }
-
-    // 在指定文件夹下新建文件
-    async function newFileOnFolder(path: string) {
-        errorMsg.value = null
-        try {
-            const cacheTree = cloneDeep(fileTree.value)
-            const currentFolder = path.includes('/')
-                ? getCurrentFolder(path, cacheTree)
-                : cacheTree.find(item => item.name === path)
-
-            // 获取工作区信息并生成文件名
-            const workspace = await getWorkspacePath()
-            const fileName = `新建文件-${new Date().getTime()}.md`
-            const fullPath = `${path}/${fileName}`
-            const pathOptions = await getFilePathOptions(fullPath)
-
-            // 写入空文件到本地
-            if (workspace.isCustom) {
-                await writeTextFile(pathOptions.path, '')
-            } else {
-                await writeTextFile(pathOptions.path, '', { baseDir: pathOptions.baseDir })
-            }
-
-            // 更新文件树
-            const node: DirTree = {
-                name: fileName,
-                isFile: true,
-                isDirectory: false,
-                isSymlink: false,
-                isEditing: false,
-                isLocale: true,
-                parent: currentFolder,
-                sha: '',
-                children: []
-            }
-
-            currentFolder?.children?.unshift(node)
-            fileTree.value = cacheTree
-            await setActiveFilePath(fullPath)
-        } catch (error) {
-            errorMsg.value = `在文件夹下新建文件失败：${(error as Error).message}`
-            console.error('[ArticleStore] newFileOnFolder error:', error)
-        }
-    }
-
-    // 在指定文件夹下新建子文件夹
-    async function newFolderInFolder(path: string) {
-        errorMsg.value = null
-        try {
-            const cacheTree = cloneDeep(fileTree.value)
-            const currentFolder = path.includes('/')
-                ? getCurrentFolder(path, cacheTree)
-                : cacheTree.find(item => item.name === path)
-
-            // 检查是否已有空名称文件夹
-            const hasEmptyFolder = currentFolder?.children?.find((item: DirTree) => item.name === '' && item.isDirectory)
-            if (hasEmptyFolder) return
-
-            // 创建内存中的编辑态空文件夹
-            const node: DirTree = {
-                name: '',
-                isFile: false,
-                isDirectory: true,
-                isSymlink: false,
-                isEditing: true,
-                isLocale: true,
-                parent: currentFolder,
-                sha: '',
-                children: []
-            }
-
-            currentFolder?.children?.unshift(node)
-            fileTree.value = cacheTree
-
-        } catch (error) {
-            errorMsg.value = `在文件夹下新建文件夹失败：${(error as Error).message}`
-            console.error('[ArticleStore] newFolderInFolder error:', error)
-        }
-    }
-
-    // 确认创建文件夹（重命名完成后）
-    async function confirmCreateFolder(node: DirTree, newName: string) {
-        errorMsg.value = null
-        try {
-            if (!newName || newName.trim() === '') {
-                errorMsg.value = '文件夹名称不能为空'
-                return
-            }
-
-            // 获取工作区信息
-            const workspace = await getWorkspacePath()
-
-            // 计算文件夹的相对路径（和文件创建逻辑一致）
-            let folderRelativePath: string
-            if (node.parent) {
-                const parentRelativePath = computedParentPath(node.parent)
-                folderRelativePath = `${parentRelativePath}/${newName}`
-            } else {
-                folderRelativePath = newName
-            }
-
-            // 复用文件创建的正确路径逻辑
-            const pathOptions = await getFilePathOptions(folderRelativePath)
-
-            // 检查文件夹是否已存在
-            let folderExists: boolean
-            try {
-                if (workspace.isCustom) {
-                    folderExists = await exists(pathOptions.path)
-                } else {
-                    folderExists = await exists(pathOptions.path, { baseDir: pathOptions.baseDir })
-                }
-            } catch (err) {
-                folderExists = false
-            }
-
-            if (folderExists) {
-                errorMsg.value = `文件夹 "${newName}" 已存在`
-                return
-            }
-
-            // 创建文件夹（和文件创建时的目录创建逻辑一致）
-            if (workspace.isCustom) {
-                await mkdir(pathOptions.path, { recursive: true })
-            } else {
-                await mkdir(pathOptions.path, { baseDir: pathOptions.baseDir, recursive: true })
-            }
-
-            // 查找并更新节点
-            const findAndUpdateNode = (tree: DirTree[], targetNode: DirTree): boolean => {
-                for (const item of tree) {
-                    const isMatch = item.name === targetNode.name &&
-                        item.parent === targetNode.parent &&
-                        item.isDirectory === targetNode.isDirectory
-
-                    if (isMatch) {
-                        item.name = newName
-                        item.isEditing = false
-                        return true
-                    }
-                    if (item.children && findAndUpdateNode(item.children, targetNode)) {
-                        return true
-                    }
-                }
-                return false
-            }
-
-            findAndUpdateNode(fileTree.value, node)
-            fileTree.value = sortFileTree([...fileTree.value])
-
-            // 刷新文件树
-            await loadFileTree()
-
-        } catch (error) {
-            console.error('创建文件夹错误详情:', error)
-            errorMsg.value = `创建文件夹失败：${(error as Error).message}`
-        }
-    }
-
-    // 取消文件夹编辑（删除内存中的空节点）
-    function cancelFolderEdit(node: DirTree) {
-        try {
-            const removeNode = (tree: DirTree[], targetNode: DirTree): boolean => {
-                for (let i = 0; i < tree.length; i++) {
-                    const item = tree[i]
-                    const isMatch = item.name === targetNode.name &&
-                        item.parent === targetNode.parent &&
-                        item.isDirectory === targetNode.isDirectory
-
-                    if (isMatch) {
-                        tree.splice(i, 1)
-                        return true
-                    }
-                    if (item.children && removeNode(item.children, targetNode)) {
-                        return true
-                    }
-                }
-                return false
-            }
-
-            removeNode(fileTree.value, node)
-            fileTree.value = sortFileTree([...fileTree.value])
-        } catch (error) {
-            console.error('[ArticleStore] cancelFolderEdit error:', error)
-        }
-    }
-
     // 初始化折叠列表
     async function initCollapsibleList() {
         errorMsg.value = null
@@ -611,7 +336,6 @@ export const useArticleStore = defineStore('article', () => {
 
             if (activeFilePathStored) {
                 activeFilePath.value = activeFilePathStored
-                await readArticle(activeFilePathStored)
             }
 
             collapsibleList.value = res ? uniq(res.filter(item => !item.includes('.md'))) : []
@@ -900,6 +624,16 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
+    // 设置选中的文件夹路径
+    function setSelectedFolder(path: string) {
+        selectedFolder.value = path
+    }
+
+    // 清除选中的文件夹路径
+    function clearSelectedFolder() {
+        selectedFolder.value = ''
+    }
+
     // -暴露状态和方法
     return {
         // 状态
@@ -915,6 +649,7 @@ export const useArticleStore = defineStore('article', () => {
         currentArticle,
         allArticle,
         errorMsg,
+        selectedFolder,
 
         // 方法
         setLoading,
@@ -930,22 +665,14 @@ export const useArticleStore = defineStore('article', () => {
         addFile,
         loadFileTree,
         loadCollapsibleFiles,
-        newFolder,
-        newFile,
-        newFileOnFolder,
-        newFolderInFolder,
         initCollapsibleList,
         setCollapsibleListItem,
         expandAllFolders,
         collapseAllFolders,
         toggleAllFolders,
         clearCollapsibleList,
-        readArticle,
-        setCurrentArticle,
-        saveCurrentArticle,
-        loadAllArticle,
-        confirmCreateFolder,
-        cancelFolderEdit
+        setSelectedFolder,
+        clearSelectedFolder
     }
 })
 

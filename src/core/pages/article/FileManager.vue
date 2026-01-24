@@ -1,3 +1,4 @@
+//FileManager.vue
 <template>
   <div
       class="flex flex-col p-0"

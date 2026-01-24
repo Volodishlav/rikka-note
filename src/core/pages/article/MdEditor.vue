@@ -300,12 +300,9 @@ async function initEditor() {
       // 编辑器内容变化
       input: (value: string) => {
         if (articleStore && typeof value === 'string') {
-          try {
-            articleStore.setCurrentArticle(value)
-            articleStore.saveCurrentArticle(value)
-          } catch (error) {
-            console.error('Failed to update article content:', error)
-          }
+          // 编辑器内容变化时的处理逻辑
+          // 注意：articleStore 不再包含 setCurrentArticle 和 saveCurrentArticle 方法
+          // 这些方法已被移除，因为它们属于文件操作逻辑，不属于状态管理
         }
       },
       // 初始化完成
