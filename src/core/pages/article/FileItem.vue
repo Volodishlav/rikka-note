@@ -214,76 +214,89 @@ const handleSelectFile = async () => {
     }
   } else {
     // 文件：设置为活动文件
-    articleStore.setActiveFilePath(path.value)
+    await articleStore.setActiveFilePath(path.value)
   }
 }
 
 const handleStartRename = async () => {
   isEditing.value = true
   await nextTick()
-  inputRef.value?.focus()
+  if (inputRef.value) {
+    inputRef.value.focus()
+    // 优化：选中文件名，但不选中 .md 后缀
+    const hasExtension = name.value.lastIndexOf('.')
+    if (hasExtension !== -1) {
+      inputRef.value.setSelectionRange(0, hasExtension)
+    } else {
+      inputRef.value.select()
+    }
+  }
 }
 
 const handleRename = async () => {
-  if (!name.value.trim()) {
+  // 1. 基础验证：如果处于 IME 输入状态或已关闭编辑，则不触发
+  if (isComposing.value || !isEditing.value) return
+
+  const originalName = props.item.name
+  let inputName = name.value.trim()
+
+  // 2. 如果输入为空，撤销编辑并恢复原名
+  if (!inputName) {
+    name.value = originalName
     handleEditEnd()
     return
   }
 
-  const finalName = name.value.replace(/\s+/g, '_')
-  const newPath = path.value.replace(/[^/]*$/, finalName + '.md')
+  // 3. 处理名称规范：替换空格和非法字符
+  let finalName = inputName
+      .replace(/[\\/:*?"<>|]/g, '') // 过滤 Windows/Unix 不允许的路径字符
+
+  // 4. 智能后缀补全 (仅针对非图片文件)
+  if (!isImageFile.value && !finalName.toLowerCase().endsWith('.md')) {
+    finalName += '.md'
+  }
+
+  // 5. 核心判断：如果名字没变，直接退出
+  if (finalName === originalName) {
+    isEditing.value = false
+    return
+  }
+
+  // 6. 路径准备
+  const newPath = path.value.replace(/[^/]*$/, finalName)
 
   try {
-    // 重命名或创建文件
-    if (props.item.name) {
-      // 现有文件：重命名
-      const oldFullPath = await join(
-          await appDataDir(),
-          'article',
-          path.value
-      )
-      const newFullPath = await join(
-          await appDataDir(),
-          'article',
-          newPath
-      )
+    const appData = await appDataDir()
+    const oldFullPath = await join(appData, 'article', path.value)
+    const newFullPath = await join(appData, 'article', newPath)
 
-      await rename(oldFullPath, newFullPath)
-    } else {
-      // 新文件：创建
-      const fullPath = await join(
-          await appDataDir(),
-          'article',
-          newPath
-      )
-
-      if (await exists(fullPath)) {
-        show({ title: 'File already exists', variant: 'warning' })
-      return
+    // 7. 冲突检测
+    if (await exists(newFullPath)) {
+      show({ title: 'A file with this name already exists', variant: 'warning' })
+      return // 不关闭编辑模式，让用户继续修改
     }
 
-      await writeTextFile(fullPath, '')
-    }
+    // 8. 执行重命名
+    // 这里不再需要判断 props.item.name 是否存在，因为 FileItem 实例必然对应一个物理文件
+    await rename(oldFullPath, newFullPath)
 
+    // 9. 后续处理
     isEditing.value = false
     await articleStore.loadFileTree()
-    articleStore.setActiveFilePath(newPath)
+    await articleStore.setActiveFilePath(newPath)
+
+    show({ title: 'Renamed successfully', variant: 'success' })
   } catch (error) {
     console.error('Rename failed:', error)
-    show({
-      title: 'Rename failed',
-      variant: 'error'
-    })
+    show({ title: 'Rename failed', variant: 'error' })
   }
 }
 
 const handleEditEnd = () => {
   isEditing.value = false
+  // 如果是那种“新建后未命名就取消”的情况，才需要通知 store 清理
   if (!props.item.name) {
-    // 删除空的新建文件项
-    articleStore.fileTree = articleStore.fileTree.filter(
-        f => f.name !== ''
-    )
+    articleStore.fileTree = articleStore.fileTree.filter(f => f.name !== '')
   }
 }
 
@@ -306,7 +319,7 @@ const handleDeleteFile = async () => {
     await articleStore.loadFileTree()
 
     if (path.value === activeFilePath.value) {
-      articleStore.setActiveFilePath('')
+      await articleStore.setActiveFilePath('')
     }
   } catch (error) {
     console.error('Delete failed:', error)
