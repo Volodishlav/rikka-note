@@ -612,9 +612,7 @@ onMounted(async () => {
     }
 
     if (articleStore && activeFilePath.value) {
-      setTimeout(() => {
-        initEditor()
-      }, 100)
+      await initEditor()
     }
 
     // ========== 修复：重构窗口大小调整逻辑 ==========

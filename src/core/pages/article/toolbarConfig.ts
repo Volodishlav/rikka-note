@@ -39,5 +39,6 @@ export const createToolbarConfig = () => {
         { name: 'edit-mode', tipPosition: 's', className: 'bottom edit-mode-button' },
         { name: 'preview', tipPosition: 's', className: 'bottom' },
         { name: 'fullscreen', tipPosition: 's', className: 'bottom' },
+        { name: 'outline', tipPosition: 's' },
     ]
 }
