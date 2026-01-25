@@ -45,8 +45,33 @@ export const useArticleStore = defineStore('article', () => {
     const allArticle = ref<Article[]>([])
     const errorMsg = ref<string | null>(null)
     const selectedFolder = ref('') // 当前选中的文件夹路径
-
+    // 大纲控制状态（显式标注 boolean 类型，初始值 false）
+    const enableOutline = ref(false)
     // -------- 基础状态设置方法 --------
+    // 新增：设置大纲显示状态
+    async function setEnableOutline(val: boolean) {
+        enableOutline.value = val
+        try {
+            const store = await Store.load('store.json')
+            await store.set('enableOutline', val)
+            await store.save()
+        } catch (err) {
+            errorMsg.value = `保存大纲配置失败：${(err as Error).message}`
+            console.warn('Failed to save enableOutline:', err)
+        }
+    }
+
+// 新增：初始化大纲配置（从本地存储读取）
+    async function initEnableOutline() {
+        try {
+            const store = await Store.load('store.json')
+            const res = await store.get<boolean>('enableOutline')
+            enableOutline.value = res ?? false // 兜底：无值时默认 false
+        } catch (err) {
+            errorMsg.value = `初始化大纲配置失败：${(err as Error).message}`
+            console.warn('Failed to init enableOutline:', err)
+        }
+    }
     function setLoading(val: boolean) {
         loading.value = val
     }
@@ -483,11 +508,6 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // 设置当前文章内容
-    function setCurrentArticle(content: string) {
-        currentArticle.value = content
-    }
-
     // 保存当前文章
     async function saveCurrentArticle(content: string) {
         // 基础检查：没有内容或没有活跃文件时不保存
@@ -502,7 +522,7 @@ export const useArticleStore = defineStore('article', () => {
             const pathOptions = await getFilePathOptions(path)
 
             // 1. 检查文件是否已存在（决定后续是否需要更新文件树状态）
-            let isLocale = false
+            let isLocale: boolean
             if (workspace.isCustom) {
                 isLocale = await exists(pathOptions.path)
             } else {
@@ -668,6 +688,7 @@ export const useArticleStore = defineStore('article', () => {
         allArticle,
         errorMsg,
         selectedFolder,
+        enableOutline,
 
         // 方法
         setLoading,
@@ -692,7 +713,10 @@ export const useArticleStore = defineStore('article', () => {
         readArticle,
         setSelectedFolder,
         clearSelectedFolder,
-        saveCurrentArticle
+        saveCurrentArticle,
+        setEnableOutline,
+        initEnableOutline,
+        loadAllArticle
     }
 })
 

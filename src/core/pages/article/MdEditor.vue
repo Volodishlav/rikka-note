@@ -11,16 +11,6 @@ import { ref, onMounted, watch, computed, nextTick, onScopeDispose } from 'vue'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
 
-// 加载国际化文件
-import 'vditor/dist/js/i18n/zh_CN.js'
-import 'vditor/dist/js/i18n/en_US.js'
-
-// 全局对象适配
-if (typeof window !== 'undefined') {
-  // @ts-ignore
-  window.VditorI18n = window.VditorI18n || window.Vditor?.I18n || {}
-}
-
 import './MdEditor.scss'
 import { v4 as uuid } from 'uuid'
 import { Store } from '@tauri-apps/plugin-store'
@@ -81,21 +71,22 @@ const currentLocale = computed(() => {
 // ========== 计算属性 ==========
 const activeFilePath = computed(() => {
   if (!articleStore) return ''
-  const path = articleStore.activeFilePath
-  return path && typeof path === 'string' ? path : ''
+  // 移除多余的 typeof 检查（Pinia 中 activeFilePath 是固定 string 类型）
+  // 增加 trim() 过滤空字符串，避免无效路径
+  return articleStore.activeFilePath.trim()
 })
 
 const editorCacheId = computed(() => {
   if (activeFilePath.value) {
-    return `vditor_${activeFilePath.value.replace(/[\/:\\\.]/g, '_')}`
+    return `vditor_${activeFilePath.value.replace(/[\/:\\.]/g, '_')}`
   }
   return `vditor_${uuid().substring(0, 8)}`
 })
 
 const currentArticle = computed(() => {
   if (!articleStore) return ''
-  const content = articleStore.currentArticle
-  return content && typeof content === 'string' ? content : ''
+  // Pinia 中 currentArticle 是 string 类型，无需 typeof 检查
+  return articleStore.currentArticle.trim()
 })
 
 const loading = computed(() => {
@@ -178,14 +169,21 @@ async function initEditor() {
   isEditorIniting.value = true
   isEditorCreated.value = false
 
+  // 提前校验容器，移出 try 块，避免本地 throw
+  const container = editorContainer.value
+  if (!container) {
+    console.error('Editor container not found')
+    isEditorIniting.value = false // 重置状态，避免卡死
+    return
+  }
+
   try {
     const store = await Store.load('store.json').catch(() => null)
     const enableLineNumber = store ? await store.get<boolean>('enableLineNumber').catch(() => false) : false
-    const enableOutline = store ? await store.get<boolean>('enableOutline').catch(() => false) : false
+    const enableOutline = articleStore.enableOutline
     const typewriterMode = store ? await store.get<boolean>('typewriterMode').catch(() => false) : false
 
-    const container = editorContainer.value
-    if (!container) throw new Error('Editor container not found')
+    // 移除原有的 if (!container) throw ... 语句
 
     // 拦截资源加载
     // @ts-ignore
@@ -213,9 +211,8 @@ async function initEditor() {
         id: editorCacheId.value,
         enable: true,
       },
-      cdn: '/node_modules/vditor/',
+      cdn: '',
       lang: getLang(),
-      remoteDisabled: true,
       // 使用响应式高度
       height: editorHeight.value,
       icon: 'material',
@@ -277,7 +274,6 @@ async function initEditor() {
                 }
               } catch (error) {
                 console.error('Failed to save file:', error)
-                continue
               }
             }
 
@@ -351,7 +347,8 @@ async function initEditor() {
  * 设置编辑器内容
  */
 function setContent(content: string) {
-  if (!checkEditorInstance('setValue') || typeof content !== 'string') return
+  // 优化：检查内容是否为空（更贴合业务），保留编辑器实例校验
+  if (!checkEditorInstance('setValue') || !content) return
 
   try {
     (editor.value as any).setValue(content)
@@ -482,13 +479,18 @@ function setTheme(dark: boolean) {
   if (!checkEditorInstance('setTheme')) return
 
   try {
-    const theme = dark ? 'dark' : 'classic'
-    const contentTheme = dark ? 'dark' : 'light'
-    const codeTheme = dark ? 'github-dark' : 'github-light'
+    // 1. 显式标注所有变量类型，调整声明顺序（避免“使用前未声明”）
+    const theme: string = dark ? 'dark' : 'classic';
+    const contentTheme: string = dark ? 'dark' : 'light';
+    const codeTheme: string = dark ? 'github-dark' : 'github-light';
 
-    (editor.value as any).setTheme(theme, contentTheme, codeTheme)
+    // 2. 优化类型断言 + 分步调用（避免“无调用签名”错误）
+    const vditorInstance = editor.value as Vditor & { setTheme: (theme: string, contentTheme: string, codeTheme: string) => void };
+    if (typeof vditorInstance.setTheme === 'function') {
+      vditorInstance.setTheme(theme, contentTheme, codeTheme);
+    }
   } catch (error) {
-    console.error('Failed to set editor theme:', error)
+    console.error('Failed to set editor theme:', error);
   }
 }
 
@@ -519,28 +521,26 @@ function destroyEditor() {
 watch(
     () => activeFilePath.value,
     async (newPath, oldPath) => {
-      try {
-        if (newPath === oldPath) return
+      if (newPath === oldPath) return
 
-        destroyEditor()
+      destroyEditor()
 
-        if (newPath && articleStore) {
-          // 核心修复：在初始化编辑器前，先从磁盘读取新文件内容
-          // 这一步会更新 articleStore.currentArticle
+      if (newPath && articleStore) {
+        try {
+          // 核心修复：将 try/catch 移到回调内部，而非外层
           await articleStore.readArticle(newPath)
-
           await nextTick()
-          
-          // 确保内容读取完成后再初始化
+
           setTimeout(() => {
             initEditor()
           }, 50)
+        } catch (error) {
+          console.error('Error loading article in watcher:', error)
         }
-      } catch (error) {
-        console.error('Error in activeFilePath watcher:', error)
       }
     },
-    { immediate: true, flush: 'post', onError: (e) => console.error('Watcher error:', e) }
+    // 关键：移除非法的 onError 配置项，保留合法配置
+    { immediate: true, flush: 'post' }
 )
 
 watch(
@@ -554,19 +554,20 @@ watch(
         console.error('Error in currentArticle watcher:', error)
       }
     },
-    { flush: 'post', onError: (e) => console.error('Watcher error:', e) }
+    // 关键：移除非法的 onError 配置项，仅保留合法的 flush
+    { flush: 'post' }
 )
 
 watch(
     () => isDark.value,
-    (dark) => {
+    (dark: boolean) => { // 显式标注 dark 为 boolean 类型
       try {
         setTheme(dark)
       } catch (error) {
         console.error('Error in isDark watcher:', error)
       }
     },
-    { onError: (e) => console.error('Watcher error:', e) }
+    {}
 )
 
 watch(
@@ -576,13 +577,16 @@ watch(
         if (articleStore && activeFilePath.value) {
           destroyEditor()
           await nextTick()
-          initEditor()
+          // 给 setTimeout 内的 async 函数添加 await（需包裹自执行异步函数）
+          setTimeout(async () => {
+            await initEditor() // 异步函数调用添加 await
+          }, 50)
         }
       } catch (error) {
         console.error('Error in currentLocale watcher:', error)
       }
     },
-    { onError: (e) => console.error('Watcher error:', e) }
+    {}
 )
 
 watch(
@@ -594,13 +598,18 @@ watch(
         console.error('Error in loading watcher:', error)
       }
     },
-    { onError: (e) => console.error('Watcher error:', e) }
+    // 关键：移除非法的 onError 配置项，保留空对象
+    {}
 )
 
 // ========== 生命周期管理 ==========
 onMounted(async () => {
   try {
     await nextTick()
+
+    if (articleStore) {
+      await articleStore.initEnableOutline() // 初始化大纲配置
+    }
 
     if (articleStore && activeFilePath.value) {
       setTimeout(() => {
