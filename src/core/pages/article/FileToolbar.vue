@@ -238,7 +238,7 @@ const handleToggleFolders = async () => {
 // 刷新处理
 const handleRefresh = async () => {
   await articleStore.loadFileTree()
-  showToast({ title: 'Refreshed' })
+  show({ title: 'Refreshed' })
 }
 
 // 向量数据库处理
