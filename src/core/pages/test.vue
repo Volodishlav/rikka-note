@@ -4,7 +4,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { useI18n } from '@/hooks/useI18n.ts'
 import { useSettingStore } from '@/stores/setting'
 // 导入UI组件库
-import { UiButton, UiInput, UiDialog, UiTooltip } from '@/components/ui'
+import { UiButton, UiInput, UiDialog } from '@/components/ui'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 // 导入新的Toast系统
 import { useToast } from '@/composables/useToast'
 
@@ -112,31 +113,31 @@ const tooltipContent = ref('这是一个Tooltip提示')
 </script>
 
 <template>
-  <main class="container">
+  <main class="m-0 pt-[10vh] flex flex-col justify-center items-center gap-8">
     <h1>Welcome to Tauri + Vue</h1>
     <div>
       <h1>{{ t('navigation.record') }}</h1>
-      <button @click="changeLocale('en')">EN</button>
-      <button @click="changeLocale('zh')">中文</button>
+      <button class="rounded-md px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all" @click="changeLocale('en')">EN</button>
+      <button class="rounded-md px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all" @click="changeLocale('zh')">中文</button>
     </div>
     <!-- 主题切换测试区域 -->
-    <div class="test-section">
-      <h2>主题切换测试</h2>
-      <div class="theme-info">
+    <div class="bg-card rounded-xl p-8 shadow-md max-w-[500px] transition-colors">
+      <h2 class="mb-4 text-foreground">主题切换测试</h2>
+      <div class="mb-6 text-left leading-relaxed">
         <p>当前主题: {{ settingStore.theme }}</p>
         <p>实际应用: {{ themeClass ? 'dark' : 'light' }}</p>
       </div>
-      <button class="theme-toggle-btn" @click="toggleTheme">
+      <button class="mt-4 bg-[#646cff] text-white border-none px-6 py-3 text-base font-semibold rounded-lg cursor-pointer transition-all hover:bg-[#535bf2] hover:-translate-y-1 hover:shadow-lg active:translate-y-0 active:shadow-md" @click="toggleTheme">
         切换主题 (当前: {{ settingStore.theme }})
       </button>
     </div>
 
     <!-- RootLayout 功能测试 -->
-    <div class="test-section">
-      <h2>RootLayout 功能测试</h2>
+    <div class="bg-card rounded-xl p-8 shadow-md max-w-[500px] transition-colors">
+      <h2 class="mb-4 text-foreground">RootLayout 功能测试</h2>
       
-      <div class="test-item">
-        <h3>1. UI缩放测试</h3>
+      <div class="mb-6">
+        <h3 class="text-lg font-medium mb-2">1. UI缩放测试</h3>
         <div class="flex flex-col gap-2">
           <div class="flex items-center gap-2">
             <label for="ui-scale">缩放比例: {{ settingStore.uiScale }}%</label>
@@ -152,42 +153,42 @@ const tooltipContent = ref('这是一个Tooltip提示')
             >
           </div>
           <div class="flex gap-2">
-            <button @click="settingStore.setUiScale(80)">80%</button>
-            <button @click="settingStore.setUiScale(90)">90%</button>
-            <button @click="settingStore.setUiScale(100)">100%</button>
-            <button @click="settingStore.setUiScale(110)">110%</button>
-            <button @click="settingStore.setUiScale(120)">120%</button>
+            <button class="rounded-md px-3 py-1 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all" @click="settingStore.setUiScale(80)">80%</button>
+            <button class="rounded-md px-3 py-1 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all" @click="settingStore.setUiScale(90)">90%</button>
+            <button class="rounded-md px-3 py-1 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all" @click="settingStore.setUiScale(100)">100%</button>
+            <button class="rounded-md px-3 py-1 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all" @click="settingStore.setUiScale(110)">110%</button>
+            <button class="rounded-md px-3 py-1 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all" @click="settingStore.setUiScale(120)">120%</button>
           </div>
         </div>
       </div>
       
-      <div class="test-item">
-        <h3>2. 语言切换测试</h3>
+      <div class="mb-6">
+        <h3 class="text-lg font-medium mb-2">2. 语言切换测试</h3>
         <div class="flex gap-2">
-          <button @click="changeLocale('zh')">中文</button>
-          <button @click="changeLocale('en')">English</button>
+          <button class="rounded-md px-3 py-1 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all" @click="changeLocale('zh')">中文</button>
+          <button class="rounded-md px-3 py-1 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all" @click="changeLocale('en')">English</button>
         </div>
-        <p>当前语言: {{ locale }}</p>
+        <p class="mt-2">当前语言: {{ locale }}</p>
       </div>
       
-      <div class="test-item">
-        <h3>3. dayjs locale 测试</h3>
+      <div class="mb-6">
+        <h3 class="text-lg font-medium mb-2">3. dayjs locale 测试</h3>
         <p>当前日期: {{ currentDate }}</p>
         <p>日期格式会随语言切换而变化</p>
       </div>
       
-      <div class="test-item">
-        <h3>4. 初始化状态测试</h3>
+      <div class="mb-6">
+        <h3 class="text-lg font-medium mb-2">4. 初始化状态测试</h3>
         <p>设置已初始化: {{ isSettingInit }}</p>
       </div>
     </div>
 
     <!-- ========== UI组件测试区域 ========== -->
-    <div class="ui-test-section">
+    <div class="max-w-[1200px] mx-auto p-8">
       <h2 class="text-2xl font-bold mb-6">UI组件库测试</h2>
 
       <!-- Button组件测试 -->
-      <div class="test-card">
+      <div class="bg-card border border-border rounded-lg p-8 mb-8 transition-all hover:shadow-md">
         <h3 class="text-xl font-semibold mb-4">Button组件</h3>
         <div class="flex flex-wrap gap-4">
           <UiButton variant="primary" @click="handleButtonClick">
@@ -221,7 +222,7 @@ const tooltipContent = ref('这是一个Tooltip提示')
       </div>
 
       <!-- Input组件测试 -->
-      <div class="test-card">
+      <div class="bg-card border border-border rounded-lg p-8 mb-8 transition-all hover:shadow-md">
         <h3 class="text-xl font-semibold mb-4">Input组件</h3>
         <div class="flex flex-col gap-4">
           <div>
@@ -255,13 +256,13 @@ const tooltipContent = ref('这是一个Tooltip提示')
       </div>
 
       <!-- Dialog组件测试 -->
-      <div class="test-card">
+      <div class="bg-card border border-border rounded-lg p-8 mb-8 transition-all hover:shadow-md">
         <h3 class="text-xl font-semibold mb-4">Dialog组件</h3>
         <UiButton variant="primary" @click="dialogOpen = true">
           打开对话框
         </UiButton>
         
-        <UiDialog v-model="dialogOpen" :className="'my-dialog'">
+        <UiDialog v-model="dialogOpen" :className="'max-w-[500px]'">
           <div class="p-6">
             <h4 class="text-lg font-semibold mb-3">对话框标题</h4>
             <p class="mb-4">
@@ -280,7 +281,7 @@ const tooltipContent = ref('这是一个Tooltip提示')
       </div>
 
       <!-- Toast系统测试 -->
-      <div class="test-card">
+      <div class="bg-card border border-border rounded-lg p-8 mb-8 transition-all hover:shadow-md">
         <h3 class="text-xl font-semibold mb-4">Toast系统</h3>
         <div class="flex flex-wrap gap-4">
           <UiButton variant="primary" @click="toast.success('保存成功', '已保存')">
@@ -295,31 +296,51 @@ const tooltipContent = ref('这是一个Tooltip提示')
           <UiButton variant="primary" @click="toast.info('提示', '这是一条信息')">
             信息Toast
           </UiButton>
-          <UiButton variant="secondary" @click="toast.show({ title: '永驻Toast', message: '手动关闭', duration: 0 })" class="ml-4">
+          <UiButton variant="secondary" @click="toast.show({ title: '永驻Toast', message: '手动关闭', duration: 0 })">
             永驻Toast
           </UiButton>
-          <UiButton variant="destructive" @click="toast.clear()" class="ml-4">
+          <UiButton variant="destructive" @click="toast.clear()">
             清除所有
           </UiButton>
         </div>
       </div>
 
       <!-- Tooltip组件测试 -->
-      <div class="test-card">
+      <div class="bg-card border border-border rounded-lg p-8 mb-8 transition-all hover:shadow-md">
         <h3 class="text-xl font-semibold mb-4">Tooltip组件</h3>
         <div class="flex flex-wrap gap-8">
-          <UiTooltip content="顶部提示" position="top">
-            <UiButton variant="primary">顶部Tooltip</UiButton>
-          </UiTooltip>
-          <UiTooltip content="右侧提示" position="right">
-            <UiButton variant="primary">右侧Tooltip</UiButton>
-          </UiTooltip>
-          <UiTooltip content="底部提示" position="bottom">
-            <UiButton variant="primary">底部Tooltip</UiButton>
-          </UiTooltip>
-          <UiTooltip content="左侧提示" position="left">
-            <UiButton variant="primary">左侧Tooltip</UiButton>
-          </UiTooltip>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <UiButton variant="primary">顶部Tooltip</UiButton>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>顶部提示</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <UiButton variant="primary">右侧Tooltip</UiButton>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>右侧提示</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <UiButton variant="primary">底部Tooltip</UiButton>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>底部提示</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <UiButton variant="primary">左侧Tooltip</UiButton>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              <p>左侧提示</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </div>
@@ -327,200 +348,4 @@ const tooltipContent = ref('这是一个Tooltip提示')
 </template>
 
 <style scoped>
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
-
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #249b73);
-}
-
-.container {
-  margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-  gap: 2rem;
-}
-
-/* 测试区域样式 */
-.test-section {
-  background-color: var(--card-bg, #ffffff);
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin: 2rem auto;
-  max-width: 500px;
-  transition: background-color 0.3s ease;
-}
-
-.test-section h2 {
-  margin-bottom: 1rem;
-  color: var(--foreground, #0f0f0f);
-}
-
-.theme-info {
-  margin-bottom: 1.5rem;
-  text-align: left;
-  line-height: 1.6;
-}
-
-.theme-toggle-btn {
-  background-color: #646cff;
-  color: white;
-  border: none;
-  padding: 0.8em 1.5em;
-  font-size: 1em;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 1rem;
-}
-
-.theme-toggle-btn:hover {
-  background-color: #535bf2;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.theme-toggle-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
-
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
-
-.row {
-  display: flex;
-  justify-content: center;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-  transition: color 0.3s ease;
-}
-
-.dark a {
-  color: #818cf8;
-}
-
-a:hover {
-  color: #535bf2;
-}
-
-.dark a:hover {
-  color: #24c8db;
-}
-
-h1 {
-  text-align: center;
-}
-
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: all 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-}
-
-.dark input,
-.dark button {
-  color: #ffffff;
-  background-color: #0f0f0f98;
-}
-
-button {
-  cursor: pointer;
-}
-
-button:hover {
-  border-color: #396cd8;
-}
-
-.dark button:hover {
-  border-color: #24c8db;
-}
-
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
-
-.dark button:active {
-  background-color: #0f0f0f69;
-}
-
-input,
-button {
-  outline: none;
-}
-
-#greet-input {
-  margin-right: 5px;
-}
-
-/* ========== UI组件测试区域样式 ========== */
-.ui-test-section {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.test-card {
-  background-color: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 2rem;
-  margin-bottom: 2rem;
-  transition: all 0.3s ease;
-}
-
-.test-card:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.dark .test-card {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-}
-
-/* Dialog自定义样式 */
-.my-dialog {
-  max-width: 500px;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .ui-test-section {
-    padding: 1rem;
-  }
-  
-  .test-card {
-    padding: 1.5rem;
-  }
-  
-  .test-card .flex {
-    flex-direction: column;
-  }
-}
 </style>

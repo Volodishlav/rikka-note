@@ -1,7 +1,7 @@
 <template>
   <div class="flex-1 relative w-full h-full flex flex-col overflow-hidden dark:bg-zinc-950">
     <!-- 编辑器容器 -->
-    <div ref="editorContainer" id="article-md-editor" class="flex-1"></div>
+    <div ref="editorContainer" id="article-md-editor" class="flex-1 w-full h-full min-h-[300px]"></div>
   </div>
 </template>
 
@@ -653,10 +653,3 @@ onScopeDispose(() => {
 })
 </script>
 
-<style scoped>
-#article-md-editor {
-  width: 100%;
-  height: 100%;
-  min-height: 300px; /* 最小高度保障 */
-}
-</style>

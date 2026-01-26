@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useI18n } from '@/hooks/useI18n.ts'
-import { UiButton, UiInput, UiDialog, UiTooltip } from '@/components/ui'
+import { UiButton, UiInput } from '@/components/ui'
 import { useToast } from '@/composables/useToast'
 
 // 导入数据库表操作接口
@@ -283,15 +283,15 @@ async function deleteVectorDocs() {
 </script>
 
 <template>
-  <main class="container">
+  <main class="m-0 pt-8 flex flex-col justify-start items-center gap-8">
     <h1>数据测试页面</h1>
 
     <!-- ========== 数据库测试区域 ========== -->
-    <div class="db-test-section">
-      <h2 class="text-2xl font-bold mb-6">数据库表测试</h2>
+    <div class="max-w-[1200px] mx-auto p-8">
+      <h2 class="text-2xl font-bold mb-8">数据库表测试</h2>
 
       <!-- Tags表测试 -->
-      <div class="test-card">
+      <div class="mb-8">
         <h3 class="text-xl font-semibold mb-4">Tags表测试</h3>
         
         <!-- 添加标签 -->
@@ -347,7 +347,7 @@ async function deleteVectorDocs() {
       </div>
 
       <!-- Notes表测试 -->
-      <div class="test-card">
+      <div class="mb-8">
         <h3 class="text-xl font-semibold mb-4">Notes表测试</h3>
         
         <!-- 添加笔记 -->
@@ -378,7 +378,7 @@ async function deleteVectorDocs() {
       </div>
 
       <!-- Marks表测试 -->
-      <div class="test-card">
+      <div class="mb-8">
         <h3 class="text-xl font-semibold mb-4">Marks表测试</h3>
         
         <!-- 添加标记 -->
@@ -434,7 +434,7 @@ async function deleteVectorDocs() {
       </div>
 
       <!-- Chats表测试 -->
-      <div class="test-card">
+      <div class="mb-8">
         <h3 class="text-xl font-semibold mb-4">Chats表测试</h3>
         
         <!-- 添加聊天记录 -->
@@ -489,7 +489,7 @@ async function deleteVectorDocs() {
       </div>
 
       <!-- Vector表测试 -->
-      <div class="test-card">
+      <div class="mb-8">
         <h3 class="text-xl font-semibold mb-4">Vector表测试</h3>
         
         <!-- 添加向量文档 -->
@@ -540,66 +540,4 @@ async function deleteVectorDocs() {
 </template>
 
 <style scoped>
-.container {
-  margin: 0;
-  padding-top: 2vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  text-align: center;
-  gap: 2rem;
-}
-
-/* ========== 数据库测试区域样式 ========== */
-.db-test-section {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.db-test-section h2 {
-  margin-bottom: 2rem;
-}
-
-.db-test-section table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.db-test-section th,
-.db-test-section td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-}
-
-.db-test-section th {
-  background-color: var(--muted);
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-}
-
-.db-test-section td {
-  font-size: 0.875rem;
-}
-
-.db-test-section .test-card {
-  margin-bottom: 2rem;
-}
-
-.db-test-section select {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--input);
-  border-radius: 0.375rem;
-  background-color: var(--background);
-  color: var(--foreground);
-  font-size: 0.875rem;
-}
-
-.db-test-section select:focus {
-  outline: none;
-  ring: 2px solid var(--ring);
-  ring-offset: 2px;
-}
 </style>

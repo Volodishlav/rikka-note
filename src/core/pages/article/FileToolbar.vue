@@ -4,37 +4,52 @@
     <!-- 左侧按钮组 -->
     <div class="flex gap-1">
       <!-- 新建文件 -->
-      <TooltipButton
-          :icon="FilePlus"
-          tooltip-text="New Article (Ctrl+N)"
-          @click="handleNewFile"
-      />
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <button
+              class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="handleNewFile"
+          >
+            <FilePlus class="w-4 h-4" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>New Article (Ctrl+N)</p>
+        </TooltipContent>
+      </Tooltip>
 
       <!-- 新建文件夹 -->
-      <TooltipButton
-          :icon="FolderPlus"
-          tooltip-text="New Folder (Ctrl+Shift+N)"
-          @click="handleNewFolder"
-      />
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <button
+              class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="handleNewFolder"
+          >
+            <FolderPlus class="w-4 h-4" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>New Folder (Ctrl+Shift+N)</p>
+        </TooltipContent>
+      </Tooltip>
 
       <!-- 向量数据库 -->
-      <TooltipButton
-          :icon="isProcessing ? LoaderCircle : BookA"
-          :class="{ 'animate-spin': isProcessing }"
-          :tooltip-text="isProcessing ? 'Processing vectors...' : (isVectorDbEnabled ? 'Calculate vectors' : 'Enable vector DB')"
-          :disabled="isProcessing"
-          @click="handleVectorDb"
-      />
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <button
+              class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              :class="{ 'animate-spin': isProcessing }"
+              :disabled="isProcessing"
+              @click="handleVectorDb"
+          >
+            <component :is="isProcessing ? LoaderCircle : BookA" class="w-4 h-4" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{{ isProcessing ? 'Processing vectors...' : (isVectorDbEnabled ? 'Calculate vectors' : 'Enable vector DB') }}</p>
+        </TooltipContent>
+      </Tooltip>
 
-      <!-- 同步到GitHub/Gitee -->
-      <TooltipButton
-          v-if="primaryBackupMethod && username"
-          :icon="fileTreeLoading ? LoaderCircle : FolderGit2"
-          :class="{ 'animate-spin': fileTreeLoading }"
-          :tooltip-text="fileTreeLoading ? 'Syncing...' : 'Open repository'"
-          :disabled="!username || fileTreeLoading"
-          @click="handleOpenRepo"
-      />
     </div>
 
     <!-- 右侧按钮组 -->
@@ -42,11 +57,19 @@
       <!-- 排序菜单 -->
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
-          <TooltipButton
-              :icon="sortDirection === 'asc' ? SortAsc : SortDesc"
-              :class="{ 'text-primary': sortType !== 'none' }"
-              tooltip-text="Sort"
-          />
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <button
+                  class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  :class="{ 'text-primary': sortType !== 'none' }"
+              >
+                <component :is="sortDirection === 'asc' ? SortAsc : SortDesc" class="w-4 h-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Sort</p>
+            </TooltipContent>
+          </Tooltip>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem
@@ -82,18 +105,34 @@
       </DropdownMenu>
 
       <!-- 展开/收缩所有 -->
-      <TooltipButton
-          :icon="collapsibleList.length > 0 ? ChevronsDownUp : ChevronsUpDown"
-          :tooltip-text="collapsibleList.length > 0 ? 'Collapse All' : 'Expand All'"
-          @click="handleToggleFolders"
-      />
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <button
+              class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="handleToggleFolders"
+          >
+            <component :is="collapsibleList.length > 0 ? ChevronsDownUp : ChevronsUpDown" class="w-4 h-4" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{{ collapsibleList.length > 0 ? 'Collapse All' : 'Expand All' }}</p>
+        </TooltipContent>
+      </Tooltip>
 
       <!-- 刷新 -->
-      <TooltipButton
-          :icon="FolderSync"
-          tooltip-text="Refresh"
-          @click="handleRefresh"
-      />
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <button
+              class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="handleRefresh"
+          >
+            <FolderSync class="w-4 h-4" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Refresh</p>
+        </TooltipContent>
+      </Tooltip>
     </div>
   </div>
 </template>
@@ -117,7 +156,11 @@ import {
   ChevronsUpDown,
   FolderSync
 } from 'lucide-vue-next'
-import TooltipButton from '@/components/TooltipButton.vue'
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent
+} from '@/components/ui/tooltip'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -250,16 +293,4 @@ const handleVectorDb = async () => {
   }
 }
 
-// 打开仓库
-const handleOpenRepo = async () => {
-  const urls = {
-    github: `https://github.com/${username.value}/rikka-sync`,
-    gitee: `https://gitee.com/${username.value}/rikka-sync`,
-    gitlab: `https://gitlab.com/${username.value}/rikka-sync`
-  }
-  const url = urls[primaryBackupMethod.value as keyof typeof urls]
-  if (url) {
-    await open(url)
-  }
-}
 </script>

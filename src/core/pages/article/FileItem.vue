@@ -3,9 +3,9 @@
   <ContextMenu>
     <ContextMenuTrigger>
       <div
-          class="file-item-wrapper"
+          class="flex items-center gap-1 px-2 py-1 text-sm cursor-pointer hover:bg-accent rounded"
           :class="[
-          path === activeFilePath && 'active',
+          path === activeFilePath && 'bg-accent',
           !isRoot && 'translate-x-5'
         ]"
           @click="(e) => handleSelectFile(e)"
@@ -412,12 +412,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.file-item-wrapper {
-  @apply flex items-center gap-1 px-2 py-1 text-sm cursor-pointer hover:bg-accent rounded;
-}
-
-.file-item-wrapper.active {
-  @apply bg-accent;
-}
-</style>

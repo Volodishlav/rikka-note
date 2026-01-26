@@ -3,14 +3,14 @@
   <div class="flex h-screen w-full bg-background">
     <splitpanes class="default-theme h-full w-full">
       <!-- 左侧文件树 (初始 25%) -->
-      <pane size="25" min-size="5" max-size="40">
+      <pane size="25" min-size="5" max-size="35">
         <div class="h-full overflow-hidden">
           <FileSidebar />
         </div>
       </pane>
 
       <!-- 右侧编辑器 (剩余 75%) -->
-      <pane size="95" min-size="60">
+      <pane size="75" min-size="65">
         <div class="h-full p-4 overflow-hidden">
           <MdEditor />
         </div>

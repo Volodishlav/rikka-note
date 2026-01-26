@@ -1,9 +1,7 @@
-// globals.scss - Tailwind 3.x 语法
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-// 主题变量（3.x 兼容写法）
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -83,7 +81,6 @@
   }
 }
 
-// 原有自定义样式（保留不变）
 @layer base {
   * {
     border-color: hsl(var(--border));
@@ -171,5 +168,16 @@
 
   ol {
     @apply list-decimal;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }

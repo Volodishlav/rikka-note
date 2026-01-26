@@ -5,9 +5,9 @@
     <ContextMenu>
       <ContextMenuTrigger as-child>
         <div
-            class="folder-item-wrapper w-full"
+            class="flex items-center gap-1 px-2 py-1 text-sm cursor-pointer hover:bg-accent rounded w-full whitespace-nowrap box-border"
+            :class="{ 'bg-accent text-accent-foreground': isSelected }"
             @click="handleFolderClick"
-            :class="{ 'active': isSelected }"
             @drop="handleDrop"
             @dragover="handleDragOver"
             @dragleave="handleDragLeave"
@@ -25,7 +25,7 @@
                 v-if="isEditing"
                 ref="inputRef"
                 v-model="name"
-                class="h-5 rounded-sm text-xs px-1 font-normal flex-1 mr-1 bg-background border border-primary focus:outline-none min-w-0"
+                class="h-5 rounded-sm text-xs px-0 font-normal flex-1 mr-1 bg-transparent border-none outline-none min-w-0 focus:ring-1 focus:ring-primary focus:rounded-sm"
                 @blur="handleBlur"
                 @input="handleInputChange"
                 @compositionstart="isComposing = true"
@@ -429,48 +429,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.folder-item-wrapper {
-  @apply flex items-center gap-1 px-2 py-1 text-sm cursor-pointer hover:bg-accent rounded w-full;
-  white-space: nowrap;
-  box-sizing: border-box;
-}
-
-.folder-item-wrapper.active {
-  @apply bg-accent text-accent-foreground;
-}
-
-.folder-item-wrapper > div {
-  @apply w-full flex items-center justify-start;
-}
-
-.folder-item-wrapper .size-4 {
-  @apply flex-shrink-0 w-4 h-4;
-}
-
-/* 样式优化，确保 input 行为和显示模式一致 */
-.folder-item-wrapper input {
-  @apply flex-1 bg-transparent border-none outline-none text-left min-w-0;
-  margin: 0;
-  padding-left: 0;
-  &:focus {
-    @apply ring-1 ring-primary rounded-sm;
-    outline: none;
-  }
-}
-
-.folder-item-wrapper span {
-  @apply flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis;
-  margin: 0;
-  padding: 0;
-}
-
-.box-sizing-border-box {
-  box-sizing: border-box;
-}
-
-[data-collapsible-trigger] {
-  width: 100%;
-  display: block;
-}
-</style>

@@ -18,7 +18,6 @@ import RecordPage from '@/core/pages/RecordPage.vue' // 记录页面
 import ChatPage from '@/mobile/pages/ChatPage.vue' // 聊天页面
 import TestPage from '@/core/pages/test.vue' // 测试页面
 import DataTestPage from '@/core/pages/DataTestPage.vue' // 数据测试页面
-import ArticleTest from '@/core/pages/ArticleTest.vue'
 import ArticlePage from "@/core/pages/ArticlePage.vue"; // 文章测试页面
 
 // 路由表 - 仅保留指定的三个路由
@@ -79,7 +78,6 @@ const routes: Array<RouteRecordRaw> = [
             { path: 'record', name: 'core-record', component: RecordPage }, // 记录页面
             { path: 'test', name: 'core-test', component: TestPage }, // 测试页面
             { path: 'data-test', name: 'core-data-test', component: DataTestPage }, // 数据测试页面
-            { path: 'article-test', name: 'core-article-test', component: ArticleTest }, // 文章测试页面
             // 添加404路由，匹配所有未定义的core子路由
             { path: ':pathMatch(.*)*', name: 'core-404', component: TestPage }, // 暂时使用TestPage作为404页面
             {path: 'article',component: ArticlePage,name: 'Article'},

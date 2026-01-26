@@ -5,11 +5,9 @@
 import Button from './Button.vue'
 import Input from './Input.vue'
 import Dialog from './Dialog.vue'
-import Tooltip from './Tooltip.vue'
 
 // 重新导出并添加Ui前缀
 export const UiButton = Button
 export const UiInput = Input
 export const UiDialog = Dialog
-export const UiTooltip = Tooltip
 // 移除旧Toast组件，改用新的Toast系统
