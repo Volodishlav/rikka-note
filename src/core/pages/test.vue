@@ -4,7 +4,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { useI18n } from '@/hooks/useI18n.ts'
 import { useSettingStore } from '@/stores/setting'
 // 导入UI组件库
-import { UiButton, UiInput, UiDialog } from '@/components/ui'
+import { Button } from '@/components/ui/button'
+import { UiInput, UiDialog } from '@/components/ui'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 // 导入新的Toast系统
 import { useToast } from '@/composables/useToast'
@@ -191,30 +192,31 @@ const tooltipContent = ref('这是一个Tooltip提示')
       <div class="bg-card border border-border rounded-lg p-8 mb-8 transition-all hover:shadow-md">
         <h3 class="text-xl font-semibold mb-4">Button组件</h3>
         <div class="flex flex-wrap gap-4">
-          <UiButton variant="primary" @click="handleButtonClick">
+          <Button variant="default" @click="handleButtonClick">
             主要按钮
-          </UiButton>
-          <UiButton variant="secondary">
+          </Button>
+          <Button variant="secondary">
             次要按钮
-          </UiButton>
-          <UiButton variant="destructive">
+          </Button>
+          <Button variant="destructive">
             危险按钮
-          </UiButton>
-          <UiButton variant="ghost">
+          </Button>
+          <Button variant="ghost">
             幽灵按钮
-          </UiButton>
-          <UiButton variant="primary" size="sm">
+          </Button>
+          <Button variant="default" size="sm">
             小按钮
-          </UiButton>
-          <UiButton variant="primary" size="lg">
+          </Button>
+          <Button variant="default" size="lg">
             大按钮
-          </UiButton>
-          <UiButton variant="primary" :loading="true">
+          </Button>
+          <Button variant="default" disabled class="relative">
+            <span class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
             加载按钮
-          </UiButton>
-          <UiButton variant="primary" disabled>
+          </Button>
+          <Button variant="default" disabled>
             禁用按钮
-          </UiButton>
+          </Button>
         </div>
         <p class="mt-4 text-sm text-muted-foreground">
           按钮点击状态: {{ buttonClicked ? '已点击' : '未点击' }}
@@ -258,9 +260,9 @@ const tooltipContent = ref('这是一个Tooltip提示')
       <!-- Dialog组件测试 -->
       <div class="bg-card border border-border rounded-lg p-8 mb-8 transition-all hover:shadow-md">
         <h3 class="text-xl font-semibold mb-4">Dialog组件</h3>
-        <UiButton variant="primary" @click="dialogOpen = true">
+        <Button variant="default" @click="dialogOpen = true">
           打开对话框
-        </UiButton>
+        </Button>
         
         <UiDialog v-model="dialogOpen" :className="'max-w-[500px]'">
           <div class="p-6">
@@ -269,12 +271,12 @@ const tooltipContent = ref('这是一个Tooltip提示')
               这是对话框的内容区域。你可以在这里放置任何你想要的内容，包括表单、图片、文本等。
             </p>
             <div class="flex justify-end gap-2">
-              <UiButton variant="ghost" @click="dialogOpen = false">
+              <Button variant="ghost" @click="dialogOpen = false">
                 取消
-              </UiButton>
-              <UiButton variant="primary" @click="dialogOpen = false">
+              </Button>
+              <Button variant="default" @click="dialogOpen = false">
                 确认
-              </UiButton>
+              </Button>
             </div>
           </div>
         </UiDialog>
@@ -284,24 +286,24 @@ const tooltipContent = ref('这是一个Tooltip提示')
       <div class="bg-card border border-border rounded-lg p-8 mb-8 transition-all hover:shadow-md">
         <h3 class="text-xl font-semibold mb-4">Toast系统</h3>
         <div class="flex flex-wrap gap-4">
-          <UiButton variant="primary" @click="toast.success('保存成功', '已保存')">
+          <Button variant="default" @click="toast.success('保存成功', '已保存')">
             成功Toast
-          </UiButton>
-          <UiButton variant="primary" @click="toast.error('操作失败', '请重试')">
+          </Button>
+          <Button variant="default" @click="toast.error('操作失败', '请重试')">
             错误Toast
-          </UiButton>
-          <UiButton variant="primary" @click="toast.warning('注意', '这是一个警告')">
+          </Button>
+          <Button variant="default" @click="toast.warning('注意', '这是一个警告')">
             警告Toast
-          </UiButton>
-          <UiButton variant="primary" @click="toast.info('提示', '这是一条信息')">
+          </Button>
+          <Button variant="default" @click="toast.info('提示', '这是一条信息')">
             信息Toast
-          </UiButton>
-          <UiButton variant="secondary" @click="toast.show({ title: '永驻Toast', message: '手动关闭', duration: 0 })">
+          </Button>
+          <Button variant="secondary" @click="toast.show({ title: '永驻Toast', message: '手动关闭', duration: 0 })">
             永驻Toast
-          </UiButton>
-          <UiButton variant="destructive" @click="toast.clear()">
+          </Button>
+          <Button variant="destructive" @click="toast.clear()">
             清除所有
-          </UiButton>
+          </Button>
         </div>
       </div>
 
@@ -311,7 +313,7 @@ const tooltipContent = ref('这是一个Tooltip提示')
         <div class="flex flex-wrap gap-8">
           <Tooltip>
             <TooltipTrigger as-child>
-              <UiButton variant="primary">顶部Tooltip</UiButton>
+              <Button variant="default">顶部Tooltip</Button>
             </TooltipTrigger>
             <TooltipContent side="top">
               <p>顶部提示</p>
@@ -319,7 +321,7 @@ const tooltipContent = ref('这是一个Tooltip提示')
           </Tooltip>
           <Tooltip>
             <TooltipTrigger as-child>
-              <UiButton variant="primary">右侧Tooltip</UiButton>
+              <Button variant="default">右侧Tooltip</Button>
             </TooltipTrigger>
             <TooltipContent side="right">
               <p>右侧提示</p>
@@ -327,7 +329,7 @@ const tooltipContent = ref('这是一个Tooltip提示')
           </Tooltip>
           <Tooltip>
             <TooltipTrigger as-child>
-              <UiButton variant="primary">底部Tooltip</UiButton>
+              <Button variant="default">底部Tooltip</Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
               <p>底部提示</p>
@@ -335,7 +337,7 @@ const tooltipContent = ref('这是一个Tooltip提示')
           </Tooltip>
           <Tooltip>
             <TooltipTrigger as-child>
-              <UiButton variant="primary">左侧Tooltip</UiButton>
+              <Button variant="default">左侧Tooltip</Button>
             </TooltipTrigger>
             <TooltipContent side="left">
               <p>左侧提示</p>

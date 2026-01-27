@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useI18n } from '@/hooks/useI18n.ts'
-import { UiButton, UiInput } from '@/components/ui'
+import { Button } from '@/components/ui/button'
+import { UiInput } from '@/components/ui'
 import { useToast } from '@/composables/useToast'
 
 // 导入数据库表操作接口
@@ -299,7 +300,7 @@ async function deleteVectorDocs() {
           <h4 class="text-lg font-medium mb-2">添加标签</h4>
           <div class="flex gap-2">
             <UiInput v-model="newTagName" placeholder="输入标签名称" />
-            <UiButton variant="primary" @click="addTag">添加</UiButton>
+            <Button variant="default" @click="addTag">添加</Button>
           </div>
         </div>
 
@@ -314,15 +315,15 @@ async function deleteVectorDocs() {
               </option>
             </select>
             <UiInput v-model="updateTagName" placeholder="输入新名称" />
-            <UiButton variant="secondary" @click="updateSelectedTag" :disabled="!selectedTagId">更新</UiButton>
-            <UiButton variant="destructive" @click="deleteSelectedTag" :disabled="!selectedTagId">删除</UiButton>
+            <Button variant="secondary" @click="updateSelectedTag" :disabled="!selectedTagId">更新</Button>
+            <Button variant="destructive" @click="deleteSelectedTag" :disabled="!selectedTagId">删除</Button>
           </div>
         </div>
 
         <!-- 标签列表 -->
         <div>
           <h4 class="text-lg font-medium mb-2">标签列表</h4>
-          <UiButton variant="primary" @click="loadTags">加载标签</UiButton>
+          <Button variant="default" @click="loadTags">加载标签</Button>
           <div class="mt-4 max-h-60 overflow-y-auto">
             <table class="min-w-full divide-y divide-border">
               <thead class="bg-muted">
@@ -356,7 +357,7 @@ async function deleteVectorDocs() {
           <div class="flex gap-2 mb-2">
             <UiInput v-model="newNoteTagId" placeholder="标签ID" type="number" />
             <UiInput v-model="newNoteContent" placeholder="输入笔记内容" class="flex-1" />
-            <UiButton variant="primary" @click="addNote">添加</UiButton>
+            <Button variant="default" @click="addNote">添加</Button>
           </div>
         </div>
 
@@ -365,7 +366,7 @@ async function deleteVectorDocs() {
           <h4 class="text-lg font-medium mb-2">加载笔记</h4>
           <div class="flex gap-2">
             <UiInput v-model="newNoteTagId" placeholder="标签ID" type="number" />
-            <UiButton variant="primary" @click="loadNoteByTagId">加载最新笔记</UiButton>
+            <Button variant="default" @click="loadNoteByTagId">加载最新笔记</Button>
           </div>
           <div v-if="noteByTagId" class="mt-4 p-4 border border-border rounded-md">
             <p class="text-sm text-muted-foreground mb-1">ID: {{ noteByTagId.id }}</p>
@@ -401,7 +402,7 @@ async function deleteVectorDocs() {
             </div>
             <div class="flex gap-2">
               <UiInput v-model="newMark.url" placeholder="URL" class="flex-1" />
-              <UiButton variant="primary" @click="addMark">添加</UiButton>
+              <Button variant="default" @click="addMark">添加</Button>
             </div>
           </div>
         </div>
@@ -409,7 +410,7 @@ async function deleteVectorDocs() {
         <!-- 标记列表 -->
         <div>
           <h4 class="text-lg font-medium mb-2">标记列表</h4>
-          <UiButton variant="primary" @click="loadMarks">加载标记</UiButton>
+          <Button variant="default" @click="loadMarks">加载标记</Button>
           <div class="mt-4 max-h-60 overflow-y-auto">
             <table class="min-w-full divide-y divide-border">
               <thead class="bg-muted">
@@ -456,7 +457,7 @@ async function deleteVectorDocs() {
             </div>
             <div class="flex gap-2">
               <UiInput v-model="newChat.content" placeholder="聊天内容" class="flex-1" />
-              <UiButton variant="primary" @click="addChat">添加</UiButton>
+              <Button variant="default" @click="addChat">添加</Button>
             </div>
           </div>
         </div>
@@ -464,7 +465,7 @@ async function deleteVectorDocs() {
         <!-- 聊天记录列表 -->
         <div>
           <h4 class="text-lg font-medium mb-2">聊天记录列表</h4>
-          <UiButton variant="primary" @click="loadChats">加载聊天记录</UiButton>
+          <Button variant="default" @click="loadChats">加载聊天记录</Button>
           <div class="mt-4 max-h-60 overflow-y-auto">
             <table class="min-w-full divide-y divide-border">
               <thead class="bg-muted">
@@ -505,9 +506,9 @@ async function deleteVectorDocs() {
               <UiInput v-model="newVectorDoc.embedding" placeholder="向量JSON" class="flex-1" />
             </div>
             <div class="flex gap-2">
-              <UiButton variant="primary" @click="addVectorDoc">添加/更新</UiButton>
-              <UiButton variant="primary" @click="loadVectorDocs">加载文档</UiButton>
-              <UiButton variant="destructive" @click="deleteVectorDocs">删除文件</UiButton>
+              <Button variant="default" @click="addVectorDoc">添加/更新</Button>
+              <Button variant="default" @click="loadVectorDocs">加载文档</Button>
+              <Button variant="destructive" @click="deleteVectorDocs">删除文件</Button>
             </div>
           </div>
         </div>
