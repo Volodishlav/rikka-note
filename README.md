@@ -24,36 +24,35 @@
 ## 项目结构树
 ```
 d:\graduation_project\rikka-note
-├── .vscode/
-│   └── extensions.json
+├── doc/
+│   └── Sidebar.md
 ├── public/
-│   ├── tauri.svg
-│   └── vite.svg
+│   ├── dist/
 ├── src/
-│   ├── assets/
-│   │   └── vue.svg
 │   ├── components/
 │   │   ├── ui/
+│   │   │   ├── button/
 │   │   │   ├── collapsible/
 │   │   │   ├── context-menu/
+│   │   │   ├── dialog/
 │   │   │   ├── dropdown-menu/
 │   │   │   ├── input/
-│   │   │   │   ├── Input.vue
-│   │   │   │   └── index.ts
+│   │   │   ├── separator/
+│   │   │   ├── sheet/
+│   │   │   ├── sidebar/
+│   │   │   ├── skeleton/
+│   │   │   ├── toast/
 │   │   │   ├── tooltip/
 │   │   │   ├── Button.vue
 │   │   │   ├── Dialog.vue
 │   │   │   ├── Input.vue
-│   │   │   ├── README.md
-│   │   │   ├── Tooltip.vue
 │   │   │   └── index.ts
 │   │   ├── AppSidebar.vue
 │   │   ├── AppStatus.vue
 │   │   ├── ModeToggle.vue
 │   │   ├── ThemeProvider.vue
 │   │   ├── ToastContainer.vue
-│   │   ├── ToastItem.vue
-│   │   └── TooltipButton.vue
+│   │   └── ToastItem.vue
 │   ├── composables/
 │   │   ├── useTheme.ts
 │   │   └── useToast.ts
@@ -68,13 +67,14 @@ d:\graduation_project\rikka-note
 │   │       │   ├── FileSidebar.vue
 │   │       │   ├── FileToolbar.vue
 │   │       │   ├── FolderItem.vue
-│   │       │   └── TreeItem.vue
+│   │       │   ├── MdEditor.scss
+│   │       │   ├── MdEditor.vue
+│   │       │   ├── TreeItem.vue
+│   │       │   └── toolbarConfig.ts
 │   │       ├── ArticlePage.vue
-│   │       ├── ArticleTest.vue
-│   │       ├── DataTestPage.vue # 数据测试页面
-│   │       ├── FileTreeNode.vue
+│   │       ├── DataTestPage.vue
 │   │       ├── RecordPage.vue
-│   │       └── test.vue        # 测试页面
+│   │       └── test.vue
 │   ├── db/
 │   │   ├── chats.ts
 │   │   ├── index.ts
@@ -87,7 +87,7 @@ d:\graduation_project\rikka-note
 │   ├── i18n/
 │   │   └── index.ts
 │   ├── layouts/
-│   │   └── RootLayout.vue      # 全局布局组件
+│   │   └── RootLayout.vue
 │   ├── lib
 │   │   ├── path.ts
 │   │   ├── utils.ts
@@ -114,29 +114,40 @@ d:\graduation_project\rikka-note
 │   │   └── sidebar.ts
 │   ├── utils/
 │   │   ├── device.ts
-│   │   ├── tauriStore.ts      # Tauri存储工具
-│   │   └── themeStorage.ts    # 主题存储工具
+│   │   ├── tauriStore.ts
+│   │   └── themeStorage.ts
 │   ├── App.vue
 │   ├── main.ts
 │   └── vite-env.d.ts
 ├── src-tauri/
 │   ├── capabilities/
-│   │   └── default.json       # Tauri权限配置
-│   ├── icons/                 # 应用图标
+│   │   ├── default.json
+│   │   └── desktop.json
+│   ├── icons/
 │   ├── src/
-│   │   ├── lib.rs             # Rust库入口
-│   │   └── main.rs            # Rust主入口
+│   │   ├── app_setup.rs
+│   │   ├── backup.rs
+│   │   ├── fuzzy_search.rs
+│   │   ├── keywords.rs
+│   │   ├── lib.rs
+│   │   ├── main.rs
+│   │   ├── screenshot.rs
+│   │   ├── tray.rs
+│   │   ├── webdav.rs
+│   │   └── window.rs
 │   ├── .gitignore
 │   ├── Cargo.lock
-│   ├── Cargo.toml             # Rust依赖配置
+│   ├── Cargo.toml
 │   ├── build.rs
-│   └── tauri.conf.json        # Tauri配置
+│   └── tauri.conf.json
 ├── .gitignore
 ├── README.md
+├── app-icon.png
+├── components.json
 ├── index.html
 ├── package-lock.json
 ├── package.json
-├── postcss.config.mjs
+├── postcss.config.js
 ├── tailwind.config.ts
 ├── tsconfig.json
 ├── tsconfig.node.json
