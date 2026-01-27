@@ -42,11 +42,7 @@ d:\graduation_project\rikka-note
 │   │   │   ├── sidebar/
 │   │   │   ├── skeleton/
 │   │   │   ├── toast/
-│   │   │   ├── tooltip/
-│   │   │   ├── Button.vue
-│   │   │   ├── Dialog.vue
-│   │   │   ├── Input.vue
-│   │   │   └── index.ts
+│   │   │   └── tooltip/
 │   │   ├── AppSidebar.vue
 │   │   ├── AppStatus.vue
 │   │   ├── ModeToggle.vue

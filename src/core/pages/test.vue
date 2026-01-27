@@ -6,7 +6,7 @@ import { useSettingStore } from '@/stores/setting'
 // 导入UI组件库
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { UiDialog } from '@/components/ui'
+import { Dialog, DialogContent, DialogClose, DialogTrigger } from '@/components/ui/dialog'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 // 导入新的Toast系统
 import { useToast } from '@/composables/useToast'
@@ -106,7 +106,7 @@ function handleInputChange(e: Event) {
 }
 
 // Dialog测试
-const dialogOpen = ref(false)
+
 
 
 
@@ -261,26 +261,31 @@ const tooltipContent = ref('这是一个Tooltip提示')
       <!-- Dialog组件测试 -->
       <div class="bg-card border border-border rounded-lg p-8 mb-8 transition-all hover:shadow-md">
         <h3 class="text-xl font-semibold mb-4">Dialog组件</h3>
-        <Button variant="default" @click="dialogOpen = true">
-          打开对话框
-        </Button>
-        
-        <UiDialog v-model="dialogOpen" :className="'max-w-[500px]'">
-          <div class="p-6">
+        <Dialog>
+          <DialogTrigger as-child>
+            <Button variant="default">
+              打开对话框
+            </Button>
+          </DialogTrigger>
+          <DialogContent class="max-w-[500px]">
             <h4 class="text-lg font-semibold mb-3">对话框标题</h4>
             <p class="mb-4">
               这是对话框的内容区域。你可以在这里放置任何你想要的内容，包括表单、图片、文本等。
             </p>
             <div class="flex justify-end gap-2">
-              <Button variant="ghost" @click="dialogOpen = false">
-                取消
-              </Button>
-              <Button variant="default" @click="dialogOpen = false">
-                确认
-              </Button>
+              <DialogClose as-child>
+                <Button variant="ghost">
+                  取消
+                </Button>
+              </DialogClose>
+              <DialogClose as-child>
+                <Button variant="default">
+                  确认
+                </Button>
+              </DialogClose>
             </div>
-          </div>
-        </UiDialog>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <!-- Toast系统测试 -->
