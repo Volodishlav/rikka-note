@@ -5,7 +5,8 @@ import { useI18n } from '@/hooks/useI18n.ts'
 import { useSettingStore } from '@/stores/setting'
 // 导入UI组件库
 import { Button } from '@/components/ui/button'
-import { UiInput, UiDialog } from '@/components/ui'
+import { Input } from '@/components/ui/input'
+import { UiDialog } from '@/components/ui'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 // 导入新的Toast系统
 import { useToast } from '@/composables/useToast'
@@ -229,30 +230,30 @@ const tooltipContent = ref('这是一个Tooltip提示')
         <div class="flex flex-col gap-4">
           <div>
             <label class="block text-sm font-medium mb-1">标准输入框</label>
-            <UiInput placeholder="请输入内容" />
+            <Input placeholder="请输入内容" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">带值的输入框</label>
-            <UiInput v-model="inputValue" placeholder="至少3个字符" @input="handleInputChange" :error="inputError" />
+            <Input v-model="inputValue" placeholder="至少3个字符" @input="handleInputChange" :class="{ 'border-destructive focus-visible:ring-destructive': inputError }" />
             <p v-if="inputError" class="mt-1 text-xs text-destructive">
               内容长度至少3个字符
             </p>
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">小尺寸输入框</label>
-            <UiInput size="sm" placeholder="小尺寸" />
+            <Input placeholder="小尺寸" class="h-8 px-3" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">大尺寸输入框</label>
-            <UiInput size="lg" placeholder="大尺寸" />
+            <Input placeholder="大尺寸" class="h-12 px-5" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">禁用输入框</label>
-            <UiInput placeholder="禁用" disabled />
+            <Input placeholder="禁用" disabled />
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">只读输入框</label>
-            <UiInput placeholder="只读" readonly value="只读内容" />
+            <Input placeholder="只读" readonly value="只读内容" />
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { useI18n } from '@/hooks/useI18n.ts'
 import { Button } from '@/components/ui/button'
-import { UiInput } from '@/components/ui'
+import { Input } from '@/components/ui/input'
 import { useToast } from '@/composables/useToast'
 
 // 导入数据库表操作接口
@@ -299,7 +299,7 @@ async function deleteVectorDocs() {
         <div class="mb-6">
           <h4 class="text-lg font-medium mb-2">添加标签</h4>
           <div class="flex gap-2">
-            <UiInput v-model="newTagName" placeholder="输入标签名称" />
+            <Input v-model="newTagName" placeholder="输入标签名称" />
             <Button variant="default" @click="addTag">添加</Button>
           </div>
         </div>
@@ -314,7 +314,7 @@ async function deleteVectorDocs() {
                 {{ tag.name }} ({{ tag.id }})
               </option>
             </select>
-            <UiInput v-model="updateTagName" placeholder="输入新名称" />
+            <Input v-model="updateTagName" placeholder="输入新名称" />
             <Button variant="secondary" @click="updateSelectedTag" :disabled="!selectedTagId">更新</Button>
             <Button variant="destructive" @click="deleteSelectedTag" :disabled="!selectedTagId">删除</Button>
           </div>
@@ -355,8 +355,8 @@ async function deleteVectorDocs() {
         <div class="mb-6">
           <h4 class="text-lg font-medium mb-2">添加笔记</h4>
           <div class="flex gap-2 mb-2">
-            <UiInput v-model="newNoteTagId" placeholder="标签ID" type="number" />
-            <UiInput v-model="newNoteContent" placeholder="输入笔记内容" class="flex-1" />
+            <Input v-model="newNoteTagId" placeholder="标签ID" type="number" />
+            <Input v-model="newNoteContent" placeholder="输入笔记内容" class="flex-1" />
             <Button variant="default" @click="addNote">添加</Button>
           </div>
         </div>
@@ -365,7 +365,7 @@ async function deleteVectorDocs() {
         <div class="mb-6">
           <h4 class="text-lg font-medium mb-2">加载笔记</h4>
           <div class="flex gap-2">
-            <UiInput v-model="newNoteTagId" placeholder="标签ID" type="number" />
+            <Input v-model="newNoteTagId" placeholder="标签ID" type="number" />
             <Button variant="default" @click="loadNoteByTagId">加载最新笔记</Button>
           </div>
           <div v-if="noteByTagId" class="mt-4 p-4 border border-border rounded-md">
@@ -387,7 +387,7 @@ async function deleteVectorDocs() {
           <h4 class="text-lg font-medium mb-2">添加标记</h4>
           <div class="space-y-2">
             <div class="flex gap-2">
-              <UiInput v-model="newMark.tagId" placeholder="标签ID" type="number" />
+              <Input v-model="newMark.tagId" placeholder="标签ID" type="number" />
               <select v-model="newMark.type" class="rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                 <option value="scan">扫描</option>
                 <option value="text">文本</option>
@@ -397,11 +397,11 @@ async function deleteVectorDocs() {
               </select>
             </div>
             <div class="flex gap-2">
-              <UiInput v-model="newMark.content" placeholder="内容" class="flex-1" />
-              <UiInput v-model="newMark.desc" placeholder="描述" class="flex-1" />
+              <Input v-model="newMark.content" placeholder="内容" class="flex-1" />
+              <Input v-model="newMark.desc" placeholder="描述" class="flex-1" />
             </div>
             <div class="flex gap-2">
-              <UiInput v-model="newMark.url" placeholder="URL" class="flex-1" />
+              <Input v-model="newMark.url" placeholder="URL" class="flex-1" />
               <Button variant="default" @click="addMark">添加</Button>
             </div>
           </div>
@@ -443,7 +443,7 @@ async function deleteVectorDocs() {
           <h4 class="text-lg font-medium mb-2">添加聊天记录</h4>
           <div class="space-y-2">
             <div class="flex gap-2">
-              <UiInput v-model="newChat.tagId" placeholder="标签ID" type="number" />
+              <Input v-model="newChat.tagId" placeholder="标签ID" type="number" />
               <select v-model="newChat.role" class="rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                 <option value="user">用户</option>
                 <option value="system">系统</option>
@@ -456,7 +456,7 @@ async function deleteVectorDocs() {
               </select>
             </div>
             <div class="flex gap-2">
-              <UiInput v-model="newChat.content" placeholder="聊天内容" class="flex-1" />
+              <Input v-model="newChat.content" placeholder="聊天内容" class="flex-1" />
               <Button variant="default" @click="addChat">添加</Button>
             </div>
           </div>
@@ -498,12 +498,12 @@ async function deleteVectorDocs() {
           <h4 class="text-lg font-medium mb-2">添加向量文档</h4>
           <div class="space-y-2">
             <div class="flex gap-2">
-              <UiInput v-model="newVectorDoc.filename" placeholder="文件名" />
-              <UiInput v-model="newVectorDoc.chunk_id" placeholder="分块ID" type="number" />
+              <Input v-model="newVectorDoc.filename" placeholder="文件名" />
+              <Input v-model="newVectorDoc.chunk_id" placeholder="分块ID" type="number" />
             </div>
             <div class="flex gap-2">
-              <UiInput v-model="newVectorDoc.content" placeholder="内容" class="flex-1" />
-              <UiInput v-model="newVectorDoc.embedding" placeholder="向量JSON" class="flex-1" />
+              <Input v-model="newVectorDoc.content" placeholder="内容" class="flex-1" />
+              <Input v-model="newVectorDoc.embedding" placeholder="向量JSON" class="flex-1" />
             </div>
             <div class="flex gap-2">
               <Button variant="default" @click="addVectorDoc">添加/更新</Button>
