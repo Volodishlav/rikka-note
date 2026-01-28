@@ -24,23 +24,20 @@ import { convertImageByWorkspace } from '@/lib/utils'
 import { getWorkspacePath } from '@/lib/workspace'
 import { useToast } from "@/composables/useToast.ts";
 
-// ========== 状态初始化 ==========
+// Editor state
 const editorContainer = ref<HTMLDivElement | null>(null)
 const editor = ref<Vditor | null>(null)
 const isEditorIniting = ref(false)
 const isEditorCreated = ref(false)
 const resizeHandler = ref<(() => void) | null>(null)
-
-// 编辑器高度（响应式）
 const editorHeight = ref<number>(document.documentElement.clientHeight - 100)
 
-// ========== 安全获取依赖 ==========
+// Dependencies (with safe initialization)
 let articleStore: ReturnType<typeof useArticleStore> | null = null
 try {
   articleStore = useArticleStore()
 } catch (error) {
   console.warn('Failed to initialize article store:', error)
-  articleStore = null
 }
 
 const themeResult = useTheme()
@@ -57,24 +54,15 @@ const toast = useToast() || {
 
 const i18nResult = useI18n()
 const currentLocale = computed(() => {
-  try {
-    const locale =
-        (i18nResult?.locale?.value !== undefined ? i18nResult.locale.value : undefined) ||
-        i18nResult?.locale ||
-        'zh'
-    return locale.toString().toLowerCase()
-  } catch {
-    return 'zh'
-  }
+  const locale =
+    (i18nResult?.locale?.value !== undefined ? i18nResult.locale.value : undefined) ||
+    i18nResult?.locale ||
+    'zh'
+  return locale.toString().toLowerCase()
 })
 
-// ========== 计算属性 ==========
-const activeFilePath = computed(() => {
-  if (!articleStore) return ''
-  // 移除多余的 typeof 检查（Pinia 中 activeFilePath 是固定 string 类型）
-  // 增加 trim() 过滤空字符串，避免无效路径
-  return articleStore.activeFilePath.trim()
-})
+// Computed properties
+const activeFilePath = computed(() => articleStore?.activeFilePath.trim() || '')
 
 const editorCacheId = computed(() => {
   if (activeFilePath.value) {
@@ -83,126 +71,54 @@ const editorCacheId = computed(() => {
   return `vditor_${uuid().substring(0, 8)}`
 })
 
-const currentArticle = computed(() => {
-  if (!articleStore) return ''
-  // Pinia 中 currentArticle 是 string 类型，无需 typeof 检查
-  return articleStore.currentArticle.trim()
-})
-
-const loading = computed(() => {
-  if (!articleStore) return false
-  return Boolean(articleStore.loading)
-})
+const currentArticle = computed(() => articleStore?.currentArticle.trim() || '')
+const loading = computed(() => Boolean(articleStore?.loading))
 
 const editMode = ref<'ir' | 'sv' | 'wysiwyg'>('ir')
+const previewObservers: Map<HTMLElement, MutationObserver> = new Map()
+let toolbarClickHandler: ((e: Event) => void) | null = null
+let boundVditorElement: HTMLElement | null = null
 
-/**
- * 获取Vditor语言
- */
+// Get Vditor language based on current locale
 function getLang(): 'en_US' | 'zh_CN' {
-  try {
-    const lang = currentLocale.value
-    return lang === 'en' ? 'en_US' : 'zh_CN'
-  } catch {
-    return 'zh_CN'
-  }
+  return currentLocale.value === 'en' ? 'en_US' : 'zh_CN'
 }
 
-/**
- * 增强版：安全检查编辑器实例和方法
- */
+// Safely check if editor instance exists and has required method
 function checkEditorInstance(requiredMethod?: string): boolean {
-  if (!editor.value || !isEditorCreated.value || typeof editor.value !== 'object') {
-    return false
-  }
-
-  // 如果指定了需要检查的方法，额外验证
-  if (requiredMethod) {
-    return typeof (editor.value as any)[requiredMethod] === 'function'
-  }
-
+  if (!editor.value || !isEditorCreated.value) return false
+  if (requiredMethod) return typeof (editor.value as any)[requiredMethod] === 'function'
   return true
 }
 
-/**
- * ========== 核心修复：正确设置编辑器高度 ==========
- */
+// Set editor height with fallbacks
 function setEditorHeight(height: number) {
   if (!checkEditorInstance()) return
-
   try {
     const vditorInstance = editor.value as any
-
-    // 方法1：使用Vditor的resize方法（推荐）
-    if (typeof vditorInstance.resize === 'function') {
-      vditorInstance.resize(height)
-    }
-    // 方法2：直接修改容器样式（兜底）
-    else if (vditorInstance?.vditor?.element) {
-      vditorInstance.vditor.element.style.height = `${height}px`
-    }
-    // 方法3：修改编辑器容器DOM（终极兜底）
-    else if (editorContainer.value) {
-      editorContainer.value.style.height = `${height}px`
-    }
-
-    // 更新响应式高度
+    vditorInstance?.resize?.(height) ||
+      (vditorInstance?.vditor?.element && (vditorInstance.vditor.element.style.height = `${height}px`)) ||
+      (editorContainer.value && (editorContainer.value.style.height = `${height}px`))
     editorHeight.value = height
-
   } catch (error) {
     console.error('Error setting editor height:', error)
-    // 终极兜底：直接修改DOM样式
-    if (editorContainer.value) {
-      editorContainer.value.style.height = `${height}px`
-    }
   }
 }
 
-/**
- * 初始化编辑器
- */
+// Initialize editor instance
 async function initEditor() {
-  if (!articleStore || isEditorIniting.value || !editorContainer.value || !activeFilePath.value) {
-    return
-  }
+  if (!articleStore || isEditorIniting.value || !editorContainer.value || !activeFilePath.value) return
 
   isEditorIniting.value = true
   isEditorCreated.value = false
-
-  // 提前校验容器，移出 try 块，避免本地 throw
   const container = editorContainer.value
-  if (!container) {
-    console.error('Editor container not found')
-    isEditorIniting.value = false // 重置状态，避免卡死
-    return
-  }
 
   try {
     const store = await Store.load('store.json').catch(() => null)
-    const enableLineNumber = store ? await store.get<boolean>('enableLineNumber').catch(() => false) : false
+    const enableLineNumber = await store?.get<boolean>('enableLineNumber').catch(() => false) || false
     const enableOutline = articleStore.enableOutline
-    const typewriterMode = store ? await store.get<boolean>('typewriterMode').catch(() => false) : false
+    const typewriterMode = await store?.get<boolean>('typewriterMode').catch(() => false) || false
 
-    // 移除原有的 if (!container) throw ... 语句
-
-    // 拦截资源加载
-    // @ts-ignore
-    const originalLoadScript = window.loadScript
-    // @ts-ignore
-    window.loadScript = (url: string, callback: Function) => {
-      if (url.includes('i18n/zh_CN.js')) {
-        // @ts-ignore
-        callback(window.VditorI18n?.zh_CN || window.Vditor?.I18n?.zh_CN)
-      } else if (url.includes('i18n/en_US.js')) {
-        // @ts-ignore
-        callback(window.VditorI18n?.en_US || window.Vditor?.I18n?.en_US)
-      } else {
-        if (originalLoadScript) originalLoadScript(url, callback)
-        else callback()
-      }
-    }
-
-    // 先设置容器初始高度
     container.style.height = `${editorHeight.value}px`
 
     // 创建编辑器实例
@@ -293,28 +209,55 @@ async function initEditor() {
           return 'uploaded'
         }
       },
-      // 初始化完成
       after: () => {
-        try {
-          if (checkEditorInstance('setValue')) {
-            (editor.value as any).setValue(currentArticle.value || '', true)
-            updateEditorPadding().catch(console.error)
-            handleLocalImages().catch(console.error)
+        if (checkEditorInstance('setValue')) {
+          (editor.value as any).setValue(currentArticle.value || '', true)
+          updateEditorPadding().catch(console.error)
+          handleLocalImages().catch(console.error)
+        }
+
+        // Bind edit-mode change handler
+        const vEl = (editor.value as any)?.vditor?.element
+        if (vEl) {
+          boundVditorElement = vEl
+          toolbarClickHandler = (ev: Event) => {
+            const modeEl = (ev.target as HTMLElement)?.closest('[data-mode]')
+            if (!modeEl) return
+            const mode = modeEl.getAttribute('data-mode')
+            if (!mode) return
+            editMode.value = mode as any
+            setTimeout(() => {
+              if (checkEditorInstance('renderPreview')) {
+                (editor.value as any).renderPreview((editor.value as any).getValue())
+              }
+              const svPanel = (editor.value as any)?.vditor?.sv?.element
+              handleLocalImages(svPanel).catch(console.error)
+            }, 160)
           }
-        } catch (error) {
-          console.error('Failed to initialize editor content:', error)
+          vEl.addEventListener('click', toolbarClickHandler)
+
+          // Register MutationObservers for preview panels
+          const vditorInstance = editor.value as any
+          const panels = [vditorInstance?.vditor?.ir?.element, vditorInstance?.vditor?.sv?.element, vditorInstance?.vditor?.wysiwyg?.element]
+          panels.forEach((p: HTMLElement | undefined) => {
+            if (!p || previewObservers.has(p)) return
+            const obs = new MutationObserver((mutations) => {
+              for (const m of mutations) {
+                if ((m.type === 'childList' && m.addedNodes.length > 0) || 
+                    (m.type === 'attributes' && (m.target as HTMLElement).tagName === 'IMG')) {
+                  handleLocalImages(p).catch(console.error)
+                  break
+                }
+              }
+            })
+            obs.observe(p, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] })
+            previewObservers.set(p, obs)
+          })
         }
       },
-      // 编辑器内容变化时的自动保存
       input: (value: string) => {
         if (articleStore && activeFilePath.value) {
-          // 调用 Store 里的保存方法
           articleStore.saveCurrentArticle(value)
-
-          // 如果有全局事件总线
-          // emitter.emit('editor-input')
-
-          // 处理本地图片实时预览转换
           handleLocalImages().catch(console.error)
         }
       },
@@ -322,12 +265,6 @@ async function initEditor() {
     })
 
     isEditorCreated.value = true
-
-    // 恢复原始加载函数
-    setTimeout(() => {
-      // @ts-ignore
-      window.loadScript = originalLoadScript
-    }, 100)
 
   } catch (error) {
     console.error('Init editor failed:', error)
@@ -343,30 +280,23 @@ async function initEditor() {
   }
 }
 
-/**
- * 设置编辑器内容
- */
+// Set editor content and handle images after rendering
 function setContent(content: string) {
-  // 优化：检查内容是否为空（更贴合业务），保留编辑器实例校验
   if (!checkEditorInstance('setValue') || !content) return
-
   try {
     (editor.value as any).setValue(content)
     if (checkEditorInstance('renderPreview')) {
       (editor.value as any).renderPreview(content)
     }
-    handleLocalImages().catch(console.error)
+    setTimeout(() => handleLocalImages().catch(console.error), 80)
   } catch (error) {
     console.error('Error setting editor content:', error)
   }
 }
 
-/**
- * 安全获取编辑器内容
- */
+// Get editor content safely
 function getEditorContent(): string {
   if (!checkEditorInstance('getValue')) return ''
-
   try {
     return (editor.value as any).getValue() || ''
   } catch (error) {
@@ -375,31 +305,21 @@ function getEditorContent(): string {
   }
 }
 
-/**
- * 安全禁用/启用编辑器
- */
+// Enable or disable editor
 function setEditorDisabled(disabled: boolean) {
   if (!checkEditorInstance()) return
-
   try {
-    if (disabled) {
-      if (checkEditorInstance('disabled')) {
-        (editor.value as any).disabled()
-      }
-    } else {
-      if (checkEditorInstance('enable')) {
-        (editor.value as any).enable()
-      }
+    const method = disabled ? 'disabled' : 'enable'
+    if (checkEditorInstance(method)) {
+      (editor.value as any)[method]()
     }
   } catch (error) {
     console.error(`Error ${disabled ? 'disabling' : 'enabling'} editor:`, error)
   }
 }
 
-/**
- * 处理本地相对路径图片
- */
-async function handleLocalImages() {
+// Convert local images to tauri asset paths for preview
+async function handleLocalImages(singleElement?: HTMLElement) {
   if (!articleStore || !checkEditorInstance() || !activeFilePath.value) return
 
   try {
@@ -407,37 +327,35 @@ async function handleLocalImages() {
     if (!workspace) return
 
     const vditorInstance = editor.value as any
-    const previews = [
+    const allPanels = [
       vditorInstance?.vditor?.ir?.element,
       vditorInstance?.vditor?.sv?.element,
       vditorInstance?.vditor?.wysiwyg?.element,
-    ].filter(Boolean)
+    ].filter(Boolean) as HTMLElement[]
 
-    for (const element of previews) {
+    const targets = singleElement ? [singleElement] : allPanels
+    const articlePathParts = activeFilePath.value.split('/').slice(0, -1)
+    const articlePath = articlePathParts.join('/')
+
+    for (const element of targets) {
       if (!element) continue
-
-      const images = Array.from((element as HTMLElement).querySelectorAll('img'))
+      const images = Array.from(element.querySelectorAll('img'))
+      
       for (const img of images) {
-        let src = img.getAttribute('src')
-        if (!src) continue
-
-        if (src.startsWith('http') || src.startsWith('asset://')) continue
+        const src = img.getAttribute('src')
+        if (!src || src.startsWith('http') || src.startsWith('asset://')) continue
 
         try {
-          const articlePathParts = activeFilePath.value.split('/').slice(0, -1)
-          const articlePath = articlePathParts.join('/')
-          let imagePath = src
-
-          if (imagePath.startsWith('./')) {
-            imagePath = imagePath.slice(2)
-          }
-          if (!imagePath.startsWith('/')) {
-            imagePath = `/${imagePath}`
-          }
-
+          let imagePath = src.startsWith('./') ? src.slice(2) : src
+          if (!imagePath.startsWith('/')) imagePath = `/${imagePath}`
+          
           const relPath = await join(articlePath, imagePath)
           const tauriSrc = await convertImageByWorkspace(relPath).catch(() => src)
-          img.setAttribute('src', tauriSrc)
+          
+          if (tauriSrc && tauriSrc !== src) {
+            img.setAttribute('src', tauriSrc)
+            img.setAttribute('data-md-src', src)
+          }
         } catch (error) {
           console.error('Failed to convert image:', error)
         }
@@ -448,22 +366,16 @@ async function handleLocalImages() {
   }
 }
 
-/**
- * 更新编辑器内边距
- */
+// Update editor padding based on page view setting
 async function updateEditorPadding() {
   if (!checkEditorInstance()) return
-
   try {
     const store = await Store.load('store.json').catch(() => null)
-    if (!store) return
-
-    const pageView = await store.get<'immersiveView' | 'panoramaView'>('pageView').catch(() => 'immersiveView') || 'immersiveView'
-
-    const vditorInstance = editor.value as any
-    const resetDom = vditorInstance?.vditor?.element?.querySelectorAll('.vditor-reset')
-    if (resetDom && pageView === 'panoramaView') {
-      resetDom.forEach((dom: HTMLElement) => {
+    const pageView = await store?.get<'immersiveView' | 'panoramaView'>('pageView').catch(() => 'immersiveView') || 'immersiveView'
+    
+    if (pageView === 'panoramaView') {
+      const resetDom = (editor.value as any)?.vditor?.element?.querySelectorAll('.vditor-reset')
+      resetDom?.forEach((dom: HTMLElement) => {
         dom.style.setProperty('padding', '10px', 'important')
       })
     }
@@ -494,162 +406,96 @@ function setTheme(dark: boolean) {
   }
 }
 
-/**
- * 安全销毁编辑器
- */
+// Cleanup and destroy editor
 function destroyEditor() {
   isEditorCreated.value = false
-
-  if (editor.value && typeof editor.value === 'object') {
-    try {
-      const vditorInstance = editor.value as any
-      if (vditorInstance?.vditor?.element) {
-        if (typeof vditorInstance.destroy === 'function') {
-          vditorInstance.destroy()
-        }
-      }
-    } catch (error) {
-      console.warn('Editor destroy warning (non-critical):', error)
-    }
+  
+  try {
+    (editor.value as any)?.destroy?.()
+  } catch (error) {
+    console.warn('Editor destroy error:', error)
   }
-
+  
   editor.value = null
   isEditorIniting.value = false
+
+  // Disconnect all MutationObservers
+  previewObservers.forEach(obs => obs.disconnect())
+  previewObservers.clear()
+
+  // Remove delegated toolbar click handler
+  if (boundVditorElement && toolbarClickHandler) {
+    boundVditorElement.removeEventListener('click', toolbarClickHandler)
+  }
+  boundVditorElement = null
+  toolbarClickHandler = null
 }
 
-// ========== 监听逻辑 ==========
+// Watchers
 watch(
-    () => activeFilePath.value,
-    async (newPath, oldPath) => {
-      if (newPath === oldPath) return
-
-      destroyEditor()
-
-      if (newPath && articleStore) {
-        try {
-          // 核心修复：将 try/catch 移到回调内部，而非外层
-          await articleStore.readArticle(newPath)
-          await nextTick()
-
-          setTimeout(() => {
-            initEditor()
-          }, 50)
-        } catch (error) {
-          console.error('Error loading article in watcher:', error)
-        }
-      }
-    },
-    // 关键：移除非法的 onError 配置项，保留合法配置
-    { immediate: true, flush: 'post' }
+  () => activeFilePath.value,
+  async (newPath) => {
+    destroyEditor()
+    if (!newPath || !articleStore) return
+    try {
+      await articleStore.readArticle(newPath)
+      await nextTick()
+      setTimeout(() => initEditor(), 50)
+    } catch (error) {
+      console.error('Error loading article:', error)
+    }
+  },
+  { immediate: true, flush: 'post' }
 )
 
 watch(
-    () => currentArticle.value,
-    (newContent) => {
-      try {
-        if (checkEditorInstance() && getEditorContent() !== newContent) {
-          setContent(newContent)
-        }
-      } catch (error) {
-        console.error('Error in currentArticle watcher:', error)
-      }
-    },
-    // 关键：移除非法的 onError 配置项，仅保留合法的 flush
-    { flush: 'post' }
+  () => currentArticle.value,
+  (newContent) => {
+    if (checkEditorInstance() && getEditorContent() !== newContent) {
+      setContent(newContent)
+    }
+  },
+  { flush: 'post' }
 )
+
+watch(() => isDark.value, (dark) => setTheme(dark))
 
 watch(
-    () => isDark.value,
-    (dark: boolean) => { // 显式标注 dark 为 boolean 类型
-      try {
-        setTheme(dark)
-      } catch (error) {
-        console.error('Error in isDark watcher:', error)
-      }
-    },
-    {}
-)
-
-watch(
-    () => currentLocale.value,
-    async () => {
-      try {
-        if (articleStore && activeFilePath.value) {
-          destroyEditor()
-          await nextTick()
-          // 给 setTimeout 内的 async 函数添加 await（需包裹自执行异步函数）
-          setTimeout(async () => {
-            await initEditor() // 异步函数调用添加 await
-          }, 50)
-        }
-      } catch (error) {
-        console.error('Error in currentLocale watcher:', error)
-      }
-    },
-    {}
-)
-
-watch(
-    () => loading.value,
-    (isLoading) => {
-      try {
-        setEditorDisabled(isLoading)
-      } catch (error) {
-        console.error('Error in loading watcher:', error)
-      }
-    },
-    // 关键：移除非法的 onError 配置项，保留空对象
-    {}
-)
-
-// ========== 生命周期管理 ==========
-onMounted(async () => {
-  try {
+  () => currentLocale.value,
+  async () => {
+    if (!articleStore || !activeFilePath.value) return
+    destroyEditor()
     await nextTick()
-
-    if (articleStore) {
-      await articleStore.initEnableOutline() // 初始化大纲配置
-    }
-
-    if (articleStore && activeFilePath.value) {
-      await initEditor()
-    }
-
-    // ========== 修复：重构窗口大小调整逻辑 ==========
-    resizeHandler.value = () => {
-      try {
-        // 计算新高度
-        const newHeight = document.documentElement.clientHeight - 100
-        if (newHeight !== editorHeight.value) {
-          // 使用修复后的高度设置方法
-          setEditorHeight(newHeight)
-        }
-      } catch (error) {
-        console.error('Error in resize handler:', error)
-        // 终极兜底：直接修改容器样式
-        if (editorContainer.value) {
-          editorContainer.value.style.height = `${document.documentElement.clientHeight - 100}px`
-        }
-      }
-    }
-
-    if (resizeHandler.value) {
-      window.addEventListener('resize', resizeHandler.value)
-    }
-  } catch (error) {
-    console.error('Error in onMounted:', error)
+    setTimeout(() => initEditor(), 50)
   }
+)
+
+watch(() => loading.value, (isLoading) => setEditorDisabled(isLoading))
+
+// Lifecycle hooks
+onMounted(async () => {
+  await nextTick()
+  if (articleStore) {
+    await articleStore.initEnableOutline()
+  }
+  if (articleStore && activeFilePath.value) {
+    await initEditor()
+  }
+
+  resizeHandler.value = () => {
+    const newHeight = document.documentElement.clientHeight - 100
+    if (newHeight !== editorHeight.value) {
+      setEditorHeight(newHeight)
+    }
+  }
+  window.addEventListener('resize', resizeHandler.value)
 })
 
 onScopeDispose(() => {
-  try {
-    if (resizeHandler.value) {
-      window.removeEventListener('resize', resizeHandler.value)
-    }
-    destroyEditor()
-  } catch (error) {
-    console.error('Error in onScopeDispose:', error)
+  if (resizeHandler.value) {
+    window.removeEventListener('resize', resizeHandler.value)
   }
+  destroyEditor()
 })
 </script>
 
