@@ -6,7 +6,7 @@ import { useSettingStore } from '@/stores/setting'
 // 导入UI组件库
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogClose, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogClose, DialogTrigger, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 // 导入新的Toast系统
 import { useToast } from '@/composables/useToast'
@@ -268,10 +268,10 @@ const tooltipContent = ref('这是一个Tooltip提示')
             </Button>
           </DialogTrigger>
           <DialogContent class="max-w-[500px]">
-            <h4 class="text-lg font-semibold mb-3">对话框标题</h4>
-            <p class="mb-4">
+            <DialogTitle class="text-lg font-semibold mb-3">对话框标题</DialogTitle>
+            <DialogDescription class="mb-4">
               这是对话框的内容区域。你可以在这里放置任何你想要的内容，包括表单、图片、文本等。
-            </p>
+            </DialogDescription>
             <div class="flex justify-end gap-2">
               <DialogClose as-child>
                 <Button variant="ghost">
