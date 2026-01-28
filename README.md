@@ -26,8 +26,7 @@
 d:\graduation_project\rikka-note
 ├── doc/
 │   └── Sidebar.md
-├── public/
-│   ├── dist/
+├── public
 ├── src/
 │   ├── components/
 │   │   ├── ui/
@@ -63,10 +62,8 @@ d:\graduation_project\rikka-note
 │   │       │   ├── FileSidebar.vue
 │   │       │   ├── FileToolbar.vue
 │   │       │   ├── FolderItem.vue
-│   │       │   ├── MdEditor.scss
 │   │       │   ├── MdEditor.vue
-│   │       │   ├── TreeItem.vue
-│   │       │   └── toolbarConfig.ts
+│   │       │   └── TreeItem.vue
 │   │       ├── ArticlePage.vue
 │   │       ├── DataTestPage.vue
 │   │       ├── RecordPage.vue

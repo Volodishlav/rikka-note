@@ -12,7 +12,7 @@
       <!-- 右侧编辑器 (剩余 75%) -->
       <pane size="75" min-size="65">
         <div class="h-full p-4 overflow-hidden">
-          <MdEditor />
+          <Vditortest />
         </div>
       </pane>
     </splitpanes>
@@ -24,9 +24,8 @@
 import { Splitpanes, Pane } from 'splitpanes'
 // 官方标准导入路径（必须）
 import 'splitpanes/dist/splitpanes.css'
-
+import Vditortest from './article/MdEditor.vue'
 import FileSidebar from './article/FileSidebar.vue'
-import MdEditor from './article/MdEditor.vue'
 </script>
 
 <style scoped>
