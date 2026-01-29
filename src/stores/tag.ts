@@ -75,11 +75,17 @@ export const useTagStore = defineStore('tag', () => {
      * getTags() 已自动计算每个标签关联的mark数量 (total)
      */
     const fetchTags = async () => {
+        console.log('tag.ts - fetchTags 触发')
         try {
             const tagList = await getTags()
+            console.log('tag.ts - fetchTags 获取到标签列表:', {
+                tagCount: tagList.length,
+                tags: tagList.map(t => ({ id: t.id, name: t.name, isPin: t.isPin }))
+            })
             tags.value = tagList
+            console.log('tag.ts - fetchTags 标签列表更新成功')
         } catch (error) {
-            console.error('Failed to fetch tags:', error)
+            console.error('tag.ts - Failed to fetch tags:', error)
         }
     }
 
