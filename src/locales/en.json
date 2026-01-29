@@ -7,9 +7,35 @@
   "common": {
     "settings": "Settings",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   },
   "editor": {
     "placeholder": "Start writing..."
+  },
+  "record": {
+    "tag": {
+      "selectTag": "Select Tag",
+      "switchTip": "Click to switch tag",
+      "noTags": "No tags",
+      "pinned": "Pinned",
+      "others": "Others",
+      "addNew": "Add New",
+      "addNewTag": "Add New Tag",
+      "tagName": "Tag Name",
+      "enterTagName": "Enter tag name",
+      "nameCantBeEmpty": "Tag name cannot be empty",
+      "searchPlaceholder": "Search tags...",
+      "noResults": "No matching tags found",
+      "quickAdd": "Quick Add",
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "rename": "Rename",
+      "delete": "Delete",
+      "locked": "This tag is locked"
+    },
+    "chat": {
+      "placeholder": "Select a tag to start chatting"
+    }
   }
 }

@@ -7,9 +7,35 @@
   "common": {
     "settings": "设置",
     "save": "保存",
-    "cancel": "取消"
+    "cancel": "取消",
+    "confirm": "确认"
   },
   "editor": {
     "placeholder": "开始写作..."
+  },
+  "record": {
+    "tag": {
+      "selectTag": "选择标签",
+      "switchTip": "点击切换标签",
+      "noTags": "暂无标签",
+      "pinned": "置顶",
+      "others": "其他",
+      "addNew": "新增标签",
+      "addNewTag": "新增标签",
+      "tagName": "标签名称",
+      "enterTagName": "请输入标签名称",
+      "nameCantBeEmpty": "标签名称不能为空",
+      "searchPlaceholder": "搜索标签...",
+      "noResults": "没有找到匹配的标签",
+      "quickAdd": "快速添加",
+      "pin": "置顶",
+      "unpin": "取消置顶",
+      "rename": "重命名",
+      "delete": "删除",
+      "locked": "此标签已锁定"
+    },
+    "chat": {
+      "placeholder": "选择一个标签开始聊天"
+    }
   }
 }

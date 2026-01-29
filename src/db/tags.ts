@@ -9,6 +9,35 @@ export interface Tag {
   total?: number
 }
 
+// 定义数据库里实际存的结构
+interface TagDTO {
+  id: number
+  name: string
+  isLocked: number // DB 里是 number
+  isPin: number    // DB 里是 number
+}
+
+// 1. 转入数据库的辅助函数 (Model -> DB)
+function toDbModel(tag: Partial<Tag>): any[] {
+  // 这里统一处理 Boolean 转 0/1 的逻辑
+  // 以后如果要改逻辑，只改这一个地方
+  return [
+    tag.name,
+    tag.isLocked ? 1 : 0,
+    tag.isPin ? 1 : 0,
+    tag.id
+  ]
+}
+
+// 2. 从数据库出来的辅助函数 (DB -> Model)
+function fromDbModel(row: TagDTO): Tag {
+  return {
+    ...row,
+    isLocked: Boolean(row.isLocked), // 统一处理转 Boolean
+    isPin: Boolean(row.isPin)
+  }
+}
+
 // 创建 tags 表
 export async function initTagsDb() {
   const db = await getDb()
@@ -35,11 +64,14 @@ export async function initTagsDb() {
 
 export async function getTags() {
   const db = await getDb();
-  const tags = await db.select<Tag[]>("select * from tags")
+  // 泛型用 TagDTO，表示取出来的是原始数据
+  const rows = await db.select<TagDTO[]>("select * from tags")
+  
+  // 统一转换，业务逻辑清爽了
+  const tags = rows.map(fromDbModel)
 
   // 获取 tags 对应的 marks 数量
   for (const tag of tags) {
-    // deleted = 0  
     const res = await db.select<{ total: number }[]>("select count(*) as total from marks where tagId = $1 and deleted = $2", [tag.id, 0])
     tag.total = res[0].total
   }
@@ -56,10 +88,14 @@ export async function insertTag(tag: Partial<Tag>) {
 }
 
 export async function updateTag(tag: Tag) {
+  console.log('tags.ts - updateTag 触发 (修正版):', tag)
   const db = await getDb();
+
+  // 这里的参数通过 helper 函数生成，不用再手写三元表达式了
+  // 注意：SQL 参数顺序要和 toDbModel 返回的顺序一致
   return await db.execute(
-    "update tags set name = $1, isLocked = $2, isPin = $3 where id = $4",
-    [tag.name, tag.isLocked, tag.isPin, tag.id]
+      "update tags set name = $1, isLocked = $2, isPin = $3 where id = $4",
+      toDbModel(tag)
   )
 }
 
@@ -77,16 +113,18 @@ export async function insertTags(tags: Tag[]) {
   const db = await getDb();
   for (const tag of tags) {
     if (tag.isLocked) continue;
-    const exists = await db.select<Tag[]>("select * from tags where id = $1", [tag.id])
+
+    const exists = await db.select<TagDTO[]>("select * from tags where id = $1", [tag.id])
     if (exists.length > 0) {
       await db.execute(
-        "update tags set name = $1, isLocked = $2, isPin = $3 where id = $4",
-        [tag.name, tag.isLocked, tag.isPin, tag.id]
+          "update tags set name = $1, isLocked = $2, isPin = $3 where id = $4",
+          toDbModel(tag)
       )
     } else {
+      // 插入时参数顺序需要调整，因为 insert 的列顺序是 id, name, isLocked, isPin
       await db.execute(
-        "insert into tags (id, name, isLocked, isPin) values ($1, $2, $3, $4)",
-        [tag.id, tag.name, tag.isLocked, tag.isPin]
+          "insert into tags (id, name, isLocked, isPin) values ($1, $2, $3, $4)",
+          [tag.id, tag.name, tag.isLocked ? 1 : 0, tag.isPin ? 1 : 0]
       )
     }
   }
