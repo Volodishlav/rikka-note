@@ -24,8 +24,6 @@
 ## 项目结构树
 ```
 d:\graduation_project\rikka-note
-├── doc/
-│   └── Sidebar.md
 ├── public
 ├── src/
 │   ├── components/
@@ -45,9 +43,7 @@ d:\graduation_project\rikka-note
 │   │   ├── AppSidebar.vue
 │   │   ├── AppStatus.vue
 │   │   ├── ModeToggle.vue
-│   │   ├── ThemeProvider.vue
-│   │   ├── ToastContainer.vue
-│   │   └── ToastItem.vue
+│   │   └── ThemeProvider.vue
 │   ├── composables/
 │   │   ├── useTheme.ts
 │   │   └── useToast.ts
