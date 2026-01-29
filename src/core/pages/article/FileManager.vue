@@ -27,7 +27,7 @@ import TreeItem from './TreeItem.vue'
 
 const isDragging = ref(false)
 const articleStore = useArticleStore()
-const { showToast } = useToast()
+const { show } = useToast()
 
 const fileTree = computed(() => articleStore.fileTree)
 

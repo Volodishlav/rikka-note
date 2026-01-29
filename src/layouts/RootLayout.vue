@@ -2,21 +2,21 @@
   <ThemeProvider>
     <slot />
     <!-- 全局Toast容器 -->
-    <ToastContainer />
+    <Toaster />
   </ThemeProvider>
 </template>
 
 <script setup lang="ts">
 import {onMounted, ref, watch} from 'vue'
 import ThemeProvider from '@/components/ThemeProvider.vue'
-import ToastContainer from '@/components/ToastContainer.vue'
+import { Toaster } from '@/components/ui/toast'
 import { useSettingStore } from '@/stores/setting'
 import { useI18n } from '@/hooks/useI18n'
 import dayjs from 'dayjs'
 import zh from 'dayjs/locale/zh-cn'
 import en from 'dayjs/locale/en'
 import { initAllDatabases } from '@/db'
-import {useToast} from "@/composables/useToast.ts";
+import { useToast } from "@/composables/useToast";
 const settingStore = useSettingStore()
 const { locale } = useI18n()
 const toast = useToast()

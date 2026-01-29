@@ -307,9 +307,6 @@ const tooltipContent = ref('这是一个Tooltip提示')
           <Button variant="secondary" @click="toast.show({ title: '永驻Toast', message: '手动关闭', duration: 0 })">
             永驻Toast
           </Button>
-          <Button variant="destructive" @click="toast.clear()">
-            清除所有
-          </Button>
         </div>
       </div>
 

@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
-import { readTheme, writeTheme, type ThemeKey } from '@/utils/themeStorage'
+import { readTheme } from '@/utils/themeStorage'
 import { useSettingStore } from '@/stores/setting'
 
 const settingStore = useSettingStore()
