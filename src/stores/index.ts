@@ -3,6 +3,8 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useSidebarStore } from './sidebar'
 import { useArticleStore } from './article'
 import { useClipboardStore } from './clipboard'
+import { useChatStore } from './chat'
+
 
 export async function initStores(piniaInstance?: ReturnType<typeof createPinia>) {
     // if not provided, assume pinia already created and active.
@@ -17,4 +19,4 @@ export async function initStores(piniaInstance?: ReturnType<typeof createPinia>)
 }
 
 // 导出所有 store
-export { useSidebarStore, useArticleStore, useClipboardStore }
+export { useSidebarStore, useArticleStore, useClipboardStore, useChatStore }
