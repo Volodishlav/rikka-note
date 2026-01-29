@@ -183,12 +183,6 @@ function handleConfirmRename() {
 
 // 置顶/取消置顶
 function handlePinToggle() {
-  console.log('TagItem.vue - handlePinToggle 触发:', {
-    tagId: props.tag.id,
-    tagName: props.tag.name,
-    currentIsPin: props.tag.isPin,
-    newIsPin: !props.tag.isPin
-  })
   emit('pinToggle', props.tag)
 }
 

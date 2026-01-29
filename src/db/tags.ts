@@ -88,7 +88,6 @@ export async function insertTag(tag: Partial<Tag>) {
 }
 
 export async function updateTag(tag: Tag) {
-  console.log('tags.ts - updateTag 触发 (修正版):', tag)
   const db = await getDb();
 
   // 这里的参数通过 helper 函数生成，不用再手写三元表达式了
