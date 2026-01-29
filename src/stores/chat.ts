@@ -10,9 +10,6 @@ import {
     insertChat as dbInsertChat,
     updateChat as dbUpdateChat,
     updateChatsInsertedById,
-    getAllChats,
-    deleteAllChats,
-    insertChats
 } from '@/db/chats'
 // import {
 //     uploadFile as uploadGithubFile,
