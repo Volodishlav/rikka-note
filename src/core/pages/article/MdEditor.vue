@@ -1,24 +1,24 @@
 <template>
   <div class="flex-1 relative w-full h-full flex flex-col overflow-hidden dark:bg-zinc-950">
-    <MdEditor 
-      v-model="text" 
-      :theme="isDark ? 'dark' : 'light'"
-      :toolbars="toolbars"
-      :editor-id="editorId"
-      @onUploadImg="onUploadImg"
+    <MdEditor
+        v-model="text"
+        :theme="isDark ? 'dark' : 'light'"
+        :toolbars="toolbars"
+        :editor-id="editorId"
+        @onUploadImg="onUploadImg"
     />
   </div>
 </template>
-
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
-import { MdEditor } from 'md-editor-v3';
+import {onMounted, onUnmounted, ref, watch} from 'vue';
+import {MdEditor} from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
-import { v4 as uuid } from 'uuid';
-import { appDataDir, join } from '@tauri-apps/api/path';
-import { exists, mkdir, writeFile } from '@tauri-apps/plugin-fs';
-import { useArticleStore } from '@/stores/article';
-
+import {v4 as uuid} from 'uuid';
+import {appDataDir, join} from '@tauri-apps/api/path';
+import {exists, mkdir, writeFile} from '@tauri-apps/plugin-fs';
+import {useArticleStore} from '@/stores/article';
+// 导入 TAURI 的 convertFileSrc API
+import {convertFileSrc} from '@tauri-apps/api/core';
 // 编辑器内容
 const text = ref('# Hello md-editor-v3!\n\n这是一个测试文档。');
 
@@ -79,7 +79,7 @@ onMounted(() => {
     attributes: true,
     attributeFilter: ['class']
   });
-  
+
   // 读取活动文件
   if (articleStore.activeFilePath) {
     articleStore.readArticle(articleStore.activeFilePath);
@@ -88,24 +88,24 @@ onMounted(() => {
 
 // 监听活动文件路径变化
 watch(
-  () => articleStore.activeFilePath,
-  async (newPath) => {
-    if (newPath) {
-      await articleStore.readArticle(newPath);
-    }
-  },
-  { immediate: true }
+    () => articleStore.activeFilePath,
+    async (newPath) => {
+      if (newPath) {
+        await articleStore.readArticle(newPath);
+      }
+    },
+    { immediate: true }
 );
 
 // 监听文章内容变化
 watch(
-  () => articleStore.currentArticle,
-  (newContent) => {
-    if (newContent !== text.value) {
-      text.value = newContent;
-    }
-  },
-  { immediate: true }
+    () => articleStore.currentArticle,
+    (newContent) => {
+      if (newContent !== text.value) {
+        text.value = newContent;
+      }
+    },
+    { immediate: true }
 );
 
 // 防抖定时器
@@ -113,56 +113,69 @@ let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
 // 监听编辑器内容变化，自动保存
 watch(
-  () => text.value,
-  (newContent) => {
-    if (newContent !== articleStore.currentArticle) {
-      if (saveTimer) {
-        clearTimeout(saveTimer);
+    () => text.value,
+    (newContent) => {
+      if (newContent !== articleStore.currentArticle) {
+        // 清除上一个未触发的定时器
+        if (saveTimer) {
+          clearTimeout(saveTimer);
+        }
+        // 设定新的防抖定时器
+        saveTimer = setTimeout(() => {
+          articleStore.saveCurrentArticle(newContent);
+        }, 300);
       }
-      saveTimer = setTimeout(() => {
-        articleStore.saveCurrentArticle(newContent);
-      }, 300);
     }
-  }
 );
 
-// 图片上传函数
+// 3. 新增：组件卸载时清理定时器，避免内存泄漏
+onUnmounted(() => {
+  if (saveTimer) clearTimeout(saveTimer);
+  // 同时停止主题变化监听，避免另一个潜在内存泄漏（补充优化）
+  observer.disconnect();
+});
+
+// 图片上传函数（核心改造：加入 convertFileSrc 转换）
 const onUploadImg = async (files: File[], callback: (urls: string[]) => void) => {
   try {
-    // 获取应用数据目录
+    // 1. 获取应用数据目录并确保图片文件夹存在
     const appDir = await appDataDir();
     const imagesDir = await join(appDir, 'article', 'images');
-    
-    // 确保目录存在
     if (!(await exists(imagesDir))) {
       await mkdir(imagesDir, { recursive: true });
     }
-    
-    // 生成临时URL用于预览
-    const tempUrls = files.map(file => URL.createObjectURL(file));
-    
-    // 异步保存图片到本地
-    for (const file of files) {
-      try {
-        const fileExt = file.name.split('.').pop() || 'png';
-        const fileName = `${uuid()}.${fileExt}`;
-        const fullPath = await join(imagesDir, fileName);
 
-        const arrayBuffer = await file.arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
-        await writeFile(fullPath, uint8Array);
-      } catch (error) {
-        console.error('Failed to save image:', error);
-      }
-    }
+    // 2. 并行处理所有图片，收集转换后的安全路径
+    const safeImageUrls: string[] = await Promise.all(
+        files.map(async (file) => {
+          try {
+            // 生成唯一文件名，避免重复覆盖
+            const fileExt = file.name.split('.').pop() || 'png';
+            const fileName = `${uuid()}.${fileExt}`;
+            // 获取图片的本地持久化完整路径
+            const fullPath = await join(imagesDir, fileName);
 
-    // 调用回调函数，返回临时URL用于预览
-    callback(tempUrls);
+            // 3. 将图片写入本地磁盘（原有逻辑不变）
+            const arrayBuffer = await file.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+            await writeFile(fullPath, uint8Array);
+
+            // 4. 核心：将本地 fullPath 转换为 TAURI webview 允许的安全路径（新增）
+            const safeUrl = convertFileSrc(fullPath);
+            // 路径格式归一化（可选，进一步保证兼容性）
+            return safeUrl.replace(/\\/g, '/');
+          } catch (error) {
+            console.error(`保存图片 ${file.name} 失败:`, error);
+            return 'error: image save failed';
+          }
+        })
+    );
+
+    // 5. 传入转换后的安全路径，用于编辑器预览和插入 MD 文本
+    callback(safeImageUrls);
   } catch (error) {
-    console.error('Image upload failed:', error);
-    // 失败时返回临时URL
-    const tempUrls = files.map(file => URL.createObjectURL(file));
-    callback(tempUrls);
+    console.error('图片上传整体流程失败:', error);
+    callback(files.map(() => 'error: upload process failed'));
   }
 };
 </script>
