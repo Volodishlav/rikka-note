@@ -60,6 +60,11 @@ d:\graduation_project\rikka-note
 │   │       │   ├── FolderItem.vue
 │   │       │   ├── MdEditor.vue
 │   │       │   └── TreeItem.vue
+│   │       ├── record/
+│   │       │   ├── AddTagDialog.vue
+│   │       │   ├── TagItem.vue
+│   │       │   ├── TagSelectDialog.vue
+│   │       │   └── TagSidebar.vue
 │   │       ├── ArticlePage.vue
 │   │       ├── DataTestPage.vue
 │   │       ├── RecordPage.vue
@@ -79,6 +84,7 @@ d:\graduation_project\rikka-note
 │   │   └── RootLayout.vue
 │   ├── lib
 │   │   ├── path.ts
+│   │   ├── locales.ts
 │   │   ├── utils.ts
 │   │   └── workspace.ts
 │   ├── locales/
@@ -100,6 +106,8 @@ d:\graduation_project\rikka-note
 │   │   ├── clipboard.ts
 │   │   ├── index.ts
 │   │   ├── setting.ts
+│   │   ├── chat.ts
+│   │   ├── tag.ts
 │   │   └── sidebar.ts
 │   ├── utils/
 │   │   ├── device.ts
