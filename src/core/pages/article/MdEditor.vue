@@ -6,6 +6,7 @@
         :toolbars="toolbars"
         :editor-id="editorId"
         @onUploadImg="onUploadImg"
+        class="flex-1"
     />
   </div>
 </template>
