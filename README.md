@@ -62,6 +62,14 @@ d:\graduation_project\rikka-note
 │   │       │   └── TreeItem.vue
 │   │       ├── record/
 │   │       │   ├── AddTagDialog.vue
+│   │       │   ├── ChatContent.vue
+│   │       │   ├── ChatEmpty.vue
+│   │       │   ├── ChatHeader.vue
+│   │       │   ├── ChatInput.vue
+│   │       │   ├── ChatMessage.vue
+│   │       │   ├── ChatPreview.vue
+│   │       │   ├── ChatThinking.vue
+│   │       │   ├── ChatWindow.vue
 │   │       │   ├── TagItem.vue
 │   │       │   ├── TagSelectDialog.vue
 │   │       │   └── TagSidebar.vue
