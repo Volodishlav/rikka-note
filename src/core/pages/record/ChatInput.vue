@@ -106,19 +106,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, watch } from 'vue'
-import { useI18n } from '@/hooks/useI18n'
-import { useChatStore } from '@/stores/chat'
-import { useTagStore } from '@/stores/tag'
-import { useSettingStore } from '@/stores/setting'
-import { insertChat } from '@/db/chats'
-import {
-  FileIcon,
-  XIcon,
-  LinkIcon,
-  Trash2Icon,
-  Loader2Icon,
-} from 'lucide-vue-next'
+import {computed, nextTick, onMounted, ref, watch} from 'vue'
+import {useI18n} from '@/hooks/useI18n'
+import {useChatStore} from '@/stores/chat'
+import {useTagStore} from '@/stores/tag'
+import {useSettingStore} from '@/stores/setting'
+import {FileIcon, LinkIcon, Loader2Icon, Trash2Icon, XIcon,} from 'lucide-vue-next'
 
 const { t } = useI18n()
 const chatStore = useChatStore()
@@ -134,6 +127,29 @@ const showPlaceholder = ref(true)
 const linkedFile = ref<any>(null)
 const inputHistory = ref<string[]>([])
 const historyIndex = ref(-1)
+
+// 本地存储管理
+const STORAGE_KEY = 'chat-placeholder-enabled'
+
+// 从本地存储加载初始状态
+function loadPlaceholderEnabled() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    return stored === null ? true : JSON.parse(stored)
+  } catch (error) {
+    console.error('Failed to load placeholder enabled state:', error)
+    return true
+  }
+}
+
+// 保存状态到本地存储
+function savePlaceholderEnabled(enabled: boolean) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(enabled))
+  } catch (error) {
+    console.error('Failed to save placeholder enabled state:', error)
+  }
+}
 
 // 计算属性
 const isLoading = computed(() => chatStore.loading)
@@ -223,8 +239,15 @@ function navigateHistory(direction: 'up' | 'down') {
 
 // 占位符管理
 function togglePlaceholder() {
-  showPlaceholder.value = !showPlaceholder.value
+  const newValue = !showPlaceholder.value
+  showPlaceholder.value = newValue
+  savePlaceholderEnabled(newValue)
 }
+
+// 同步localStorage和状态
+onMounted(() => {
+  showPlaceholder.value = loadPlaceholderEnabled()
+})
 
 function insertPlaceholder() {
   if (placeholder.value) {
@@ -262,9 +285,30 @@ async function clearContext() {
 
 // 自动获取占位符
 async function genPlaceholder() {
-  // TODO: 实现AI占位符生成（第4.6步）
-  // const placeholder = await fetchAiPlaceholder(...)
-  // placeholder.value = placeholder + ' [Tab]'
+  if (!showPlaceholder.value) return
+  
+  try {
+    // 调用AI接口获取占位符建议
+    const response = await fetchAiPlaceholder(inputText.value, inputMode.value)
+    placeholder.value = response + ' [Tab]'
+  } catch (error) {
+    console.error('Failed to generate placeholder:', error)
+  }
+}
+
+// 模拟AI占位符生成接口
+async function fetchAiPlaceholder(input: string, mode: string): Promise<string> {
+  // 这里应该替换为真实的API调用
+  // 示例返回不同模式下的占位符建议
+  switch (mode) {
+    case 'translate':
+      return '请输入需要翻译的文本，例如：Hello world'
+    case 'organize':
+      return '请输入需要整理的内容，例如：今天上午9点开会'
+    case 'chat':
+    default:
+      return '请输入您的问题或想法，例如：如何提高学习效率'
+  }
 }
 
 // 初始化
@@ -272,6 +316,26 @@ watch(
     () => showPlaceholder.value,
     async (newVal) => {
       if (newVal && !placeholder.value) {
+        await genPlaceholder()
+      }
+    }
+)
+
+// 监听输入文本变化，实时更新占位符
+watch(
+    () => inputText.value,
+    async () => {
+      if (showPlaceholder.value) {
+        await genPlaceholder()
+      }
+    }
+)
+
+// 监听输入模式变化，更新占位符
+watch(
+    () => inputMode.value,
+    async () => {
+      if (showPlaceholder.value) {
         await genPlaceholder()
       }
     }
