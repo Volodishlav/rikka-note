@@ -7,9 +7,7 @@
 
     <!-- 右侧聊天区域（后续实现） -->
     <div class="flex-1 flex flex-col bg-background md:border-l">
-      <div class="flex-1 flex items-center justify-center text-muted-foreground">
-        <p>{{ t('record.chat.placeholder') }}</p>
-      </div>
+      <ChatWindow />
     </div>
   </div>
 </template>
@@ -17,6 +15,6 @@
 <script setup lang="ts">
 import { useI18n } from '@/hooks/useI18n'
 import TagSidebar from './record/TagSidebar.vue'
-
+import ChatWindow from "@/core/pages/record/ChatWindow.vue";
 const { t } = useI18n()
 </script>
