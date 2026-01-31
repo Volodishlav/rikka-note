@@ -38,6 +38,7 @@ d:\graduation_project\rikka-note
 │   │   │   ├── sheet/
 │   │   │   ├── sidebar/
 │   │   │   ├── skeleton/
+│   │   │   ├── textarea/
 │   │   │   ├── toast/
 │   │   │   └── tooltip/
 │   │   ├── AppSidebar.vue
@@ -45,6 +46,8 @@ d:\graduation_project\rikka-note
 │   │   ├── ModeToggle.vue
 │   │   └── ThemeProvider.vue
 │   ├── composables/
+│   │   ├── useChatSend.ts
+│   │   ├── useInsertChat.ts
 │   │   ├── useTheme.ts
 │   │   └── useToast.ts
 │   ├── core/
@@ -61,10 +64,24 @@ d:\graduation_project\rikka-note
 │   │       │   ├── MdEditor.vue
 │   │       │   └── TreeItem.vue
 │   │       ├── record/
-│   │       │   ├── AddTagDialog.vue
-│   │       │   ├── TagItem.vue
-│   │       │   ├── TagSelectDialog.vue
-│   │       │   └── TagSidebar.vue
+│   │       │   ├── chat/
+│   │       │   │   ├── ChatContent.vue
+│   │       │   │   ├── ChatHeader.vue
+│   │       │   │   ├── ChatInput.vue
+│   │       │   │   ├── ChatLayout.vue
+│   │       │   │   ├── InputModeSelect.vue
+│   │       │   │   ├── ModelSelect.vue
+│   │       │   │   ├── PromptSelect.vue
+│   │       │   │   └── RagSwitch.vue
+│   │       │   ├── mark/
+│   │       │   │   ├── MarkDetail.vue
+│   │       │   │   ├── MarkHeader.vue
+│   │       │   │   ├── MarkItem.vue
+│   │       │   │   └── MarkList.vue
+│   │       │   ├── tag/
+│   │       │   │   ├── TagList.vue
+│   │       │   │   └── TagListItem.vue
+│   │       │   ├── NoteSidebar.vue
 │   │       ├── ArticlePage.vue
 │   │       ├── DataTestPage.vue
 │   │       ├── RecordPage.vue
@@ -82,9 +99,10 @@ d:\graduation_project\rikka-note
 │   │   └── index.ts
 │   ├── layouts/
 │   │   └── RootLayout.vue
-│   ├── lib
-│   │   ├── path.ts
+│   ├── lib/
+│   │   ├── ai.ts
 │   │   ├── locales.ts
+│   │   ├── path.ts
 │   │   ├── utils.ts
 │   │   └── workspace.ts
 │   ├── locales/
@@ -103,12 +121,13 @@ d:\graduation_project\rikka-note
 │   │   └── globals.scss
 │   ├── stores/
 │   │   ├── article.ts
+│   │   ├── chat.ts
 │   │   ├── clipboard.ts
 │   │   ├── index.ts
+│   │   ├── mark.ts
 │   │   ├── setting.ts
-│   │   ├── chat.ts
-│   │   ├── tag.ts
-│   │   └── sidebar.ts
+│   │   ├── sidebar.ts
+│   │   └── tag.ts
 │   ├── utils/
 │   │   ├── device.ts
 │   │   ├── tauriStore.ts
