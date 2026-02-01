@@ -5,25 +5,25 @@
 ## 技术栈
 
 ### 前端
-- **Vue 3** - 渐进式 JavaScript 框架
-- **TypeScript** - 类型安全的 JavaScript 超集
-- **Vite** - 下一代前端构建工具
-- **Tailwind CSS** - 实用优先的 CSS 框架
-- **Pinia** - 轻量级状态管理
-- **Vue Router** - 官方路由管理器
-- **Vue I18n** - 国际化解决方案
+- **Vue 3**
+- **TypeScript**
+- **Vite**
+- **Tailwind CSS**
+- **Pinia**
+- **Vue Router**
+- **Vue I18n**
 
 ### 桌面端
-- **Tauri 2.x** - 安全的跨平台桌面应用框架
-- **Rust** - 系统级编程语言，用于 Tauri 后端
-
+- **Tauri 2.x**
+- **Rust**
+- 
 ### 图标与样式
-- **Lucide Vue Next** - 现代化 SVG 图标库
-- **PostCSS** - CSS 处理工具
+- **Lucide Vue Next**
+- **PostCSS**
 
 ## 项目结构树
 ```
-d:\graduation_project\rikka-note
+d:\graduation_project\project\rikka-note
 ├── public
 ├── src/
 │   ├── components/
@@ -46,6 +46,7 @@ d:\graduation_project\rikka-note
 │   │   ├── ModeToggle.vue
 │   │   └── ThemeProvider.vue
 │   ├── composables/
+│   │   ├── useAI.ts
 │   │   ├── useChatSend.ts
 │   │   ├── useInsertChat.ts
 │   │   ├── useTheme.ts
@@ -82,6 +83,13 @@ d:\graduation_project\rikka-note
 │   │       │   │   ├── TagList.vue
 │   │       │   │   └── TagListItem.vue
 │   │       │   ├── NoteSidebar.vue
+│   │       ├── setting/
+│   │       │   ├── SettingPage.vue
+│   │       │   ├── ai/
+│   │       │   │   ├── AiSetting.vue
+│   │       │   │   ├── AiCheck.vue
+│   │       │   │   ├── CreateConfig.vue
+│   │       │   │   └── DefaultModels.vue
 │   │       ├── ArticlePage.vue
 │   │       ├── DataTestPage.vue
 │   │       ├── RecordPage.vue
@@ -125,9 +133,12 @@ d:\graduation_project\rikka-note
 │   │   ├── clipboard.ts
 │   │   ├── index.ts
 │   │   ├── mark.ts
+│   │   ├── prompt.ts
 │   │   ├── setting.ts
 │   │   ├── sidebar.ts
 │   │   └── tag.ts
+│   ├── types/
+│   │   └── ai.ts
 │   ├── utils/
 │   │   ├── device.ts
 │   │   ├── tauriStore.ts
@@ -198,12 +209,7 @@ d:\graduation_project\rikka-note
 - **src/locales/zh.json** - 中文语言包
 
 ### 4. UI 组件库
-- **src/components/ui/** - 基础 UI 组件库
-  - Button.vue - 按钮组件
-  - Dialog.vue - 对话框组件
-  - Input.vue - 输入框组件
-  - Toast.vue - 提示组件
-  - Tooltip.vue - 工具提示组件
+- **src/components/ui/**
 
 ### 5. Tauri 核心文件
 - **src-tauri/Cargo.toml** - Rust 依赖配置，管理 Tauri 插件版本
@@ -236,65 +242,6 @@ d:\graduation_project\rikka-note
 - **shared/** - 共享组件和工具
 - **utils/** - 通用工具函数
 
-### 2. 响应式设计
-- 适配桌面端和浏览器端
-- 支持主题切换（Light / Dark / System）
-- 支持系统主题自动切换
-
-### 3. 跨平台兼容性
-- 基于 Tauri 实现桌面端应用
-- 支持浏览器端直接访问
-- 统一的存储方案适配不同环境
-
-### 4. 可扩展性
-- 模块化的组件设计
-- 基于 Pinia 的状态管理
-- 可插拔的 UI 组件库
-
-## 开发与构建
-
-### 安装依赖
-```bash
-npm install
-```
-
-## 功能特性
-
-### 1. 主题管理
-- 支持 Light / Dark / System 三种主题模式
-- 主题设置持久化存储
-- 系统主题自动跟随
-- 无闪烁主题切换效果
-
-### 2. 国际化支持
-- 多语言切换界面
-- 语言设置持久化
-- 支持扩展更多语言
-
-### 3. 响应式布局
-- 桌面端侧边栏布局
-- 移动端适配
-- 灵活的页面路由
-
-### 4. 安全的存储
-- 基于 Tauri Store 的安全存储
-- 支持加密存储敏感信息
-- 适配浏览器本地存储
-
-### 5. 完善的数据库功能
-- 基于 SQLite 的本地数据库存储
-- 支持标签、笔记、标记、聊天记录等多种数据类型
-- 完整的增删改查操作支持
-- 向量文档存储，支持AI语义搜索
-
-## 技术亮点
-
-1. **现代化前端技术栈** - 使用 Vue 3 + TypeScript + Vite 构建高性能应用
-2. **安全的桌面应用** - 基于 Tauri 2.x 实现轻量、安全的桌面应用
-3. **主题系统** - 完整的主题管理方案，支持多种主题模式和自动切换
-4. **组件化设计** - 可复用的 UI 组件库，提高开发效率
-5. **国际化支持** - 完善的多语言支持方案
-
 # 环境配置
 - PS C:\Users\ASUS> node --version
   v22.20.0
@@ -323,30 +270,6 @@ npm install
 | @vitejs/plugin-vue | ^5.2.1  | Vue 3 Vite 插件      |
 | vue-tsc            | ^2.1.10 | Vue TypeScript 编译器 |
 
-## 2. Tauri 相关
-
-### 前端 Tauri 依赖
-| 依赖 | 版本 | 用途 |
-|------|------|------|
-| @tauri-apps/api | ^2 | Tauri JavaScript API |
-| @tauri-apps/plugin-opener | ^2 | Tauri 打开文件/URL 插件 |
-| @tauri-apps/cli | ^2 | Tauri 命令行工具 |
-
-### 后端 Rust Tauri 依赖
-| 依赖 | 版本 | 用途 |
-|------|------|------|
-| tauri-build | 2 | Tauri 构建脚本 |
-| tauri | 2 | Tauri 核心库 |
-| tauri-plugin-opener | 2 | Tauri 文件/URL 打开插件 |
-
-## 3. Rust 相关
-
-| 依赖 | 版本 | 用途 |
-|------|------|------|
-| Rust Edition | 2021 | Rust 版本 |
-| serde | 1 (with derive) | 序列化/反序列化库 |
-| serde_json | 1 | JSON 处理库 |
-
 ## 4. 环境配置
 
 ### 开发服务器配置
@@ -362,19 +285,3 @@ npm install
 - 初始窗口大小：800x600
 - 窗口标题：rikka-note
 - 安全策略 CSP：null (未设置)
-
-## 5. 项目类型
-
-- **架构**：基于 Vue 3 + TypeScript + Vite + Tauri 的桌面应用程序
-- **后端语言**：Rust
-- **前端框架**：Vue 3
-- **构建工具**：Vite 6
-- **类型系统**：TypeScript 5.6
-- **开发模式**：热模块替换 (HMR)
-
-## 6. 项目结构类型
-
-- 前端代码位于 `src/` 目录
-- Tauri 后端代码位于 `src-tauri/` 目录
-- 静态资源位于 `public/` 目录
-- 应用图标位于 `src-tauri/icons/` 目录

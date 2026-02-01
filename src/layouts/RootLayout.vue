@@ -35,7 +35,6 @@ onMounted(async () => {
   try {
     // 直接调用初始化函数（内部已包含重试/检测逻辑）
     await initAllDatabases();
-    console.log('应用数据库初始化成功');
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error('应用数据库初始化失败:', errorMsg);

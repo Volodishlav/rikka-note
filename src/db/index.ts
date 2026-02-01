@@ -11,7 +11,6 @@ export async function initDb() {
     try {
         // 严格按照官方文档：路径相对于 BaseDirectory::App
         db = await Database.load('sqlite:note.db');
-        console.log('✅ 数据库加载成功（匹配官方文档写法）');
         return db;
     } catch (e: any) {
         console.error('❌ 数据库加载失败:', e.message);
@@ -55,6 +54,4 @@ export async function initAllDatabases() {
         initTagsDb(),
         initVectorDb()
     ]);
-
-    console.log('✅ 所有数据库表初始化完成');
 }
