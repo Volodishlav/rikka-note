@@ -37,7 +37,7 @@ export async function initMarksDb() {
 export async function getMarks(id: number) {
   const db = await getDb();
   // 根据 tagId 获取 marks，根据 createdAt 倒序
-  return await db.select<Mark[]>("select * from marks where tagId = $1 order by createdAt desc", [id])
+  return await db.select<Mark[]>("select * from marks where tagId = $1 and deleted = 0 order by createdAt desc", [id])
 }
 
 export async function insertMark(mark: Partial<Mark>) {
@@ -51,7 +51,7 @@ export async function insertMark(mark: Partial<Mark>) {
 
 export async function getAllMarks() {
   const db = await getDb();
-  return await db.select<Mark[]>("select * from marks order by createdAt desc")
+  return await db.select<Mark[]>("select * from marks where deleted = 0 order by createdAt desc")
 }
 
 export async function updateMark(mark: Mark) {
