@@ -82,8 +82,8 @@ ${content}
 
             // 4. 调用 AI 接口 (REAL API)
             const finalContent = await fetchAiStream(request_content, async (accumulatedContent) => {
-                // updateChat is called with full content in useAI, but here we update the store
-                // We use saveChat with saveToDb=false for frequent updates
+            // 在 useAI 中调用 updateChat 时会传入完整内容，但这里我们直接更新 store
+            // 我们使用 saveChat 并设置 saveToDb=false 来处理频繁更新
                 await chatStore.saveChat({
                     ...aiMessage,
                     content: accumulatedContent
@@ -98,14 +98,14 @@ ${content}
 
         } catch (e: any) {
             console.error(e)
-            // Error handling - maybe append error to message or show toast
+            // 错误处理 - 可以将错误附加到消息中或显示提示框
             const errorMsg = `\n[Error: ${e.message || 'Unknown error'}]`
-            // If AI message exists, append error
+            // 如果存在 AI 消息，附加错误信息
             const aiMessage = chatStore.chats.find(c => c.tagId === currentTagId && c.role === 'system' && c.content === '')
             if (aiMessage) { // Might need better way to track current AI message if multiple
-                 // But actually we have aiMessage reference from insert
-                 // However, we can't modify aiMessage.content directly if it's not reactive ref, but it is from store.
-                 // Let's just update store
+                 // 实际上我们从 insert 操作中获取了 aiMessage 引用
+                 // 但是如果 aiMessage 不是响应式 ref，我们不能直接修改 aiMessage.content，但它来自 store
+                 // 我们直接更新 store 即可
             }
         } finally {
             isSending.value = false

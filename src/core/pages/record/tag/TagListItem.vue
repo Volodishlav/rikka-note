@@ -32,23 +32,40 @@
        <MarkList />
     </div>
 
-    <!-- Rename Dialog (Can be implemented inside or via global state, keeping it simple for now) -->
-    <!-- Ideally, use a dialog or inline edit. For now, skipping implementation details of rename/delete logic inside Item to keep it clean, 
-         assuming handleRename/handleDelete will trigger parent or store actions -->
+    <Dialog v-model:open="isRenameDialogOpen">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{{ t('record.mark.tag.rename') }}</DialogTitle>
+          <DialogDescription>
+            {{ t('record.mark.tag.enterTagName') }}
+          </DialogDescription>
+        </DialogHeader>
+        <div class="grid gap-4 py-4">
+          <Input v-model="renameInput" @keydown.enter="confirmRename" :placeholder="t('record.mark.tag.tagName')" />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" @click="isRenameDialogOpen = false">{{ t('common.cancel') }}</Button>
+          <Button type="submit" @click="confirmRename">{{ t('common.save') }}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </SidebarMenuItem>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { TagIcon, Lightbulb } from 'lucide-vue-next'
 import { SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { ask } from '@tauri-apps/plugin-dialog'
 import MarkList from '../mark/MarkList.vue'
 import { useTagStore } from '@/stores/tag'
 import { useMarkStore } from '@/stores/mark'
 import { useChatStore } from '@/stores/chat'
 import { useI18n } from '@/hooks/useI18n'
-// import { confirm } from '@tauri-apps/plugin-dialog' // If needed for delete
 
 const props = defineProps<{
   tag: any // Type definition for Tag
@@ -60,6 +77,8 @@ const chatStore = useChatStore()
 const { t } = useI18n()
 
 const isSelected = computed(() => tagStore.currentTagId === props.tag.id)
+const isRenameDialogOpen = ref(false)
+const renameInput = ref('')
 
 async function handleSelect() {
   if (isSelected.value) return // Already selected
@@ -70,16 +89,37 @@ async function handleSelect() {
 }
 
 async function handleTogglePin() {
-  // Implement pin toggle
-  // await tagStore.updateTag({ ...props.tag, isPin: !props.tag.isPin })
-  // await tagStore.fetchTags()
+  await tagStore.updateTagItem({ ...props.tag, isPin: !props.tag.isPin })
 }
 
 async function handleRename() {
-  // Trigger rename dialog
+  renameInput.value = props.tag.name
+  isRenameDialogOpen.value = true
+}
+
+async function confirmRename() {
+  if (!renameInput.value.trim()) return
+  
+  try {
+    await tagStore.updateTagItem({ ...props.tag, name: renameInput.value.trim() })
+    isRenameDialogOpen.value = false
+  } catch (error) {
+    console.error('Failed to rename tag:', error)
+  }
 }
 
 async function handleDelete() {
-  // Trigger delete confirmation
+  try {
+    const confirmed = await ask(`确定要删除标签 "${props.tag.name}" 吗？`, {
+      title: t('record.mark.tag.delete'),
+      kind: 'warning'
+    })
+
+    if (confirmed) {
+      await tagStore.deleteTag(props.tag.id)
+    }
+  } catch (error) {
+    console.error('Failed to delete tag:', error)
+  }
 }
 </script>

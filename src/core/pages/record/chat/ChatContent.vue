@@ -4,7 +4,7 @@ import { useChatStore } from '@/stores/chat'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github-dark.css' // 或者你喜欢的样式
-import { Copy, RefreshCw, PlusSquare, Check } from 'lucide-vue-next'
+import { Copy, PlusSquare, Check } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { useInsertChat } from '@/composables/useInsertChat'
 const chatStore = useChatStore()
