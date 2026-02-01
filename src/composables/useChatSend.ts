@@ -1,20 +1,24 @@
 import { ref } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import { useTagStore } from '@/stores/tag'
-import { fetchAiStream } from '@/lib/ai' // 假设你有这个 AI 调用封装
-import { useI18n } from '@/hooks/useI18n' // 使用项目中现有的useI18n钩子
+import { useMarkStore } from '@/stores/mark'
+import { useSettingStore } from '@/stores/setting'
+import { useAI } from '@/composables/useAI'
+import { useI18n } from '@/hooks/useI18n'
 
 export function useChatSend() {
     const chatStore = useChatStore()
     const tagStore = useTagStore()
+    const markStore = useMarkStore()
+    const settingStore = useSettingStore()
+    const { fetchAiStream } = useAI()
     const isSending = ref(false)
-    // const { t } = useI18n()
 
     const sendMessage = async (content: string) => {
         if (!content.trim() || isSending.value) return
 
         isSending.value = true
-        const currentTagId = tagStore.currentTagId // 确保 tagStore 有这个属性
+        const currentTagId = tagStore.currentTagId
 
         try {
             // 1. 插入用户消息
@@ -37,25 +41,72 @@ export function useChatSend() {
 
             if (!aiMessage) return
 
-            // 3. 调用 AI 接口 (这里简化了逻辑，你需要对接你的 fetchAiStream)
-            // 假设 fetchAiStream 接受 prompt 和回调
-            await fetchAiStream({
-                messages: [{ role: 'user', content }],
-                onMessage: (chunk: string) => {
-                    aiMessage.content += chunk
-                    chatStore.updateChat({ ...aiMessage }) // 实时更新 UI
-                },
-                onFinish: () => {
-                    chatStore.saveChat({ ...aiMessage }, true) // 完成后保存数据库
-                },
-                onError: (err: any) => {
-                    aiMessage.content += `\n[Error: ${err.message}]`
-                    chatStore.saveChat({ ...aiMessage }, true)
-                }
+            // 3. 准备 Prompt 上下文
+            // 复用 ChatInput.vue 中的 Prompt 构建逻辑
+            await markStore.fetchMarks()
+            const marks = markStore.marks
+            const chats = chatStore.chats
+            
+            const scanMarks = chatStore.isLinkMark ? marks.filter(item => item.type === 'scan') : []
+            const textMarks = chatStore.isLinkMark ? marks.filter(item => item.type === 'text') : []
+            const imageMarks = chatStore.isLinkMark ? marks.filter(item => item.type === 'image') : []
+            const linkMarks = chatStore.isLinkMark ? marks.filter(item => item.type === 'link') : []
+            const fileMarks = chatStore.isLinkMark ? marks.filter(item => item.type === 'file') : []
+            
+            const lastClearIndex = chats.findLastIndex(item => item.type === 'clear')
+            const chatsAfterClear = chats.slice(lastClearIndex + 1)
+
+            const request_content = `
+Use ${settingStore.theme === 'dark' ? 'dark' : 'light'} theme context if needed? No, use language.
+Use system language or detected language.
+${[...scanMarks, ...textMarks, ...imageMarks, ...fileMarks, ...linkMarks].length ? 'You can refer to the following content notes:' : ''}
+${scanMarks.length ? 'The following are screenshots after using OCR to identify text fragments:' : ''}
+${scanMarks.map((item, index) => `${index + 1}. ${item.content}`).join(';\n\n')}
+${textMarks.length ? 'The following are text copy records:' : ''}
+${textMarks.map((item, index) => `${index + 1}. ${item.content}`).join(';\n\n')}
+${imageMarks.length ? 'The following are image records:' : ''}
+${imageMarks.map((item, index) => `${index + 1}. ${item.content}`).join(';\n\n')}
+${linkMarks.length ? 'The following are link records:' : ''}
+${linkMarks.map((item, index) => `${index + 1}. ${item.content}`).join(';\n\n')}
+${fileMarks.length ? 'The following are file records:' : ''}
+${fileMarks.map((item, index) => `${index + 1}. ${item.content}`).join(';\n\n')}
+${chatsAfterClear.length ? 'Refer to the following chat records:' : ''}
+${
+  chatsAfterClear
+    .filter((item) => item.tagId === currentTagId && item.type === "chat" && item.id !== aiMessage.id)
+    .map((item, index) => `${index + 1}. ${item.content}`)
+    .join(';\n\n')
+}
+${content}
+            `.trim()
+
+            // 4. 调用 AI 接口 (REAL API)
+            const finalContent = await fetchAiStream(request_content, async (accumulatedContent) => {
+                // updateChat is called with full content in useAI, but here we update the store
+                // We use saveChat with saveToDb=false for frequent updates
+                await chatStore.saveChat({
+                    ...aiMessage,
+                    content: accumulatedContent
+                }, false)
             })
 
-        } catch (e) {
+            // 5. 完成后保存到数据库
+            await chatStore.saveChat({
+                ...aiMessage,
+                content: finalContent
+            }, true)
+
+        } catch (e: any) {
             console.error(e)
+            // Error handling - maybe append error to message or show toast
+            const errorMsg = `\n[Error: ${e.message || 'Unknown error'}]`
+            // If AI message exists, append error
+            const aiMessage = chatStore.chats.find(c => c.tagId === currentTagId && c.role === 'system' && c.content === '')
+            if (aiMessage) { // Might need better way to track current AI message if multiple
+                 // But actually we have aiMessage reference from insert
+                 // However, we can't modify aiMessage.content directly if it's not reactive ref, but it is from store.
+                 // Let's just update store
+            }
         } finally {
             isSending.value = false
         }

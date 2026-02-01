@@ -32,8 +32,8 @@
       <div class="p-2 flex items-center gap-2">
         <ModeToggle />
         <router-link to="/core/setting" class="ml-auto">
-          <div class="size-8 flex items-center justify-center rounded-md hover:bg-sidebar-accent">
-          <!--设置图标-->
+          <div class="size-8 flex items-center justify-center rounded-md hover:bg-sidebar-accent" title="Settings">
+            <Settings class="size-4" />
           </div>
         </router-link>
       </div>
@@ -48,7 +48,7 @@ import { tauriGet, tauriSet } from '@/utils/tauriStore'
 import { useSidebarStore } from '@/stores/sidebar'
 
 // icons (from lucide-vue-next)
-import { Highlighter, SquarePen, Search, ImagePlus } from 'lucide-vue-next'
+import { Highlighter, SquarePen, Search, ImagePlus, Settings } from 'lucide-vue-next'
 import ModeToggle from '@/components/ModeToggle.vue'
 
 // shadcn-vue sidebar components
