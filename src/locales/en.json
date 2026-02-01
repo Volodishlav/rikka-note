@@ -14,29 +14,145 @@
     "placeholder": "Start writing..."
   },
   "record": {
-    "tag": {
-      "selectTag": "Select Tag",
-      "switchTip": "Click to switch tag",
-      "noTags": "No tags",
-      "pinned": "Pinned",
-      "others": "Others",
-      "addNew": "Add New",
-      "addNewTag": "Add New Tag",
-      "tagName": "Tag Name",
-      "enterTagName": "Enter tag name",
-      "nameCantBeEmpty": "Tag name cannot be empty",
-      "searchPlaceholder": "Search tags...",
-        "enterNewTagPlaceholder": "Enter new tag name",
-        "noResults": "No matching tags found",
-      "quickAdd": "Quick Add",
-      "pin": "Pin",
-      "unpin": "Unpin",
-      "rename": "Rename",
+    "trash": {
+      "records": "Recycle Bin ({count})",
+      "empty": "Empty"
+    },
+    "mark": {
+      "title": "Record List",
+      "noMarks": "No records yet",
+      "desc": "Description",
+      "content": "Content",
       "delete": "Delete",
-      "locked": "This tag is locked"
+      "createdAt": "Created At",
+      "noDesc": "No description",
+      "type": {
+         "text": "Text",
+         "link": "Link",
+         "image": "Image",
+         "scan": "Scan",
+         "file": "File"
+      },
+      "tag": {
+        "selectTag": "Select Tag",
+        "switchTip": "Click to switch tag",
+        "noTags": "No tags yet",
+        "pinned": "Pinned",
+        "others": "Others",
+        "addNew": "Add Tag",
+        "addNewTag": "Add New Tag",
+        "tagName": "Tag Name",
+        "enterTagName": "Please enter tag name",
+        "nameCantBeEmpty": "Tag name cannot be empty",
+        "searchPlaceholder": "Search tags",
+        "enterNewTagPlaceholder": "Please enter new tag",
+        "noResults": "No matching tags found",
+        "quickAdd": "Quick Add",
+        "pin": "Pin",
+        "unpin": "Unpin",
+        "rename": "Rename",
+        "delete": "Delete",
+        "locked": "This tag is locked"
+      }
     },
     "chat": {
-      "placeholder": "Select a tag to start chatting"
+      "placeholder": "Select a tag to start chatting",
+      "input": {
+          "placeholder": {
+             "default": "Enter message..."
+          }
+       },
+       "send": "Send",
+       "model": {
+          "select": "Select Model",
+          "title": "Model",
+          "noModels": "No available models",
+          "goSetting": "Go to Settings"
+       },
+       "prompt": {
+          "default": "Default Prompt",
+          "title": "Prompt"
+       }
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "ai": {
+       "title": "AI Models",
+       "desc": "Configure your AI model parameters",
+       "addModel": "Add Model",
+       "defaultModels": {
+         "title": "Free Model Services",
+         "desc": "Free model services provided by SiliconCloud, including dialogue, vectorization, and vision models.",
+         "visit": "Visit Official Website",
+         "chatModel": {
+           "name": "Qwen2.5-7B-Instruct",
+           "type": "Dialogue",
+           "desc": "Tongyi Qianwen open source model, a powerful dialogue model"
+         },
+         "embeddingModel": {
+           "name": "BAAI/bge-m3",
+           "type": "Vector",
+           "desc": "Multilingual vector model developed by Zhiyuan Research Institute"
+         },
+         "visionModel": {
+           "name": "Qwen2-VL-72B",
+           "type": "Vision",
+           "desc": "Multimodal model supporting image recognition and understanding"
+         }
+       },
+       "create": "Create Configuration",
+       "createDesc": "Select a preset template or create a custom configuration",
+       "custom": "Custom",
+       "newModel": "New Model",
+       "providerTemplates": "Provider Templates",
+       "connectionSuccess": "Connection Success",
+       "modelConfigTitle": "Model Configuration",
+      "modelConfigDesc": "Select or add your custom model",
+      "deleteCustomModel": "Delete Custom Model",
+      "deleteCustomModelConfirm": "Are you sure you want to delete this custom model configuration?",
+      "copyConfig": "Copy Configuration",
+      "modelTitle": "Model Name",
+      "modelTitleDesc": "Give this configuration a name",
+      "modelBaseUrlDesc": "API Base URL",
+      "apiKeyUrl": "Get API Key",
+      "modelDesc": "Model identifier (e.g., gpt-4)",
+      "customHeaders": "Custom Headers",
+      "customHeadersDesc": "Add additional HTTP request headers",
+      "headerKey": "Key",
+      "headerValue": "Value",
+      "addHeader": "Add Header",
+      "temperatureDesc": "Randomness (Temperature)",
+      "topPDesc": "Nucleus Sampling (Top P)",
+      "voice": "Voice",
+      "voiceDesc": "TTS Voice Model",
+      "voicePlaceholder": "Enter voice model ID",
+      "modelType": {
+        "title": "Model Type",
+        "desc": "Select the primary purpose of this model",
+        "chat": "Chat",
+        "image": "Image",
+        "video": "Video",
+        "audio": "Audio",
+        "embedding": "Embedding",
+        "rerank": "Rerank"
+      }
+    },
+    "prompt": {
+      "title": "Prompt Management",
+      "desc": "Manage your common prompts",
+      "addPrompt": "New Prompt",
+      "addPromptDesc": "Create a new common prompt",
+      "promptTitle": "Title",
+      "promptTitlePlaceholder": "Enter title",
+      "promptContent": "Content",
+      "promptContentPlaceholder": "Enter prompt content",
+      "optimizePrompt": "Optimize Prompt",
+      "optimizing": "Optimizing...",
+      "optimizeSuccess": "Optimization successful",
+      "optimizeFailed": "Optimization failed",
+      "noContentToOptimize": "Please enter content before optimizing",
+      "noContent": "No content yet"
     }
   }
 }

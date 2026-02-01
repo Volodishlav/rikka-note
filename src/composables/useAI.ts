@@ -9,12 +9,12 @@ export function useAI() {
     const toast = useToast();
 
     /**
-     * Get AI Settings based on model type
+     * 根据模型类型获取 AI 设置
      */
     function getAISettings(modelTypeKey: 'primaryModel' | 'embeddingModel' | 'rerankModel' | 'imageMethodModel' | 'markDescModel' | 'translateModel' | 'placeholderModel' = 'primaryModel'): AiConfig | undefined {
         const modelKey = store[modelTypeKey];
         if (!modelKey) {
-            // Fallback to primary model if specific model is not set
+            // 如果未设置特定模型，则回退到主要模型
             const primary = store.primaryModel;
             return store.aiModelList.find((item: AiConfig) => item.key === primary);
         }
@@ -33,7 +33,7 @@ export function useAI() {
     function handleAIError(error: any, showToast = true): string | null {
         const errorMessage = error instanceof Error ? error.message : 'Unknown Error';
         
-        // Handle OpenAI 400 error specifically to show detailed message
+        // 专门处理 OpenAI 400 错误以显示详细信息
         if (errorMessage.includes('400') || (error.status === 400)) {
              try {
                  if (error.error && error.error.message) {
@@ -65,7 +65,7 @@ export function useAI() {
             apiKey: apiKey || '',
             baseURL: baseURL,
             dangerouslyAllowBrowser: true,
-            // fetch: fetch, // Remove explicit fetch to use native window.fetch which avoids http.fetch_cancel_body error
+            // 移除显式的 fetch 以使用原生 window.fetch，这样可以避免 http.fetch_cancel_body 错误
             defaultHeaders: {
                 "x-stainless-arch": null,
                 "x-stainless-lang": null,
@@ -158,9 +158,9 @@ export function useAI() {
             if (!aiConfig) throw new Error('Embedding model not configured');
             if (!aiConfig.baseURL || !aiConfig.model) throw new Error('Embedding model configuration incomplete');
 
-            // Using fetch directly as OpenAI SDK embedding support might vary or we want specific control
-            // But OpenAI SDK supports embeddings. Let's try to use SDK if possible, or fallback to fetch like note-gen did.
-            // note-gen used fetch. Let's stick to fetch for embeddings to be safe with custom endpoints.
+           // 直接使用 fetch，因为 OpenAI SDK 的嵌入支持可能有所不同，或者我们希望有更具体的控制
+           // 但 OpenAI SDK 支持嵌入功能。如果可能，我们尝试使用 SDK，或者像 note-gen 那样回退到使用 fetch
+           // note-gen 使用了 fetch。为了安全处理自定义端点，我们坚持使用 fetch 来获取嵌入
 
             const response = await fetch(aiConfig.baseURL + '/embeddings', {
                 method: 'POST',
