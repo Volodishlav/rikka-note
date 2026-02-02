@@ -39,7 +39,14 @@ watch(() => chatStore.chats[chatStore.chats.length - 1]?.content, scrollToBottom
 onMounted(scrollToBottom)
 
 const renderMarkdown = (content: string) => {
-  return md.render(content || '')
+  let text = content || ''
+  // Hide thinking block
+  text = text.replace(/<thinking>[\s\S]*?<\/thinking>/, '').trim()
+  // If result is empty but original had thinking, show indicator
+  if (!text && content?.includes('<thinking>')) {
+      return '<span class="text-muted-foreground italic text-xs">Thinking...</span>'
+  }
+  return md.render(text)
 }
 
 const copyContent = (content: string) => {
@@ -61,9 +68,21 @@ const handleInsert = async (chat: any) => {
         v-for="chat in chatStore.chats"
         :key="chat.id"
         class="flex flex-col gap-2"
-        :class="chat.role === 'user' ? 'items-end' : 'items-start'"
+        :class="chat.type === 'clear' ? 'items-center' : (chat.role === 'user' ? 'items-end' : 'items-start')"
     >
+      <div v-if="chat.type === 'clear'" class="w-full flex justify-center items-center gap-4 px-4 py-2 group">
+        <div class="h-[1px] flex-1 bg-border"></div>
+        <div class="flex items-center gap-2">
+            <span class="text-xs text-muted-foreground whitespace-nowrap">{{ chat.content }}</span>
+            <Button variant="ghost" size="icon" class="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" @click="chatStore.deleteChat(chat.id)">
+                <X class="w-3 h-3 text-muted-foreground" />
+            </Button>
+        </div>
+        <div class="h-[1px] flex-1 bg-border"></div>
+      </div>
+
       <div
+          v-else
           class="max-w-[85%] rounded-lg p-3 text-sm relative group"
           :class="chat.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'"
       >

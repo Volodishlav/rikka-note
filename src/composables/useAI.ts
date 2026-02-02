@@ -1,11 +1,15 @@
 import OpenAI from 'openai';
 import { useSettingStore } from '@/stores/setting';
+import { usePromptStore } from '@/stores/prompt';
 import { AiConfig } from '@/types/ai';
 import { useToast } from '@/composables/useToast';
+import { useChatStore } from '@/stores/chat';
 import { fetch } from '@tauri-apps/plugin-http';
 
 export function useAI() {
     const store = useSettingStore();
+    const promptStore = usePromptStore();
+    const chatStore = useChatStore();
     const toast = useToast();
 
     /**
@@ -80,6 +84,40 @@ export function useAI() {
         });
     }
 
+    // 准备消息列表，注入 System Prompt
+    async function prepareMessages(contentOrMessages: string | OpenAI.Chat.ChatCompletionMessageParam[], includeHistory: boolean = false): Promise<OpenAI.Chat.ChatCompletionMessageParam[]> {
+        const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
+        
+        // 1. 获取当前选中的 Prompt
+        // 确保 Prompt 数据已加载
+        if (!promptStore.currentPrompt) {
+            await promptStore.initPromptData();
+        }
+        const currentPrompt = promptStore.currentPrompt;
+
+        // 2. 如果有 System Prompt，添加为第一条消息
+        if (currentPrompt && currentPrompt.content) {
+            messages.push({
+                role: 'system',
+                content: currentPrompt.content
+            });
+        }
+
+        // 3. 添加用户消息或合并历史消息
+        if (Array.isArray(contentOrMessages)) {
+            // 如果传入的是数组，直接追加
+            messages.push(...contentOrMessages);
+        } else {
+             // 如果传入的是字符串，构造单条 User 消息
+            messages.push({
+                role: 'user',
+                content: contentOrMessages
+            });
+        }
+
+        return messages;
+    }
+
     async function fetchAi(text: string): Promise<string> {
         try {
             const aiConfig = getAISettings('primaryModel');
@@ -88,11 +126,11 @@ export function useAI() {
             const openai = await createOpenAIClient(aiConfig);
             if (!openai) return '';
 
-            // TODO: Add prompt handling (system prompt)
+            const messages = await prepareMessages(text);
 
             const completion = await openai.chat.completions.create({
                 model: aiConfig.model || '',
-                messages: [{ role: 'user', content: text }],
+                messages: messages,
                 temperature: aiConfig.temperature || 1,
                 top_p: aiConfig.topP || 1,
             });
@@ -103,7 +141,7 @@ export function useAI() {
         }
     }
 
-    async function fetchAiStream(text: string, onUpdate: (content: string) => void, abortSignal?: AbortSignal): Promise<string> {
+    async function fetchAiStream(input: string | OpenAI.Chat.ChatCompletionMessageParam[], onUpdate: (content: string) => void, abortSignal?: AbortSignal, includeHistory: boolean = false): Promise<string> {
         try {
             const aiConfig = getAISettings('primaryModel');
             if (!aiConfig || !await validateAIService(aiConfig.baseURL)) return '';
@@ -111,11 +149,16 @@ export function useAI() {
             const openai = await createOpenAIClient(aiConfig);
             if (!openai) return '';
 
-            // TODO: Add prompt handling
+            const messages = await prepareMessages(input, includeHistory);
+
+            // 调试日志：输出完整发送给AI的消息数组
+            console.log('=== 完整发送给AI的消息数组 (Full Request Messages) ===');
+            console.log(JSON.stringify(messages, null, 2));
+            console.log('======================================================');
 
             const stream = await openai.chat.completions.create({
                 model: aiConfig.model || '',
-                messages: [{ role: 'user', content: text }],
+                messages: messages,
                 temperature: aiConfig.temperature,
                 top_p: aiConfig.topP,
                 stream: true,
@@ -125,6 +168,7 @@ export function useAI() {
 
             let thinking = '';
             let fullContent = '';
+            let isFirstResponse = true; // 标记是否是第一次响应
 
             for await (const chunk of stream) {
                 if (abortSignal?.aborted) break;

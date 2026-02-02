@@ -78,47 +78,51 @@
                   rows="5"
                 />
               </div>
-              <div class="flex justify-end gap-2">
+              <div class="flex justify-between items-center gap-2">
                 <Button
-                  type="button"
-                  variant="outline"
+                  v-if="!prompt.isDefault"
+                  variant="destructive"
                   size="sm"
-                  @click="handleOptimizePrompt"
-                  :disabled="isOptimizing || !newContent.trim()"
+                  @click="handleDeletePrompt(prompt.id)"
                 >
-                  <Sparkles class="h-4 w-4 mr-2" />
-                  {{ isOptimizing ? t('settings.prompt.optimizing') : t('settings.prompt.optimizePrompt') }}
+                  <Trash2 class="h-4 w-4 mr-2" />
+                  {{ t('common.delete') }}
                 </Button>
-                <Button variant="outline" size="sm" @click="handleCancelEdit">
-                  <X class="h-4 w-4 mr-2" />
-                  {{ t('common.cancel') }}
-                </Button>
-                <Button size="sm" @click="handleSaveEdit(prompt.id)">
-                  <Check class="h-4 w-4 mr-2" />
-                  {{ t('common.save') }}
-                </Button>
-              </div>
-            </div>
-            <div v-else class="flex flex-col gap-2">
-              <div class="flex justify-between items-center">
-                <h3 class="font-medium">{{ prompt.title }}</h3>
-                <div class="flex gap-2">
-                  <Button variant="ghost" size="sm" @click="handleStartEdit(prompt)">
-                    <Pencil class="h-4 w-4" />
-                  </Button>
+                <div class="flex gap-2 ml-auto">
                   <Button
-                    variant="ghost"
+                    type="button"
+                    variant="outline"
                     size="sm"
-                    @click="handleDeletePrompt(prompt.id)"
-                    :disabled="prompt.isDefault"
+                    @click="handleOptimizePrompt"
+                    :disabled="isOptimizing || !newContent.trim()"
                   >
-                    <Trash class="h-4 w-4" />
+                    <Sparkles class="h-4 w-4 mr-2" />
+                    {{ isOptimizing ? t('settings.prompt.optimizing') : t('settings.prompt.optimizePrompt') }}
+                  </Button>
+                  <Button variant="outline" size="sm" @click="handleCancelEdit">
+                    <X class="h-4 w-4 mr-2" />
+                    {{ t('common.cancel') }}
+                  </Button>
+                  <Button size="sm" @click="handleSaveEdit(prompt.id)">
+                    <Check class="h-4 w-4 mr-2" />
+                    {{ t('common.save') }}
                   </Button>
                 </div>
               </div>
-              <p class="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-3">
-                {{ prompt.content || t('settings.prompt.noContent') }}
-              </p>
+            </div>
+            <div v-else class="flex justify-between items-center">
+              <div>
+                <h4 class="font-medium flex items-center gap-2">
+                  {{ prompt.title }}
+                  <span v-if="prompt.isDefault" class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Default</span>
+                </h4>
+                <p class="text-sm text-muted-foreground mt-1 line-clamp-2">{{ prompt.content }}</p>
+              </div>
+              <div class="flex gap-2">
+                <Button variant="ghost" size="icon" @click="handleStartEdit(prompt)">
+                  <Pencil class="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -143,14 +147,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Plus, Trash, Pencil, Check, X, Sparkles } from 'lucide-vue-next'
+import { Plus, Trash2, Pencil, Check, X, Sparkles } from 'lucide-vue-next'
 import { useAI } from '@/composables/useAI'
-import { useToast } from '@/components/ui/toast/use-toast'
+import { useToast } from '@/composables/useToast'
 
-const { t } = useI18n()
-const { toast } = useToast()
+const { t, locale } = useI18n()
+const toast = useToast()
 const promptStore = usePromptStore()
-const { fetchAiStream } = useAI() // useAI provides fetchAiStream, need to check if it provides fetchAi or I implement it using stream
+const { fetchAi } = useAI()
 
 const editingId = ref<string | null>(null)
 const newTitle = ref('')
@@ -162,6 +166,12 @@ onMounted(() => {
   promptStore.initPromptData()
 })
 
+const handleOpenAddDialog = () => {
+  newTitle.value = ''
+  newContent.value = ''
+  dialogOpen.value = true
+}
+
 const handleAddPrompt = async () => {
   if (!newTitle.value.trim()) return
   await promptStore.addPrompt({
@@ -171,6 +181,7 @@ const handleAddPrompt = async () => {
   newTitle.value = ''
   newContent.value = ''
   dialogOpen.value = false
+  toast.success(t('common.saveSuccess'))
 }
 
 const handleStartEdit = (prompt: Prompt) => {
@@ -196,58 +207,39 @@ const handleSaveEdit = async (id: string) => {
     content: newContent.value
   })
   editingId.value = null
+  toast.success(t('common.saveSuccess'))
 }
 
 const handleDeletePrompt = async (id: string) => {
-  await promptStore.deletePrompt(id)
-}
-
-const handleOpenAddDialog = () => {
-  newTitle.value = ''
-  newContent.value = ''
-  dialogOpen.value = true
+  if (confirm(t('common.confirmDelete'))) {
+    await promptStore.deletePrompt(id)
+    toast.success(t('common.deleteSuccess'))
+  }
 }
 
 const handleOptimizePrompt = async () => {
   if (!newContent.value.trim()) {
-    toast({
-      description: t('settings.prompt.noContentToOptimize'),
-      variant: 'destructive'
-    })
+    toast.error(t('settings.prompt.noContentToOptimize'))
     return
   }
 
   isOptimizing.value = true
   try {
     const optimizationPrompt = `
-      Please optimize the following prompt, use Chinese language, making it clearer, more specific, and more effective. 
+      Please optimize the following prompt, use ${locale.value} language, making it clearer, more specific, and more effective. 
       Maintain the original meaning while improving expression, adding necessary context, optimizing structure and logic. 
       Please directly return the optimized prompt content, without adding any additional explanation:
 
-      ${newContent.value}`
-
-    // Simple implementation using fetchAiStream but accumulating result
-    let optimizedContent = ''
-    await fetchAiStream(optimizationPrompt, async (chunk) => {
-      optimizedContent += chunk
-    })
-
+${newContent.value}`
+    
+    const optimizedContent = await fetchAi(optimizationPrompt)
     if (optimizedContent) {
-      newContent.value = optimizedContent
-      toast({
-        description: t('settings.prompt.optimizeSuccess')
-      })
-    } else {
-      toast({
-        description: t('settings.prompt.optimizeFailed'),
-        variant: 'destructive'
-      })
+      newContent.value = optimizedContent.trim()
+      toast.success(t('settings.prompt.optimizeSuccess'))
     }
-  } catch (e) {
-    toast({
-      description: t('settings.prompt.optimizeFailed'),
-      variant: 'destructive'
-    })
+  } catch (error) {
+    console.error(error)
+    toast.error(t('common.error'))
   } finally {
     isOptimizing.value = false
   }

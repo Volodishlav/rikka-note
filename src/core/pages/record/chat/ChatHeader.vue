@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button'
-import { Trash2, Settings2 } from 'lucide-vue-next'
+import { Trash2, AlignVerticalJustifyCenter } from 'lucide-vue-next'
 import { useChatStore } from '@/stores/chat'
 import { useTagStore } from '@/stores/tag'
 // 引入 shadcn-vue 的组件
@@ -19,6 +19,16 @@ const handleClear = () => {
     chatStore.clearChats(tagStore.currentTagId)
   }
 }
+
+const handleClearContext = async () => {
+  await chatStore.insert({
+    tagId: tagStore.currentTagId,
+    role: 'system',
+    content: 'Context cleared. Future messages will only carry content after this point.',
+    type: 'clear',
+    inserted: true
+  })
+}
 </script>
 
 <template>
@@ -31,11 +41,22 @@ const handleClear = () => {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>
+            <Button variant="ghost" size="icon" @click="handleClearContext">
+              <AlignVerticalJustifyCenter class="w-4 h-4 text-muted-foreground" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Clear Context</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger as-child>
             <Button variant="ghost" size="icon" @click="handleClear">
               <Trash2 class="w-4 h-4 text-muted-foreground" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Clear Chat</TooltipContent>
+          <TooltipContent>Clear All Chat</TooltipContent>
         </Tooltip>
       </TooltipProvider>
     </div>
