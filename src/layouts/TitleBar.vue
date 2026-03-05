@@ -144,11 +144,7 @@ onUnmounted(() => {
 <style scoped>
 .titlebar {
   height: 30px;
-  background: #329ea3;
-  user-select: none;
-  display: grid;
-  grid-template-columns: auto max-content;
-  width: 100%;
+  @apply bg-brand-cyan text-foreground select-none grid grid-cols-[auto_max-content] w-full;
 }
 
 /* 优化拖拽区域，确保全屏可拖拽 */
@@ -158,7 +154,7 @@ onUnmounted(() => {
 }
 
 .titlebar > .controls {
-  display: flex;
+  @apply flex;
 }
 
 /* 统一按钮样式，优化hover效果 */
@@ -167,24 +163,16 @@ onUnmounted(() => {
   padding: 0;
   margin: 0;
   border: none;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  width: 30px;
-  height: 30px;
-  background-color: transparent;
-  color: #ffffff;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  @apply inline-flex justify-center items-center w-[30px] h-[30px] bg-transparent text-foreground cursor-pointer transition-colors duration-200;
 }
 
 .titlebar-btn:hover:not(.close-btn) {
-  background: #5bbec3;
+  @apply bg-brand-cyan/80;
 }
 
 /* 关闭按钮特殊hover样式，符合系统习惯 */
 .close-btn:hover {
-  background: #e74c3c;
+  @apply bg-destructive;
 }
 
 /* 修复子元素继承scoped样式问题 */

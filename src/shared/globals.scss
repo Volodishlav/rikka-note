@@ -4,91 +4,106 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    /* 核心中性色 (Light Mode) */
+    --background: 0 0% 98%;          /* #FAFAFA */
+    --foreground: 221 39% 11%;       /* #111827 主要文本 */
+    --card: 0 0% 100%;               /* #FFFFFF 卡片背景 */
+    --card-foreground: 221 39% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
+    --popover-foreground: 221 39% 11%;
+
+    /* 基础UI元素采用中性色 */
+    --primary: 221 39% 11%;          /* 主按钮使用深色，避免过于鲜艳 */
     --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --third: 240 4.8% 90.9%;
-    --third-foreground: 240 5.9% 15%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --secondary: 220 14% 91%;        /* #E5E7EB 次要按钮背景 */
+    --secondary-foreground: 221 39% 11%;
+    --third: 220 14% 96%;            /* 比次要稍浅的背景 */
+    --third-foreground: 221 39% 11%;
+    --muted: 220 14% 91%;
+    --muted-foreground: 215 14% 46%; /* #6B7280 次要文本 */
+    --border: 220 14% 91%;           /* #E5E7EB 边框/分割线 */
+    --input: 220 14% 91%;
+    --ring: 247 41% 24%;             /* 焦点环可以使用六花紫来强调 */
+
+    /* 警告与破坏性操作 */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+
+    /* == 六花专属品牌色 (Brand Colors) == */
+    --brand-purple: 247 41% 24%;     /* #2A2457 六花紫 */
+    --brand-cyan: 190 100% 42%;      /* #00B4D8 六花青 */
+    --brand-pink: 333 82% 73%;       /* #F284B6 六花粉 */
+    --brand-orange: 32 95% 44%;      /* #D97706 六花橙 */
+
     --radius: 0.5rem;
 
-    /* Sidebar variables */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    /* 图表变量 */
+    --chart-1: 247 41% 24%;
+    --chart-2: 190 100% 42%;
+    --chart-3: 333 82% 73%;
+    --chart-4: 32 95% 44%;
+    --chart-5: 27 87% 67%;
+
+    /* 侧边栏变量 (基于中性色) */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 221 39% 11%;
+    --sidebar-primary: 221 39% 11%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 220 14% 91%;
+    --sidebar-accent-foreground: 221 39% 11%;
+    --sidebar-border: 220 14% 91%;
+    --sidebar-ring: 247 41% 24%;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    /* 核心中性色 (Dark Mode) - 做了颜色反转 */
+    --background: 221 39% 11%;       /* 深色背景 */
+    --foreground: 0 0% 98%;          /* 浅色文本 */
+    --card: 215 28% 17%;             /* 稍浅的卡片背景 */
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 215 28% 17%;
     --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
+
+    --primary: 0 0% 98%;             /* 暗色模式下主按钮变白 */
+    --primary-foreground: 221 39% 11%;
+    --secondary: 215 28% 17%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --third: 215 16% 27%;
+    --third-foreground: 0 0% 98%;
+    --muted: 215 16% 27%;
+    --muted-foreground: 215 14% 65%; /* 调亮的次要文本 */
+    --border: 215 16% 27%;
+    --input: 215 16% 27%;
+    --ring: 247 41% 40%;             /* 调亮的焦点环 */
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
 
-    /* Dark sidebar variables */
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* 品牌色在暗色模式下可保持原样，或根据视觉需求微调亮度 */
+    --brand-purple: 247 41% 44%;     /* 紫色在暗色模式下适当调亮以保证对比度 */
+    --brand-cyan: 190 100% 42%;
+    --brand-pink: 333 82% 73%;
+    --brand-orange: 32 95% 44%;
+
+    /* 图表与侧边栏 (Dark Mode 略) */
+    --sidebar-background: 221 39% 11%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 221 39% 11%;
+    --sidebar-accent: 215 16% 27%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 215 16% 27%;
+    --sidebar-ring: 247 41% 40%;
   }
 }
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
+    @apply border-border;
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    @apply bg-background text-foreground;
   }
 
   html, body {
@@ -96,36 +111,21 @@
     overflow: hidden;
   }
 
+  /* 你的自定义样式保留不变... */
   .file-manange-item {
-    @apply flex items-center gap-1 py-1 text-sm cursor-pointer w-full text-black;
+    @apply flex items-center gap-1 py-1 text-sm cursor-pointer w-full text-foreground;
   }
 
   .file-manange-item:hover {
-    @apply bg-zinc-100;
-  }
-
-  .dark .file-manange-item {
-    @apply text-white;
-  }
-
-  .dark .file-manange-item:hover {
-    @apply bg-zinc-800;
+    @apply bg-secondary;
   }
 
   .file-manange-item.active {
     @apply bg-third text-third-foreground font-bold;
   }
 
-  .dark .file-manange-item.active {
-    @apply bg-third-foreground text-white;
-  }
-
   .file-manange-item.active .bg-primary-foreground {
     @apply bg-third;
-  }
-
-  .dark .file-manange-item.active .bg-primary-foreground {
-    @apply bg-third-foreground;
   }
 
   :not(table) {
@@ -168,16 +168,5 @@
 
   ol {
     @apply list-decimal;
-  }
-}
-
-
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
   }
 }

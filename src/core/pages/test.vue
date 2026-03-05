@@ -115,6 +115,18 @@ const tooltipContent = ref('这是一个Tooltip提示')
 </script>
 
 <template>
+  <h1>配色测试：</h1>
+  <div>主色调</div>
+  <div style="background-color: #3c397e; width: 40px; height: 40px; margin: 20px"></div>
+  <div style="background-color: #00B4D8; width: 40px; height: 40px; margin: 20px"></div>
+  <div style="background-color: #F284B6; width: 40px; height: 40px; margin: 20px"></div>
+  <div style="background-color: #D97706; width: 40px; height: 40px; margin: 20px"></div>
+  <div>中性色</div>
+  <div style="background-color: #FAFAFA; width: 40px; height: 40px; margin: 20px"></div>
+  <div style="background-color: #FFFFFF; width: 40px; height: 40px; margin: 20px"></div>
+  <div style="background-color: #E5E7EB; width: 40px; height: 40px; margin: 20px"></div>
+  <div style="background-color: #6B7280; width: 40px; height: 40px; margin: 20px"></div>
+  <div style="background-color: #111827; width: 40px; height: 40px; margin: 20px"></div>
   <main class="m-0 pt-[10vh] flex flex-col justify-center items-center gap-8">
     <h1>Welcome to Tauri + Vue</h1>
     <div>
