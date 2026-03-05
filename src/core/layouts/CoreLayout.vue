@@ -2,9 +2,12 @@
 // CoreLayout - 核心布局组件
 import AppSidebar from '@/components/AppSidebar.vue'
 import { SidebarProvider } from '@/components/ui/sidebar'
+import TitleBar from "@/layouts/TitleBar.vue";
+
 </script>
 
 <template>
+  <title-bar></title-bar>
   <div class="flex h-screen overflow-hidden">
     <SidebarProvider>
       <AppSidebar/>
