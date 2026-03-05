@@ -4,7 +4,7 @@ import { useChatStore } from '@/stores/chat'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github-dark.css' // 或者你喜欢的样式
-import { Copy, PlusSquare, Check } from 'lucide-vue-next'
+import { Copy, PlusSquare, Check,X } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { useInsertChat } from '@/composables/useInsertChat'
 const chatStore = useChatStore()
@@ -70,12 +70,14 @@ const handleInsert = async (chat: any) => {
         class="flex flex-col gap-2"
         :class="chat.type === 'clear' ? 'items-center' : (chat.role === 'user' ? 'items-end' : 'items-start')"
     >
+<!--      分割线-->
       <div v-if="chat.type === 'clear'" class="w-full flex justify-center items-center gap-4 px-4 py-2 group">
         <div class="h-[1px] flex-1 bg-border"></div>
         <div class="flex items-center gap-2">
             <span class="text-xs text-muted-foreground whitespace-nowrap">{{ chat.content }}</span>
             <Button variant="ghost" size="icon" class="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" @click="chatStore.deleteChat(chat.id)">
-                <X class="w-3 h-3 text-muted-foreground" />
+<!--                分割线的叉号-->
+              <X class="w-3 h-3 text-muted-foreground" />
             </Button>
         </div>
         <div class="h-[1px] flex-1 bg-border"></div>

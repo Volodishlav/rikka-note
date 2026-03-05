@@ -14,7 +14,6 @@ let unmaximizeListener: (() => void) | null = null;
 const handleMinimize = async () => {
   try {
     await appWindow.minimize();
-    console.log('窗口已最小化');
   } catch (err) {
     console.warn('最小化窗口失败:', err);
   }
@@ -25,7 +24,6 @@ const handleToggleMaximize = async () => {
     await appWindow.toggleMaximize();
     // 同步更新最大化状态
     isMaximized.value = await appWindow.isMaximized();
-    console.log(`窗口已${isMaximized.value ? '最大化' : '还原'}`);
   } catch (err) {
     console.warn('切换最大化状态失败:', err);
   }
@@ -34,7 +32,6 @@ const handleToggleMaximize = async () => {
 const handleClose = async () => {
   try {
     await appWindow.close();
-    console.log('窗口已关闭');
   } catch (err) {
     console.error('关闭窗口失败:', err);
   }
@@ -56,7 +53,6 @@ onMounted(async () => {
       isMaximized.value = false;
     });
 
-    console.log('标题栏初始化完成');
   } catch (err) {
     console.error('标题栏初始化失败:', err);
   }
@@ -67,8 +63,6 @@ onUnmounted(() => {
   // 移除窗口状态监听器
   if (maximizeListener) maximizeListener();
   if (unmaximizeListener) unmaximizeListener();
-
-  console.log('标题栏组件已卸载，监听器已清理');
 });
 </script>
 
