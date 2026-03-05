@@ -2,6 +2,10 @@
 import {getCurrentWindow} from '@tauri-apps/api/window';
 import {onMounted, onUnmounted, ref} from 'vue';
 
+import { useLayoutStore } from '@/stores/layout';
+
+// 初始化布局状态
+const layoutStore = useLayoutStore();
 // 初始化窗口实例
 const appWindow = getCurrentWindow();
 // 响应式跟踪窗口最大化状态
@@ -11,26 +15,14 @@ let maximizeListener: (() => void) | null = null;
 let unmaximizeListener: (() => void) | null = null;
 
 // 窗口控制方法（带错误捕获）
-const handleLeftSiderbar = async () => {
-  try {
-    console.log('点击了侧边栏按钮');
-  } catch (err) {
-    console.warn('侧边栏切换失败:', err);
-  }
+const handleLeftSiderbar = () => {
+  layoutStore.toggleLeftSidebar();
 };
-const handleEditor = async () => {
-  try {
-    console.log('点击了编辑器按钮');
-  } catch (err) {
-    console.warn('编辑器切换失败:', err);
-  }
+const handleEditor = () => {
+  layoutStore.toggleEditor();
 };
-const handleRightSiderbar = async () => {
-  try {
-    console.log('点击了侧边栏按钮');
-  } catch (err) {
-    console.warn('侧边栏切换失败:', err);
-  }
+const handleRightSiderbar = () => {
+  layoutStore.toggleRightSidebar();
 };
 const handleMinimize = async () => {
   try {
@@ -99,6 +91,7 @@ onUnmounted(() => {
           @click="handleLeftSiderbar"
           title="左侧侧边栏"
           class="titlebar-btn"
+          :class="{ 'active-btn': layoutStore.isLeftSidebarVisible }"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 38" fill="currentColor">
           <rect x="6" y="6" width="32" height="26" rx="4" ry="4" stroke="currentColor" stroke-width="2" fill="none"/>
@@ -110,6 +103,7 @@ onUnmounted(() => {
           @click="handleEditor"
           title="编辑器"
           class="titlebar-btn"
+          :class="{ 'active-btn': layoutStore.isEditorVisible }"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 38" fill="currentColor">
           <rect x="6" y="6" width="32" height="26" rx="4" ry="4" stroke="currentColor" stroke-width="2" fill="none"/>
@@ -121,6 +115,7 @@ onUnmounted(() => {
           @click="handleRightSiderbar"
           title="右侧侧边栏"
           class="titlebar-btn"
+          :class="{ 'active-btn': layoutStore.isRightSidebarVisible }"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 38" fill="currentColor">
           <rect x="6" y="6" width="32" height="26" rx="4" ry="4" stroke="currentColor" stroke-width="2" fill="none"/>
@@ -192,7 +187,7 @@ onUnmounted(() => {
 <style scoped>
 .titlebar {
   height: 36px; /* 略微增加标题栏高度 */
-  @apply bg-brand-cyan text-foreground select-none grid grid-cols-[auto_max-content] w-full;
+  @apply bg-background text-foreground select-none grid grid-cols-[auto_max-content] w-full;
 }
 
 /* 优化拖拽区域，确保全屏可拖拽 */
@@ -215,9 +210,12 @@ onUnmounted(() => {
 }
 
 .titlebar-btn:hover:not(.close-btn) {
-  @apply bg-brand-cyan/80;
+  @apply bg-background;
 }
 
+.titlebar-btn.active-btn {
+  @apply bg-background;
+}
 /* 关闭按钮特殊hover样式，符合系统习惯 */
 .close-btn:hover {
   @apply bg-destructive;

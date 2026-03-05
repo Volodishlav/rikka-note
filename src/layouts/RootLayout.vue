@@ -1,8 +1,10 @@
 <template>
   <ThemeProvider>
-    <slot />
-    <!-- 全局Toast容器 -->
-    <Toaster />
+    <TooltipProvider>
+      <slot />
+      <!-- 全局Toast容器 -->
+      <Toaster />
+    </TooltipProvider>
   </ThemeProvider>
 </template>
 
@@ -10,6 +12,7 @@
 import {onMounted, ref, watch} from 'vue'
 import ThemeProvider from '@/components/ThemeProvider.vue'
 import { Toaster } from '@/components/ui/toast'
+import { TooltipProvider } from 'reka-ui'
 import { useSettingStore } from '@/stores/setting'
 import { useI18n } from '@/hooks/useI18n'
 import dayjs from 'dayjs'
@@ -45,6 +48,8 @@ onMounted(async () => {
   // if (typeof (settingStore as any).initVectorDb === 'function') {
   //   await (settingStore as any).initVectorDb()
   // }
+  
+  console.log('TooltipProvider has been added to RootLayout')
 })
 
 // UI 缩放
