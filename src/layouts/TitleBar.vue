@@ -11,6 +11,27 @@ let maximizeListener: (() => void) | null = null;
 let unmaximizeListener: (() => void) | null = null;
 
 // 窗口控制方法（带错误捕获）
+const handleLeftSiderbar = async () => {
+  try {
+    console.log('点击了侧边栏按钮');
+  } catch (err) {
+    console.warn('侧边栏切换失败:', err);
+  }
+};
+const handleEditor = async () => {
+  try {
+    console.log('点击了编辑器按钮');
+  } catch (err) {
+    console.warn('编辑器切换失败:', err);
+  }
+};
+const handleRightSiderbar = async () => {
+  try {
+    console.log('点击了侧边栏按钮');
+  } catch (err) {
+    console.warn('侧边栏切换失败:', err);
+  }
+};
 const handleMinimize = async () => {
   try {
     await appWindow.minimize();
@@ -73,6 +94,39 @@ onUnmounted(() => {
 
     <!-- 控制按钮组（使用Vue原生@click绑定） -->
     <div class="controls">
+      <!-- 左侧边栏按钮 -->
+      <button
+          @click="handleLeftSiderbar"
+          title="左侧侧边栏"
+          class="titlebar-btn"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 38" fill="currentColor">
+          <rect x="6" y="6" width="32" height="26" rx="4" ry="4" stroke="currentColor" stroke-width="2" fill="none"/>
+          <rect x="10" y="9" width="5" height="20" rx="2" ry="2" fill="currentColor"/>
+        </svg>
+      </button>
+      <!-- 编辑器按钮 -->
+      <button
+          @click="handleEditor"
+          title="编辑器"
+          class="titlebar-btn"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 38" fill="currentColor">
+          <rect x="6" y="6" width="32" height="26" rx="4" ry="4" stroke="currentColor" stroke-width="2" fill="none"/>
+          <rect x="17" y="9" width="10" height="20" rx="2" ry="2" fill="currentColor"/>
+        </svg>
+      </button>
+      <!-- 右侧边栏按钮 -->
+      <button
+          @click="handleRightSiderbar"
+          title="右侧侧边栏"
+          class="titlebar-btn"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 38" fill="currentColor">
+          <rect x="6" y="6" width="32" height="26" rx="4" ry="4" stroke="currentColor" stroke-width="2" fill="none"/>
+          <rect x="28" y="9" width="5" height="20" rx="2" ry="2" fill="currentColor"/>
+        </svg>
+      </button>
       <!-- 最小化按钮 -->
       <button
           @click="handleMinimize"
@@ -137,7 +191,7 @@ onUnmounted(() => {
 
 <style scoped>
 .titlebar {
-  height: 30px;
+  height: 36px; /* 略微增加标题栏高度 */
   @apply bg-brand-cyan text-foreground select-none grid grid-cols-[auto_max-content] w-full;
 }
 
@@ -157,7 +211,7 @@ onUnmounted(() => {
   padding: 0;
   margin: 0;
   border: none;
-  @apply inline-flex justify-center items-center w-[30px] h-[30px] bg-transparent text-foreground cursor-pointer transition-colors duration-200;
+  @apply inline-flex justify-center items-center w-[36px] h-[36px] bg-transparent text-foreground cursor-pointer transition-colors duration-200; /* 按钮尺寸随标题栏高度调整 */
 }
 
 .titlebar-btn:hover:not(.close-btn) {
@@ -171,7 +225,7 @@ onUnmounted(() => {
 
 /* 修复子元素继承scoped样式问题 */
 :deep(svg) {
-  width: 16px;
-  height: 16px; /* 缩小图标，视觉更协调 */
+  width: 20px;
+  height: 20px; /* 增大图标尺寸，与标题栏高度匹配 */
 }
 </style>
