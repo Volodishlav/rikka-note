@@ -8,6 +8,7 @@ import 'splitpanes/dist/splitpanes.css'
 import FileSidebar from '@/core/pages/article/FileSidebar.vue' // 左侧面板：文件和标签导航
 import MdEditor from '@/core/pages/article/MdEditor.vue' // 中间面板：Markdown 编辑器
 import ChatLayout from '@/core/pages/record/chat/ChatLayout.vue' // 右侧面板：AI 聊天
+import SearchPage from '@/core/pages/SearchPage.vue' // 搜索面板
 
 const layoutStore = useLayoutStore()
 
@@ -18,8 +19,13 @@ const layoutStore = useLayoutStore()
   <div class="flex-1 overflow-hidden bg-background">
     <splitpanes class="default-theme h-full w-full">
       <!-- 左侧导航面板 -->
-      <pane v-if="layoutStore.isLeftSidebarVisible" size="20" min-size="15" max-size="40">
+      <pane v-if="layoutStore.isLeftSidebarVisible && !layoutStore.isSearchPanelVisible" size="20" min-size="15" max-size="40">
         <FileSidebar />
+      </pane>
+
+      <!-- 搜索面板 -->
+      <pane v-else-if="layoutStore.isLeftSidebarVisible &&layoutStore.isSearchPanelVisible" size="20" min-size="15" max-size="40">
+        <SearchPage />
       </pane>
 
       <!-- 中间编辑器面板 -->

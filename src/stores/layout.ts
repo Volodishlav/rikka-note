@@ -6,6 +6,8 @@ export const useLayoutStore = defineStore('layout', () => {
     const isLeftSidebarVisible = ref(true)
     const isEditorVisible = ref(true)
     const isRightSidebarVisible = ref(true)
+    // 控制是否显示搜索面板
+    const isSearchPanelVisible = ref(false)
 
     // Action to toggle the visibility of the left sidebar
     function toggleLeftSidebar() {
@@ -22,12 +24,19 @@ export const useLayoutStore = defineStore('layout', () => {
         isRightSidebarVisible.value = !isRightSidebarVisible.value
     }
 
+    // Action to toggle the visibility of the search panel
+    function toggleSearchPanel() {
+        isSearchPanelVisible.value = !isSearchPanelVisible.value
+    }
+
     return {
         isLeftSidebarVisible,
         isEditorVisible,
         isRightSidebarVisible,
+        isSearchPanelVisible,
         toggleLeftSidebar,
         toggleEditor,
-        toggleRightSidebar
+        toggleRightSidebar,
+        toggleSearchPanel
     }
 })

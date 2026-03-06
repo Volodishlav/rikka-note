@@ -20,6 +20,7 @@ import TestPage from '@/core/pages/test.vue' // 测试页面
 import DataTestPage from '@/core/pages/DataTestPage.vue' // 数据测试页面
 import ArticlePage from "@/core/pages/ArticlePage.vue"; // 文章测试页面
 import SettingPage from '@/core/pages/setting/SettingPage.vue' // 设置页面
+import SearchPage from '@/core/pages/SearchPage.vue' // 搜索页面
 
 // 路由表 - 仅保留指定的三个路由
 const routes: Array<RouteRecordRaw> = [
@@ -80,6 +81,7 @@ const routes: Array<RouteRecordRaw> = [
             { path: 'test', name: 'core-test', component: TestPage }, // 测试页面
             { path: 'data-test', name: 'core-data-test', component: DataTestPage }, // 数据测试页面
             { path: 'setting', name: 'core-setting', component: SettingPage }, // 设置页面
+            { path: 'search', name: 'core-search', component: SearchPage }, // 搜索页面
             // 添加404路由，匹配所有未定义的core子路由
             { path: ':pathMatch(.*)*', name: 'core-404', component: TestPage }, // 暂时使用TestPage作为404页面
             {path: 'article',component: ArticlePage,name: 'Article'},
