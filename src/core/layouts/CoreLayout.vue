@@ -9,6 +9,7 @@ import FileSidebar from '@/core/pages/article/FileSidebar.vue' // 左侧面板�
 import MdEditor from '@/core/pages/article/MdEditor.vue' // 中间面板：Markdown 编辑器
 import ChatLayout from '@/core/pages/record/chat/ChatLayout.vue' // 右侧面板：AI 聊天
 import SearchPage from '@/core/pages/SearchPage.vue' // 搜索面板
+import SettingPage from '@/core/pages/setting/SettingPage.vue' // 设置页面（独占窗口）
 
 const layoutStore = useLayoutStore()
 
@@ -18,7 +19,11 @@ const layoutStore = useLayoutStore()
   <div class="h-screen w-full flex flex-col overflow-hidden">
     <title-bar></title-bar>
     <div class="flex-1 overflow-hidden bg-background">
-      <splitpanes class="default-theme h-full w-full">
+      <!-- 设置页面：独占整个窗口 -->
+      <SettingPage v-if="layoutStore.isSettingPageVisible" class="h-full w-full" />
+      
+      <!-- 正常布局：分割面板 -->
+      <splitpanes v-else class="default-theme h-full w-full">
         <!-- 左侧导航面板 -->
         <pane v-if="layoutStore.isLeftSidebarVisible && !layoutStore.isSearchPanelVisible" size="20" min-size="15"
               max-size="40">
