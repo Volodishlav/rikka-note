@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import TitleBar from '@/layouts/TitleBar.vue'
-import { useLayoutStore } from '@/stores/layout'
-import { Splitpanes, Pane } from 'splitpanes'
+import {useLayoutStore} from '@/stores/layout'
+import {Splitpanes, Pane} from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
 // 引入将作为面板的组件
@@ -15,36 +15,41 @@ const layoutStore = useLayoutStore()
 </script>
 
 <template>
-  <title-bar></title-bar>
-  <div class="flex-1 overflow-hidden bg-background">
-    <splitpanes class="default-theme h-full w-full">
-      <!-- 左侧导航面板 -->
-      <pane v-if="layoutStore.isLeftSidebarVisible && !layoutStore.isSearchPanelVisible" size="20" min-size="15" max-size="40">
-        <FileSidebar />
-      </pane>
+  <div class="h-screen w-full flex flex-col overflow-hidden">
+    <title-bar></title-bar>
+    <div class="flex-1 overflow-hidden bg-background">
+      <splitpanes class="default-theme h-full w-full">
+        <!-- 左侧导航面板 -->
+        <pane v-if="layoutStore.isLeftSidebarVisible && !layoutStore.isSearchPanelVisible" size="20" min-size="15"
+              max-size="40">
+          <FileSidebar/>
+        </pane>
 
-      <!-- 搜索面板 -->
-      <pane v-else-if="layoutStore.isLeftSidebarVisible &&layoutStore.isSearchPanelVisible" size="20" min-size="15" max-size="40">
-        <SearchPage />
-      </pane>
+        <!-- 搜索面板 -->
+        <pane v-else-if="layoutStore.isLeftSidebarVisible &&layoutStore.isSearchPanelVisible" size="20" min-size="15"
+              max-size="40">
+          <SearchPage/>
+        </pane>
 
-      <!-- 中间编辑器面板 -->
-      <pane v-if="layoutStore.isEditorVisible" size="50" min-size="30">
-        <div class="h-full p-1 overflow-hidden">
-          <MdEditor />
-        </div>
-      </pane>
+        <!-- 中间编辑器面板 -->
+        <pane v-if="layoutStore.isEditorVisible" size="50" min-size="30">
+          <div class="h-full w-full p-1 overflow-hidden flex flex-col">
+            <!-- w-full flex flex-col确保其子组件也能完美继承高度-->
+            <MdEditor/>
+          </div>
+        </pane>
 
-      <!-- 右侧 AI 聊天面板 -->
-      <pane v-if="layoutStore.isRightSidebarVisible" size="30" min-size="20" max-size="50">
-        <ChatLayout />
-      </pane>
-      <!-- 至少保留一个面板 -->
-      <pane v-else size="100">
-        <div class="h-full p-1 overflow-hidden">
-          <MdEditor />
-        </div>
-      </pane>
-    </splitpanes>
+        <!-- 右侧 AI 聊天面板 -->
+        <pane v-if="layoutStore.isRightSidebarVisible" size="30" min-size="20" max-size="50">
+          <ChatLayout/>
+        </pane>
+        <!-- 至少保留一个面板 -->
+        <pane v-else size="100">
+          <div class="h-full p-1 overflow-hidden">
+            <MdEditor/>
+          </div>
+        </pane>
+      </splitpanes>
+    </div>
   </div>
 </template>

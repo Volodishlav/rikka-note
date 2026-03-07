@@ -67,7 +67,7 @@ watch(() => articleStore.allArticle, () => {
 </script>
 
 <template>
-  <div class="w-full h-screen flex flex-col bg-sidebar text-sidebar-foreground">
+  <div class="w-full h-full flex flex-col bg-sidebar text-sidebar-foreground">
     <div :class="['w-full h-20 flex justify-center items-center flex-shrink-0', searchValue ? 'border-b' : '']">
       <div class="relative w-[560px]">
         <div class="w-[90%] mx-auto flex items-center gap-2 px-3 py-1 border rounded-md bg-white focus-within:ring-2 ring-brand-purple">
