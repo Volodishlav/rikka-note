@@ -93,7 +93,7 @@ onUnmounted(() => {
       <button
           @click="handleSearch"
           title="搜索"
-          class="titlebar-btn"
+          class="panel-btn"
           :class="{ 'active-btn': layoutStore.isSearchPanelVisible }"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -105,7 +105,7 @@ onUnmounted(() => {
       <button
           @click="handleLeftSiderbar"
           title="左侧侧边栏"
-          class="titlebar-btn"
+          class="panel-btn"
           :class="{ 'active-btn': layoutStore.isLeftSidebarVisible }"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 38" fill="currentColor">
@@ -117,7 +117,7 @@ onUnmounted(() => {
       <button
           @click="handleEditor"
           title="编辑器"
-          class="titlebar-btn"
+          class="panel-btn"
           :class="{ 'active-btn': layoutStore.isEditorVisible }"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 38" fill="currentColor">
@@ -129,7 +129,7 @@ onUnmounted(() => {
       <button
           @click="handleRightSiderbar"
           title="右侧侧边栏"
-          class="titlebar-btn"
+          class="panel-btn"
           :class="{ 'active-btn': layoutStore.isRightSidebarVisible }"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 38" fill="currentColor">
@@ -222,19 +222,41 @@ onUnmounted(() => {
   margin: 0;
   border: none;
   @apply inline-flex justify-center items-center w-[36px] h-[36px] bg-transparent text-foreground cursor-pointer transition-colors duration-200; /* 按钮尺寸随标题栏高度调整 */
+  /*@apply inline-flex justify-center items-center;  Flex布局：让内部SVG图标水平+垂直居中，这是图标按钮的核心布局方式 */
+  /*@apply w-[36px] h-[36px];  按钮宽高固定为36px，与标题栏高度（36px）完全一致，保证按钮填满标题栏垂直空间 */
+  /*@apply bg-transparent;     初始背景透明，hover时才显示背景，符合原生窗口标题栏按钮的交互逻辑 */
+  /*@apply text-foreground;    文字/图标颜色继承自父级的text-foreground（项目主题色），保证风格统一 */
+  /*@apply cursor-pointer;     鼠标悬浮时显示手型，明确按钮可点击 */
+  /*@apply transition-colors duration-200;  背景色变化时添加200ms过渡动画，让hover效果更丝滑，无突兀感 */
 }
 
 .titlebar-btn:hover:not(.close-btn) {
-  @apply bg-background;
-}
-
-.titlebar-btn.active-btn {
-  @apply bg-background;
+  @apply bg-secondary; /* 改用secondary主题色（浅色模式#E5E7EB，深色模式#242D39），hover时出现浅灰/深灰背景 */
 }
 /* 关闭按钮特殊hover样式，符合系统习惯 */
 .close-btn:hover {
-  @apply bg-destructive;
+  @apply bg-destructive;/* 悬浮时背景色改为项目的destructive（危险操作）主题色，通常为红色，符合系统习惯 */
 }
+
+.panel-btn {
+  appearance: none;
+  padding: 0;
+  margin: 0;
+  border: none;
+  @apply inline-flex justify-center items-center w-[36px] h-[36px] bg-transparent text-muted-foreground cursor-pointer transition-colors duration-200; /* 按钮尺寸随标题栏高度调整 */
+}
+.panel-btn:hover{
+  @apply bg-secondary;
+}
+/* 激活态：SVG 线条颜色为 foreground */
+.panel-btn.active-btn {
+  @apply text-foreground;
+}
+.panel-btn.active-btn :deep(svg) {
+  stroke: theme('colors.foreground');
+  transition: stroke 0.2s, fill 0.2s;
+}
+
 
 /* 修复子元素继承scoped样式问题 */
 :deep(svg) {

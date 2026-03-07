@@ -43,10 +43,16 @@ const layoutStore = useLayoutStore()
         <pane v-if="layoutStore.isRightSidebarVisible" size="30" min-size="20" max-size="50">
           <ChatLayout/>
         </pane>
-        <!-- 至少保留一个面板 -->
-        <pane v-else size="100">
-          <div class="h-full p-1 overflow-hidden">
-            <MdEditor/>
+        <!-- 没有面板处于打开状态时显示应用图标+应用名 -->
+        <pane v-if="!layoutStore.isLeftSidebarVisible&&!layoutStore.isRightSidebarVisible&&!layoutStore.isEditorVisible" size="100">
+          <div class="h-full p-1 overflow-hidden flex flex-col items-center justify-center">
+            <!-- 应用图标 -->
+            <img 
+              src="../../assets/icon.png"
+              class="w-24 h-24 mb-4"
+             alt="应用图标"/>
+            <!-- 应用名称 -->
+            <h1 class="text-2xl font-bold text-foreground">rikka-note</h1>
           </div>
         </pane>
       </splitpanes>
