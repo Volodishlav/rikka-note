@@ -64,7 +64,7 @@ const sendMessage = async () => {
     // 2. Insert AI Placeholder
     const aiChat = await chatStore.insert({
       tagId: currentTagId,
-      role: 'system', 
+      role: 'assistant',
       content: 'Thinking...',
       type: 'chat',
       inserted: false
