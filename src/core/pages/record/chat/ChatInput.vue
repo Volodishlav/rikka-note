@@ -4,9 +4,10 @@
       <Textarea 
         v-model="input" 
         placeholder="Type a message... (Shift+Enter for new line)" 
-        class="min-h-[80px] pr-12 resize-none focus-visible:ring-1"
+        class="min-h-[80px] pr-12 pl-12 resize-none focus-visible:ring-1"
         @keydown.enter="handleEnter"
       />
+      <ChatLanguage />
       <Button 
         class="absolute bottom-2 right-2 h-8 w-8" 
         size="icon" 
@@ -27,6 +28,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Send } from 'lucide-vue-next'
 import { fetchAiStream } from '@/lib/ai'
+import ChatLanguage from './ChatLanguage.vue'
 
 const input = ref('')
 const isSending = ref(false)
