@@ -43,6 +43,7 @@ import { usePromptStore } from '@/stores/prompt'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-vue-next'
+import { ask } from '@tauri-apps/plugin-dialog'
 
 const settingStore = useSettingStore()
 const chatStore = useChatStore()
@@ -65,7 +66,14 @@ const setPrompt = (val: string) => {
 }
 
 const clearChats = async () => {
-  if (confirm('Are you sure you want to clear chat history for this tag?')) {
+  // 使用 Tauri 的异步 ask 函数显示确认对话框
+  const confirmed = await ask('Are you sure you want to clear chat history for this tag?', {
+    title: 'Clear Chat History',
+    kind: 'warning'
+  })
+  
+  // 只有用户确认后才执行清空操作
+  if (confirmed) {
     console.log('Clearing chats for tag:', tagStore.currentTagId)
     await chatStore.clearChats(tagStore.currentTagId)
     console.log('Chats cleared')
