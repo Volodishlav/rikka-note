@@ -1,8 +1,9 @@
 <template>
   <div class="flex items-center justify-between px-4 py-2 border-b bg-background/95 backdrop-blur z-10 gap-2">
-    <div class="font-semibold text-sm shrink-0">{{ t('record.chat.header.title') }}</div>
+<!--    <div class="font-semibold text-sm shrink-0">{{ t('record.chat.header.title') }}</div>-->
     <div class="flex items-center gap-2 flex-1 justify-end min-w-0">
-      
+      <ChatLanguage />
+      <RagSwitch />
       <!-- Prompt Selector -->
       <Select :model-value="promptStore.currentPrompt?.id" @update:model-value="setPrompt">
         <SelectTrigger class="w-[120px] h-8 text-xs truncate">
@@ -45,6 +46,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-vue-next'
 import { ask } from '@tauri-apps/plugin-dialog'
+import ChatLanguage from "@/core/pages/record/chat/ChatLanguage.vue";
+import RagSwitch from "@/core/pages/record/chat/RagSwitch.vue";
 
 const settingStore = useSettingStore()
 const chatStore = useChatStore()
