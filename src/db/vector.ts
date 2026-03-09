@@ -72,11 +72,26 @@ export async function getSimilarDocuments(
     select id, filename, content, embedding from vector_documents
   `);
   
-  if (!docs.length) return [];
+  if (!docs.length) {
+    console.warn('Vector database is empty');
+    return [];
+  }
   
   // 计算余弦相似度并排序
   const results = docs.map(doc => {
-    const docEmbedding = JSON.parse(doc.embedding) as number[];
+    let docEmbedding: number[];
+    try {
+        docEmbedding = JSON.parse(doc.embedding) as number[];
+    } catch (e) {
+        console.error(`Failed to parse embedding for doc ${doc.id}:`, e);
+        return null;
+    }
+    
+    if (!docEmbedding || docEmbedding.length !== queryEmbedding.length) {
+        console.warn(`Dimension mismatch for doc ${doc.id}: doc=${docEmbedding?.length}, query=${queryEmbedding.length}`);
+        return null;
+    }
+
     const similarity = cosineSimilarity(queryEmbedding, docEmbedding);
     
     return {
@@ -86,7 +101,9 @@ export async function getSimilarDocuments(
       similarity
     };
   })
-  .filter(doc => doc.similarity >= threshold)
+  .filter((doc): doc is {id: number, filename: string, content: string, similarity: number} => 
+    doc !== null && doc.similarity >= threshold
+  )
   .sort((a, b) => b.similarity - a.similarity)
   .slice(0, limit);
   
@@ -96,7 +113,8 @@ export async function getSimilarDocuments(
 // 余弦相似度计算
 function cosineSimilarity(vecA: number[], vecB: number[]): number {
   if (vecA.length !== vecB.length) {
-    throw new Error('向量维度不匹配');
+    console.error(`Vector dimension mismatch: ${vecA.length} vs ${vecB.length}`);
+    return 0;
   }
   
   let dotProduct = 0;
@@ -126,4 +144,12 @@ export async function getAllVectorDocumentFilenames() {
   return await db.select<{filename: string}[]>(`
     select distinct filename from vector_documents
   `);
+}
+
+// 获取向量文档总数
+export async function getVectorDocumentCount() {
+  const result = await db.select<{count: number}[]>(`
+    select count(*) as count from vector_documents
+  `);
+  return result[0]?.count || 0;
 }

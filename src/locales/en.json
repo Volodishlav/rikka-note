@@ -155,6 +155,29 @@
         "cancel": "Cancel",
         "save": "Save"
       }
+    },
+    "rag": {
+      "title": "RAG Settings",
+      "modelTitle": "Model Configuration",
+      "embeddingLabel": "Embedding Model",
+      "embeddingDesc": "Model used for generating text embeddings",
+      "rerankLabel": "Rerank Model",
+      "rerankDesc": "Model used for re-ranking search results",
+      "paramsTitle": "Retrieval Parameters",
+      "chunkSize": "Chunk Size",
+      "chunkSizeDesc": "Maximum number of characters per text chunk",
+      "chunkOverlap": "Chunk Overlap",
+      "chunkOverlapDesc": "Number of overlapping characters between chunks",
+      "resultCount": "Result Count",
+      "resultCountDesc": "Maximum number of documents returned per search",
+      "similarityThreshold": "Similarity Threshold",
+      "similarityThresholdDesc": "Results below this threshold will be filtered",
+      "resetDefaults": "Reset Defaults",
+      "resetSuccess": "Reset to default settings",
+      "clearVector": "Clear Vector DB",
+      "deleteTitle": "Confirm Clear",
+      "deleteConfirm": "Are you sure you want to clear the vector database? This will delete all generated vector indexes.",
+      "deleteSuccess": "Vector database cleared"
     }
   }
 }

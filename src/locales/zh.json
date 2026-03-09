@@ -155,6 +155,29 @@
         "cancel": "取消",
         "save": "保存"
       }
+    },
+    "rag": {
+      "title": "RAG 设置",
+      "modelTitle": "模型配置",
+      "embeddingLabel": "Embedding 模型",
+      "embeddingDesc": "用于生成文本向量的模型",
+      "rerankLabel": "Rerank 模型",
+      "rerankDesc": "用于重排序检索结果的模型",
+      "paramsTitle": "检索参数",
+      "chunkSize": "分块大小",
+      "chunkSizeDesc": "文本切分的最大字符数",
+      "chunkOverlap": "分块重叠",
+      "chunkOverlapDesc": "相邻分块之间的重叠字符数",
+      "resultCount": "结果数量",
+      "resultCountDesc": "每次检索返回的最大文档数",
+      "similarityThreshold": "相似度阈值",
+      "similarityThresholdDesc": "低于此阈值的结果将被过滤",
+      "resetDefaults": "恢复默认",
+      "resetSuccess": "已恢复默认设置",
+      "clearVector": "清空向量库",
+      "deleteTitle": "确认清空",
+      "deleteConfirm": "确定要清空向量数据库吗？这将删除所有已生成的向量索引。",
+      "deleteSuccess": "向量数据库已清空"
     }
   }
 }

@@ -170,6 +170,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useArticleStore } from '@/stores/article'
 import { useSettingStore } from '@/stores/setting'
+import { useVectorStore } from '@/stores/vector'
 import { useToast } from '@/composables/useToast'
 import { appDataDir, join } from '@tauri-apps/api/path'
 import { exists, mkdir, writeTextFile } from '@tauri-apps/plugin-fs'
@@ -177,6 +178,7 @@ import { exists, mkdir, writeTextFile } from '@tauri-apps/plugin-fs'
 
 const articleStore = useArticleStore()
 const settingStore = useSettingStore()
+const vectorStore = useVectorStore()
 const { show } = useToast()
 // const { username } = useUsername()
 
@@ -186,8 +188,8 @@ const sortDirection = computed(() => articleStore.sortDirection)
 const collapsibleList = computed(() => articleStore.collapsibleList)
 const fileTreeLoading = computed(() => articleStore.fileTreeLoading)
 const primaryBackupMethod = computed(() => settingStore.primaryBackupMethod)
-const isProcessing = computed(() => articleStore.isProcessing)
-const isVectorDbEnabled = computed(() => articleStore.isVectorDbEnabled)
+const isProcessing = computed(() => vectorStore.isProcessing)
+const isVectorDbEnabled = computed(() => vectorStore.isVectorDbEnabled)
 
 // 防抖处理（避免快速点击导致多次创建）
 const handleNewFile = debounce(async () => {
@@ -287,9 +289,9 @@ const handleRefresh = async () => {
 // 向量数据库处理
 const handleVectorDb = async () => {
   if (isVectorDbEnabled.value) {
-    await articleStore.processAllDocuments()
+    await vectorStore.processAllDocuments()
   } else {
-    await articleStore.setVectorDbEnabled(true)
+    await vectorStore.setVectorDbEnabled(true)
   }
 }
 

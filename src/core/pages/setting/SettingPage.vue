@@ -20,6 +20,7 @@
       <GeneralSetting v-if="activeTab === 'general'" />
       <AiSetting v-if="activeTab === 'ai'" />
       <PromptSetting v-if="activeTab === 'prompt'" />
+      <RagSetting v-if="activeTab === 'rag'" />
     </div>
   </div>
 </template>
@@ -28,10 +29,11 @@
 import { ref, computed } from 'vue'
 import { useI18n } from '@/hooks/useI18n'
 import { Button } from '@/components/ui/button'
-import { BotMessageSquare, Drama, Settings } from 'lucide-vue-next'
+import { BotMessageSquare, Drama, Settings, BookText } from 'lucide-vue-next'
 import GeneralSetting from './general/GeneralSetting.vue'
 import AiSetting from './ai/AiSetting.vue'
 import PromptSetting from './prompt/PromptSetting.vue'
+import RagSetting from './rag/RagSetting.vue'
 
 const { t } = useI18n()
 
@@ -52,6 +54,11 @@ const navItems = computed(() => [
     id: 'prompt',
     label: t('settings.prompt.title'),
     icon: Drama
+  },
+  {
+    id: 'rag',
+    label: t('settings.rag.title'),
+    icon: BookText
   }
 ])
 </script>

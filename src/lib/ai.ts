@@ -103,7 +103,7 @@ async function getEmbeddingModelInfo() {
   if (!aiModelList) return null;
   
   const modelInfo = aiModelList.find(item => 
-    item.key === embeddingModel && item.modelType === 'embedding'
+    item.key === embeddingModel
   );
   
   return modelInfo || null;
@@ -114,14 +114,14 @@ async function getEmbeddingModelInfo() {
  */
 export async function getRerankModelInfo() {
   const store = await Store.load('store.json');
-  const rerankModel = await store.get<string>('rerankPrimaryModel');
+  const rerankModel = await store.get<string>('rerankModel');
   if (!rerankModel) return null;
   
   const aiModelList = await store.get<AiConfig[]>('aiModelList');
   if (!aiModelList) return null;
   
   const modelInfo = aiModelList.find(item => 
-    item.key === rerankModel && item.modelType === 'rerank'
+    item.key === rerankModel
   );
   
   return modelInfo || null;
@@ -175,9 +175,10 @@ export async function checkRerankModelAvailable(): Promise<boolean> {
 /**
  * 请求嵌入向量
  * @param text 需要嵌入的文本
+ * @param throwError 是否抛出错误，默认为false
  * @returns 嵌入向量结果，如果失败则返回null
  */
-export async function fetchEmbedding(text: string): Promise<number[] | null> {
+export async function fetchEmbedding(text: string, throwError = false): Promise<number[] | null> {
   try {
     if (text.length) {
       // 获取嵌入模型信息
@@ -208,7 +209,9 @@ export async function fetchEmbedding(text: string): Promise<number[] | null> {
       });
 
       if (!response.ok) {
-        throw new Error(`嵌入请求失败: ${response.status} ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error?.message || response.statusText;
+        throw new Error(`嵌入请求失败: ${response.status} ${errorMessage}`);
       }
       
       const data = await response.json() as EmbeddingResponse;
@@ -221,6 +224,9 @@ export async function fetchEmbedding(text: string): Promise<number[] | null> {
     
     return null;
   } catch (error) {
+    if (throwError) {
+      throw error;
+    }
     handleAIError(error);
     return null;
   }

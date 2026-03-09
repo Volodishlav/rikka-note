@@ -7,7 +7,10 @@
         class="min-h-[80px] pr-12 pl-12 resize-none focus-visible:ring-1"
         @keydown.enter="handleEnter"
       />
-      <ChatLanguage />
+      <div class="absolute bottom-2 left-2 flex gap-1">
+        <ChatLanguage />
+        <RagSwitch />
+      </div>
       <Button 
         class="absolute bottom-2 right-2 h-8 w-8" 
         size="icon" 
@@ -24,17 +27,25 @@
 import { ref } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import { useTagStore } from '@/stores/tag'
+import { useVectorStore } from '@/stores/vector'
 import { useI18n } from '@/hooks/useI18n'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Send } from 'lucide-vue-next'
 import { fetchAiStream } from '@/lib/ai'
+import { getContextForQuery } from '@/lib/rag'
+import { invoke } from '@tauri-apps/api/core'
 import ChatLanguage from './ChatLanguage.vue'
+import RagSwitch from './RagSwitch.vue'
+import { storeToRefs } from 'pinia'
+import { toast } from '@/components/ui/toast/use-toast'
 
 const input = ref('')
 const isSending = ref(false)
 const chatStore = useChatStore()
 const tagStore = useTagStore()
+const vectorStore = useVectorStore()
+const { isRagEnabled, documentCount } = storeToRefs(vectorStore)
 const { t } = useI18n()
 
 const handleEnter = (e: KeyboardEvent) => {
@@ -73,17 +84,63 @@ const sendMessage = async () => {
     })
     
     if (aiChat) {
-      // 3. Stream AI Response
-      console.log('--- Sending AI Request ---')
-      console.log('User Content:', content)
+      // 3. Prepare RAG Context
+      let ragContext = ''
+      if (isRagEnabled.value) {
+        // Check if vector DB is empty
+        if (documentCount.value === 0) {
+          toast({
+            variant: 'destructive',
+            title: 'Vector Database Empty',
+            description: 'Please build the vector index in the file sidebar to use RAG features.'
+          })
+          console.warn('Vector database is empty, skipping RAG search')
+        } else {
+          try {
+            console.log('Fetching RAG context for:', content)
+            // Extract keywords
+            const keywords = await invoke<{text: string, weight: number}[]>('rank_keywords', { 
+              text: content, 
+              topK: 5 
+            })
+            
+            console.log('Extracted keywords:', keywords)
+
+            if (!keywords || keywords.length === 0) {
+              console.log('No keywords extracted')
+              // 如果没有提取到关键词，尝试直接使用原句进行搜索
+              keywords.push({ text: content, weight: 1.0 })
+            }
+
+            ragContext = await getContextForQuery(keywords)
+            
+            if (ragContext) {
+              ragContext = `
+Your knowledge library is the most relevant content related to this question. Please use these information to answer the question:
+${ragContext}
+`
+              console.log('RAG Context found:', ragContext.slice(0, 100) + '...')
+            } else {
+              console.log('No RAG Context found')
+            }
+          } catch (error) {
+            console.error('Failed to get RAG context:', error)
+          }
+        }
+      }
+
+      // 4. Construct Final Prompt
+      // Combine user content with RAG context
+      // Note: We might want to pass this as a system message or append to user message.
+      // In note-gen, it constructs a big string `request_content`.
       
-      // 构建历史消息上下文
-      // 取出当前聊天记录中除了最新的一条（即刚插入的placeholder）之外的所有消息
-      // 注意：Pinia store中的chats已经包含了刚插入的user message和system placeholder
-      // 我们需要排除最后一条(placeholder)，并将倒数第二条(user message)作为当前text发送，
-      // 所以历史记录应该是 chats.slice(0, -2)
-      // 但是 fetchAiStream 的设计是 text 是当前消息，history 是之前的消息。
-      // 所以 history 应该是 chats.slice(0, -2)
+      const finalContent = `
+${ragContext.trim()}
+${content.trim()}
+`.trim()
+
+      // 5. Stream AI Response
+      console.log('--- Sending AI Request ---')
       
       const history = chatStore.chats.slice(0, -2).map(chat => ({
         role: chat.role === 'user' ? 'user' : 'assistant',
@@ -91,8 +148,7 @@ const sendMessage = async () => {
       }))
 
       let fullContent = ''
-      await fetchAiStream(content, (chunk) => {
-        // console.log('Stream Chunk:', chunk)
+      await fetchAiStream(finalContent, (chunk) => {
         fullContent = chunk
         chatStore.updateChat({
           ...aiChat,
@@ -100,14 +156,13 @@ const sendMessage = async () => {
         })
       }, undefined, history)
       
-      // 4. Save Final AI Message
+      // 6. Save Final AI Message
       await chatStore.saveChat({
         ...aiChat,
         content: fullContent
       }, true)
       
       console.log('--- AI Request Completed ---')
-      console.log('Final Content:', fullContent)
     }
   } catch (e) {
     console.error('Failed to send message', e)
