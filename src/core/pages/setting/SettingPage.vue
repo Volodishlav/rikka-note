@@ -17,6 +17,7 @@
 
     <!-- Content -->
     <div class="flex-1 overflow-auto p-6">
+      <GeneralSetting v-if="activeTab === 'general'" />
       <AiSetting v-if="activeTab === 'ai'" />
       <PromptSetting v-if="activeTab === 'prompt'" />
     </div>
@@ -27,15 +28,21 @@
 import { ref, computed } from 'vue'
 import { useI18n } from '@/hooks/useI18n'
 import { Button } from '@/components/ui/button'
-import { BotMessageSquare, Drama } from 'lucide-vue-next'
+import { BotMessageSquare, Drama, Settings } from 'lucide-vue-next'
+import GeneralSetting from './general/GeneralSetting.vue'
 import AiSetting from './ai/AiSetting.vue'
 import PromptSetting from './prompt/PromptSetting.vue'
 
 const { t } = useI18n()
 
-const activeTab = ref('ai')
+const activeTab = ref('general')
 
 const navItems = computed(() => [
+  {
+    id: 'general',
+    label: t('settings.general.title'),
+    icon: Settings
+  },
   {
     id: 'ai',
     label: t('settings.ai.title'),

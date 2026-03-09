@@ -93,6 +93,22 @@
   },
   "settings": {
     "title": "Settings",
+    "general": {
+      "title": "General",
+      "theme": {
+        "title": "Theme",
+        "description": "Choose the appearance theme of the application.",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      },
+      "language": {
+        "title": "Language",
+        "description": "Select the display language of the application.",
+        "zh": "中文",
+        "en": "English"
+      }
+    },
     "ai": {
       "title": "AI Models",
       "listTitle": "AI Models",

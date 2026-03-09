@@ -93,6 +93,22 @@
   },
   "settings": {
     "title": "设置",
+    "general": {
+      "title": "常规",
+      "theme": {
+        "title": "主题",
+        "description": "选择应用程序的外观主题。",
+        "light": "浅色",
+        "dark": "深色",
+        "system": "跟随系统"
+      },
+      "language": {
+        "title": "语言",
+        "description": "选择应用程序的显示语言。",
+        "zh": "中文",
+        "en": "English"
+      }
+    },
     "ai": {
       "title": "AI 模型",
       "listTitle": "AI 模型",
