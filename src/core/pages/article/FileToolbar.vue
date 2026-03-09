@@ -139,13 +139,11 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { debounce } from 'lodash-es'
-import { open } from '@tauri-apps/plugin-shell'
+import debounce from 'lodash-es/debounce'
 import {
   FilePlus,
   FolderPlus,
   BookA,
-  FolderGit2,
   LoaderCircle,
   SortAsc,
   SortDesc,
@@ -169,7 +167,6 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu'
 import { useArticleStore } from '@/stores/article'
-import { useSettingStore } from '@/stores/setting'
 import { useVectorStore } from '@/stores/vector'
 import { useToast } from '@/composables/useToast'
 import { appDataDir, join } from '@tauri-apps/api/path'
@@ -177,7 +174,6 @@ import { exists, mkdir, writeTextFile } from '@tauri-apps/plugin-fs'
 // import { useUsername } from '@/composables/useUsername'
 
 const articleStore = useArticleStore()
-const settingStore = useSettingStore()
 const vectorStore = useVectorStore()
 const { show } = useToast()
 // const { username } = useUsername()
@@ -185,9 +181,7 @@ const { show } = useToast()
 // 计算属性映射到 store
 const sortType = computed(() => articleStore.sortType)
 const sortDirection = computed(() => articleStore.sortDirection)
-const collapsibleList = computed(() => articleStore.collapsibleList)
-const fileTreeLoading = computed(() => articleStore.fileTreeLoading)
-const primaryBackupMethod = computed(() => settingStore.primaryBackupMethod)
+const collapsibleList = computed(() => articleStore.collapsibleList as string[])
 const isProcessing = computed(() => vectorStore.isProcessing)
 const isVectorDbEnabled = computed(() => vectorStore.isVectorDbEnabled)
 
