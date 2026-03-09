@@ -88,6 +88,11 @@
         "userName": "你",
         "aiName": "AI 助手",
         "copiedToClipboard": "已复制到剪贴板"
+      },
+      "rag": {
+        "enabled": "RAG 已启用",
+        "disabled": "RAG 已禁用",
+        "embeddingModelNotAvailable": "Embedding 模型不可用或未配置。"
       }
     }
   },

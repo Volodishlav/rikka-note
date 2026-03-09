@@ -88,6 +88,11 @@
         "userName": "You",
         "aiName": "AI Assistant",
         "copiedToClipboard": "Copied to clipboard"
+      },
+      "rag": {
+        "enabled": "RAG Enabled",
+        "disabled": "RAG Disabled",
+        "embeddingModelNotAvailable": "Embedding model not available or not configured."
       }
     }
   },
