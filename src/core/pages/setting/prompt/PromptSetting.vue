@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-6">
     <div class="flex items-center justify-between">
-      <h3 class="text-lg font-medium">Prompts</h3>
+      <h3 class="text-lg font-medium">{{ t('settings.prompt.listTitle') }}</h3>
       <Button @click="openAddDialog">
-        <Plus class="mr-2 h-4 w-4" /> Add Prompt
+        <Plus class="mr-2 h-4 w-4" /> {{ t('settings.prompt.addPrompt') }}
       </Button>
     </div>
 
@@ -13,13 +13,13 @@
         <div class="flex-1 min-w-0 mr-4">
           <div class="font-medium flex items-center gap-2">
             {{ prompt.title }}
-            <span v-if="promptStore.currentPrompt?.id === prompt.id" class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Active</span>
-            <span v-if="prompt.isDefault" class="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">System Default</span>
+            <span v-if="promptStore.currentPrompt?.id === prompt.id" class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">{{ t('settings.prompt.activeBadge') }}</span>
+            <span v-if="prompt.isDefault" class="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">{{ t('settings.prompt.systemDefaultBadge') }}</span>
           </div>
           <div class="text-sm text-muted-foreground truncate mt-1">{{ prompt.content }}</div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          <Button variant="ghost" size="icon" @click="setAsCurrent(prompt)" title="Set as Active" :disabled="promptStore.currentPrompt?.id === prompt.id">
+          <Button variant="ghost" size="icon" @click="setAsCurrent(prompt)" :title="t('settings.prompt.setAsActive')" :disabled="promptStore.currentPrompt?.id === prompt.id">
             <CheckCircle2 class="h-4 w-4" :class="{'text-primary': promptStore.currentPrompt?.id === prompt.id}" />
           </Button>
           <Button variant="ghost" size="icon" @click="editPrompt(prompt)">
@@ -42,10 +42,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from '@/hooks/useI18n'
 import { usePromptStore, Prompt } from '@/stores/prompt'
 import { Button } from '@/components/ui/button'
 import { Plus, Pencil, Trash2, CheckCircle2 } from 'lucide-vue-next'
 import PromptEdit from './PromptEdit.vue'
+
+const { t } = useI18n()
 
 const promptStore = usePromptStore()
 const showEditDialog = ref(false)
@@ -79,7 +82,7 @@ const handleSave = async (promptData: Partial<Prompt>) => {
 }
 
 const deletePrompt = async (id: string) => {
-  if (confirm('Are you sure you want to delete this prompt?')) {
+  if (confirm(t('settings.prompt.deleteConfirm'))) {
     await promptStore.deletePrompt(id)
   }
 }

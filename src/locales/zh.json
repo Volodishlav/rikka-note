@@ -4,6 +4,14 @@
     "write": "写作",
     "search": "搜索"
   },
+  "search": {
+    "articleType": "文章",
+    "noTitle": "无标题",
+    "matchesCount": "处匹配",
+    "placeholder": "搜索...",
+    "resultsCount": "个结果",
+    "noResults": "没有找到结果"
+  },
   "common": {
     "settings": "设置",
     "save": "保存",
@@ -87,9 +95,8 @@
     "title": "设置",
     "ai": {
       "title": "AI 模型",
-      "desc": "配置您的 AI 模型参数",
-      "addModel": "添加模型",
       "listTitle": "AI 模型",
+      "addModel": "添加模型",
       "defaultBadge": "默认",
       "noModelSelected": "未选择模型",
       "setAsDefault": "设为默认",
@@ -115,9 +122,8 @@
     },
     "prompt": {
       "title": "Prompt 管理",
-      "desc": "管理您的常用提示词",
-      "addPrompt": "添加 Prompt",
       "listTitle": "Prompts",
+      "addPrompt": "添加 Prompt",
       "activeBadge": "活跃",
       "systemDefaultBadge": "系统默认",
       "setAsActive": "设为活跃",

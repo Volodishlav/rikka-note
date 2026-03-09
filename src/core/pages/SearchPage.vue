@@ -2,9 +2,12 @@
 import {onMounted, ref, watch} from 'vue'
 import {Input} from '@/components/ui/input'
 import {Search} from 'lucide-vue-next'
+import {useI18n} from '@/hooks/useI18n'
 import useArticleStore from '@/stores/article'
 import {FuzzySearchResult, RustFuzzySearch, SearchItem as ISearchItem} from '@/lib/fuzzy-search'
 import SearchItem from './search/SearchItem.vue'
+
+const { t } = useI18n()
 
 const searchValue = ref('')
 const searchResult = ref<FuzzySearchResult[]>([])
@@ -72,9 +75,9 @@ watch(() => articleStore.allArticle, () => {
       <div class="relative w-[560px]">
         <div class="w-[90%] mx-auto flex items-center gap-2 px-3 py-1 border rounded-md bg-white focus-within:ring-2 ring-brand-purple">
           <Search class="size-4 opacity-50" />
-          <input class="flex-1 border-none outline-none bg-transparent h-8" placeholder="搜索..." />
+          <input class="flex-1 border-none outline-none bg-transparent h-8" :placeholder="t('search.placeholder')" v-model="searchValue" />
           <p v-if="searchResult.length" class="text-sm select-none opacity-50">
-            {{ searchResult.length }} 个结果
+            {{ searchResult.length }} {{ t('search.resultsCount') }}
           </p>
         </div>
       </div>
@@ -82,7 +85,7 @@ watch(() => articleStore.allArticle, () => {
 
     <div v-if="searchValue" class="flex-1 w-full overflow-y-auto p-4">
       <div v-if="searchResult.length === 0" class="text-center mt-12 text-muted-foreground text-sm">
-        没有找到结果
+        {{ t('search.noResults') }}
       </div>
       <div v-else class="space-y-4">
         <SearchItem

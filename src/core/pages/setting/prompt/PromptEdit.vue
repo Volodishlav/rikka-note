@@ -2,26 +2,26 @@
   <Dialog :open="open" @update:open="$emit('update:open', $event)">
     <DialogContent class="sm:max-w-[500px]">
       <DialogHeader>
-        <DialogTitle>{{ isEdit ? 'Edit Prompt' : 'Add Prompt' }}</DialogTitle>
+        <DialogTitle>{{ isEdit ? t('settings.prompt.editDialog.editTitle') : t('settings.prompt.editDialog.addTitle') }}</DialogTitle>
         <DialogDescription>
-          Configure your prompt settings here.
+          {{ t('settings.prompt.editDialog.description') }}
         </DialogDescription>
       </DialogHeader>
       
       <div class="grid gap-4 py-4">
         <div class="grid grid-cols-4 items-center gap-4">
-          <Label for="title" class="text-right">Title</Label>
-          <Input id="title" v-model="form.title" class="col-span-3" placeholder="e.g. Translation Assistant" />
+          <Label for="title" class="text-right">{{ t('settings.prompt.editDialog.titleLabel') }}</Label>
+          <Input id="title" v-model="form.title" class="col-span-3" :placeholder="t('settings.prompt.editDialog.titlePlaceholder')" />
         </div>
         <div class="grid grid-cols-4 items-start gap-4">
-          <Label for="content" class="text-right mt-2">Content</Label>
-          <Textarea id="content" v-model="form.content" class="col-span-3 min-h-[100px]" placeholder="You are a helpful assistant..." />
+          <Label for="content" class="text-right mt-2">{{ t('settings.prompt.editDialog.contentLabel') }}</Label>
+          <Textarea id="content" v-model="form.content" class="col-span-3 min-h-[100px]" :placeholder="t('settings.prompt.editDialog.contentPlaceholder')" />
         </div>
       </div>
       
       <DialogFooter>
-        <Button variant="outline" @click="$emit('update:open', false)">Cancel</Button>
-        <Button @click="save">Save</Button>
+        <Button variant="outline" @click="$emit('update:open', false)">{{ t('settings.prompt.editDialog.cancel') }}</Button>
+        <Button @click="save">{{ t('settings.prompt.editDialog.save') }}</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
@@ -29,12 +29,15 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from '@/hooks/useI18n'
 import { Prompt } from '@/stores/prompt'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   open: boolean

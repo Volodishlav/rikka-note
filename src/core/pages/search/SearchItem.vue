@@ -2,8 +2,11 @@
 import { FuzzySearchResult } from '@/lib/fuzzy-search'
 import { LocateFixed, MapPin } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import { useI18n } from '@/hooks/useI18n'
 import useArticleStore from '@/stores/article'
 import { computed } from 'vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   item: FuzzySearchResult
@@ -94,9 +97,9 @@ const handleRouteTo = async () => {
         <div class="flex gap-2 mb-2 items-center">
           <LocateFixed class="size-4 cursor-pointer text-primary hover:text-primary/80" @click="handleRouteTo" />
           <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground hover:bg-primary/80">
-            文章
+            {{ t('search.articleType') }}
           </span>
-          <span class="font-medium">{{ item.item.title || '无标题' }}</span>
+          <span class="font-medium">{{ item.item.title || t('search.noTitle') }}</span>
         </div>
         
         <div class="flex flex-col gap-1 flex-1 mb-4">
@@ -108,7 +111,7 @@ const handleRouteTo = async () => {
         
         <div class="flex gap-2 items-center">
           <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
-            {{ item.matches?.[0]?.indices.length || 0 }} 处匹配
+            {{ item.matches?.[0]?.indices.length || 0 }} {{ t('search.matchesCount') }}
           </span>
           <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
             {{ item.item.path }}
