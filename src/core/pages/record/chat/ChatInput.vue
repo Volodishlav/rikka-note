@@ -97,28 +97,18 @@ const sendMessage = async () => {
               text: content, 
               topK: 5 
             })
-            // 注意：Rust 命令通常期望参数使用蛇形命名法（snake_case），需核对定义。
-            // 在 keywords.rs 文件中：pub fn rank_keywords(text: &str, top_k: usize, allowed_pos: Option<Vec<String>>)
-            // Tauri 会自动将参数的小驼峰命名（camelCase）转换为蛇形命名（snake_case）吗？
-            // Tauri 2 通常在 JS 中使用小驼峰命名，对应 Rust 中的蛇形命名？
-            // 核对 fuzzy_search.rs 文件：pub fn fuzzy_search(items: ..., query: ..., keys: ...)
-            // 在 rag.ts 中调用：invoke('fuzzy_search', { items, query, keys, threshold... })
-            // 由此可见参数名要么完全一致，要么按小驼峰映射。
-            // 若 `topK` 会映射到 `top_k`，则使用小驼峰的 `topK`，否则确认是否需要用 `top_k`。
-            // 在 note-gen 项目中：invoke('rank_keywords', { text: inputValue, topK: 5 })
-            // 但在 rikka-note 项目的 keywords.rs 中：rank_keywords(text: &str, top_k: usize...)
-            // Tauri 1.x 版本会将小驼峰自动转为蛇形命名，Tauri 2.x 可能相同或不同。
-            // 若 note-gen 用 React 且依赖旧版 Tauri 行为，为稳妥起见先尝试 `top_k`。
-            // 实际开发中，尽可能沿用 note-gen 的写法，但需确认 note-gen 是否基于 React/Tauri2？
-            // 需求明确说明是 "Tauri 2 + Vue 3" 技术栈。
-            // 先按 note-gen 的写法使用 `topK`，假设 Tauri 会处理命名映射。
-            // 但注意 Rust 函数签名中明确是 `top_k`。
-            // 先按 note-gen 用 `topK` 尝试，若失败再切换。
-            // 注意：当前是在 Vue 项目中编写代码。
-            // 为保持与 note-gen 调用风格一致，最终使用 `topK`。
-            // 备注：note-gen 项目中使用的是 `topK`，而 rikka-note 的 Rust 代码中参数是 `top_k`。
-            // Tauri 约定：invoke('命令名', { 参数名: 值 }) 会映射到 Rust 中的 fn 命令名(参数名_蛇形: 类型)
-            // 因此 `topK` -> `top_k` 是正确的映射关系。
+//             rank_keywords 函数的参数传递：
+//             - 命名规范差异 ：
+//             - Rust 使用蛇形命名法（snake_case）： top_k
+//             - JavaScript 使用小驼峰命名法（camelCase）： topK
+//             - 映射机制 ：
+//             - 探讨 Tauri 是否会自动将小驼峰命名转换为蛇形命名
+//             - 参考了 fuzzy_search 函数的实现方式
+//             - 对比了 note-gen 项目和当前项目的实现差异
+//             - 最终决策 ：
+//             - 为保持与 note-gen 项目的一致性
+//             - 决定使用 topK 参数名
+//             - 假设 Tauri 会处理命名映射
             console.log('Extracted keywords:', keywords)
 
             if (!keywords || keywords.length === 0) {
@@ -144,7 +134,7 @@ ${ragContext}
         }
       }
 
-// 4. 构建最终提示词
+// 构建最终提示词
 // 将用户输入内容与 RAG 上下文合并
 // 备注：可考虑将此作为系统消息传递，或追加到用户消息中。
 // 在 note-gen 项目中，是将内容拼接成一个大字符串 `request_content`。
