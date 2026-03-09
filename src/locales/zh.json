@@ -56,103 +56,83 @@
       }
     },
     "chat": {
-      "placeholder": "选择一个标签开始聊天",
+      "header": {
+        "title": "AI 聊天",
+        "promptPlaceholder": "提示词",
+        "modelPlaceholder": "模型",
+        "clearButtonTitle": "清空聊天记录",
+        "clearDialogTitle": "清空聊天记录",
+        "clearDialogMessage": "确定要清空此标签的聊天记录吗？"
+      },
       "input": {
-          "placeholder": {
-             "default": "输入消息..."
-          }
-       },
-       "send": "发送",
-       "model": {
-          "select": "选择模型",
-          "title": "模型",
-          "noModels": "暂无可用模型",
-          "goSetting": "去设置"
-       },
-       "prompt": {
-          "default": "默认提示词",
-          "title": "提示词"
-       }
+        "placeholder": "输入消息... (Shift+Enter 换行)"
+      },
+      "language": {
+        "selectLabel": "选择语言"
+      },
+      "list": {
+        "emptyState": "开始对话...",
+        "loading": "加载中..."
+      },
+      "message": {
+        "userAvatar": "我",
+        "aiAvatar": "AI",
+        "userName": "你",
+        "aiName": "AI 助手",
+        "copiedToClipboard": "已复制到剪贴板"
+      }
     }
   },
   "settings": {
     "title": "设置",
     "ai": {
-       "title": "AI 模型",
-       "desc": "配置您的 AI 模型参数",
-       "addModel": "添加模型",
-       "defaultModels": {
-         "title": "免费模型服务",
-         "desc": "基于 SiliconCloud 提供的免费模型服务，包括对话、向量化和视觉模型。",
-         "visit": "访问官网",
-         "chatModel": {
-           "name": "Qwen2.5-7B-Instruct",
-           "type": "对话",
-           "desc": "通义千问开源模型，性能强劲的对话模型"
-         },
-         "embeddingModel": {
-           "name": "BAAI/bge-m3",
-           "type": "向量",
-           "desc": "智源研究院研发的多语言向量模型"
-         },
-         "visionModel": {
-           "name": "Qwen2-VL-72B",
-           "type": "视觉",
-           "desc": "支持图像识别和理解的多模态模型"
-         }
-       },
-       "create": "创建配置",
-       "createDesc": "选择一个预设模板或创建一个自定义配置",
-       "custom": "自定义",
-       "newModel": "新模型",
-       "providerTemplates": "供应商模板",
-       "connectionSuccess": "连接成功",
-       "modelConfigTitle": "模型配置",
-      "modelConfigDesc": "选择或添加您的自定义模型",
-      "deleteCustomModel": "删除自定义模型",
-      "deleteCustomModelConfirm": "确定要删除此自定义模型配置吗？",
-      "copyConfig": "复制配置",
-      "modelTitle": "模型名称",
-      "modelTitleDesc": "给这个配置起个名字",
-      "modelBaseUrlDesc": "API 基础地址",
-      "apiKeyUrl": "获取 API Key",
-      "modelDesc": "模型标识符 (如 gpt-4)",
-      "customHeaders": "自定义 Headers",
-      "customHeadersDesc": "添加额外的 HTTP 请求头",
-      "headerKey": "Key",
-      "headerValue": "Value",
-      "addHeader": "添加 Header",
-      "temperatureDesc": "随机性 (Temperature)",
-      "topPDesc": "核采样 (Top P)",
-      "voice": "语音",
-      "voiceDesc": "TTS 语音模型",
-      "voicePlaceholder": "输入语音模型 ID",
-      "modelType": {
-        "title": "模型类型",
-        "desc": "选择该模型的主要用途",
-        "chat": "对话",
-        "image": "绘图",
-        "video": "视频",
-        "audio": "音频",
-        "embedding": "嵌入",
-        "rerank": "重排序"
+      "title": "AI 模型",
+      "desc": "配置您的 AI 模型参数",
+      "addModel": "添加模型",
+      "listTitle": "AI 模型",
+      "defaultBadge": "默认",
+      "noModelSelected": "未选择模型",
+      "setAsDefault": "设为默认",
+      "deleteConfirm": "确定要删除此模型配置吗？",
+      "editDialog": {
+        "addTitle": "添加模型",
+        "editTitle": "编辑模型",
+        "description": "在此配置您的 AI 模型设置。",
+        "titleLabel": "标题",
+        "titlePlaceholder": "例如：我的 OpenAI",
+        "keyLabel": "键 (ID)",
+        "keyPlaceholder": "unique_key",
+        "baseURLLabel": "基础 URL",
+        "baseURLPlaceholder": "https://api.openai.com/v1",
+        "apiKeyLabel": "API 密钥",
+        "apiKeyPlaceholder": "sk-...",
+        "modelNameLabel": "模型名称",
+        "modelNamePlaceholder": "gpt-4o",
+        "temperatureLabel": "温度",
+        "cancel": "取消",
+        "save": "保存"
       }
     },
     "prompt": {
       "title": "Prompt 管理",
       "desc": "管理您的常用提示词",
-      "addPrompt": "新建 Prompt",
-      "addPromptDesc": "创建一个新的常用提示词",
-      "promptTitle": "标题",
-      "promptTitlePlaceholder": "输入标题",
-      "promptContent": "内容",
-      "promptContentPlaceholder": "输入提示词内容",
-      "optimizePrompt": "优化提示词",
-      "optimizing": "优化中...",
-      "optimizeSuccess": "优化成功",
-      "optimizeFailed": "优化失败",
-      "noContentToOptimize": "请输入内容后再优化",
-      "noContent": "暂无内容"
+      "addPrompt": "添加 Prompt",
+      "listTitle": "Prompts",
+      "activeBadge": "活跃",
+      "systemDefaultBadge": "系统默认",
+      "setAsActive": "设为活跃",
+      "deleteConfirm": "确定要删除此 Prompt 吗？",
+      "editDialog": {
+        "addTitle": "添加 Prompt",
+        "editTitle": "编辑 Prompt",
+        "description": "在此配置您的 Prompt 设置。",
+        "titleLabel": "标题",
+        "titlePlaceholder": "例如：翻译助手",
+        "contentLabel": "内容",
+        "contentPlaceholder": "你是一个有用的助手...",
+        "cancel": "取消",
+        "save": "保存"
+      }
     }
   }
 }

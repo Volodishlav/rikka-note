@@ -6,7 +6,7 @@
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="start" class="w-[240px]">
-      <DropdownMenuLabel>Select language</DropdownMenuLabel>
+      <DropdownMenuLabel>{{ t('record.chat.language.selectLabel') }}</DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuGroup>
         <DropdownMenuItem 
@@ -26,6 +26,7 @@
 import { ref, onMounted } from 'vue'
 import { Store } from '@tauri-apps/plugin-store'
 import { Globe, Check } from 'lucide-vue-next'
+import { useI18n } from '@/hooks/useI18n'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -36,6 +37,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuGroup
 } from '@/components/ui/dropdown-menu'
+
+const { t } = useI18n()
 
 const languageOptions = [
   'English',

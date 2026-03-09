@@ -3,7 +3,7 @@
     <div class="relative">
       <Textarea 
         v-model="input" 
-        placeholder="Type a message... (Shift+Enter for new line)" 
+        :placeholder="t('record.chat.input.placeholder')" 
         class="min-h-[80px] pr-12 pl-12 resize-none focus-visible:ring-1"
         @keydown.enter="handleEnter"
       />
@@ -24,6 +24,7 @@
 import { ref } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import { useTagStore } from '@/stores/tag'
+import { useI18n } from '@/hooks/useI18n'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Send } from 'lucide-vue-next'
@@ -34,6 +35,7 @@ const input = ref('')
 const isSending = ref(false)
 const chatStore = useChatStore()
 const tagStore = useTagStore()
+const { t } = useI18n()
 
 const handleEnter = (e: KeyboardEvent) => {
   if (!e.shiftKey) {

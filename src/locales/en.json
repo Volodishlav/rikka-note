@@ -56,23 +56,31 @@
       }
     },
     "chat": {
-      "placeholder": "Select a tag to start chatting",
+      "header": {
+        "title": "AI Chat",
+        "promptPlaceholder": "Prompt",
+        "modelPlaceholder": "Model",
+        "clearButtonTitle": "Clear Chat History",
+        "clearDialogTitle": "Clear Chat History",
+        "clearDialogMessage": "Are you sure you want to clear chat history for this tag?"
+      },
       "input": {
-          "placeholder": {
-             "default": "Enter message..."
-          }
-       },
-       "send": "Send",
-       "model": {
-          "select": "Select Model",
-          "title": "Model",
-          "noModels": "No available models",
-          "goSetting": "Go to Settings"
-       },
-       "prompt": {
-          "default": "Default Prompt",
-          "title": "Prompt"
-       }
+        "placeholder": "Type a message... (Shift+Enter for new line)"
+      },
+      "language": {
+        "selectLabel": "Select language"
+      },
+      "list": {
+        "emptyState": "Start a conversation...",
+        "loading": "Loading..."
+      },
+      "message": {
+        "userAvatar": "ME",
+        "aiAvatar": "AI",
+        "userName": "You",
+        "aiName": "AI Assistant",
+        "copiedToClipboard": "Copied to clipboard"
+      }
     }
   },
   "settings": {

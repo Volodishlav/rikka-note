@@ -1,12 +1,12 @@
 <template>
   <div class="flex items-center justify-between px-4 py-2 border-b bg-background/95 backdrop-blur z-10 gap-2">
-    <div class="font-semibold text-sm shrink-0">AI Chat</div>
+    <div class="font-semibold text-sm shrink-0">{{ t('record.chat.header.title') }}</div>
     <div class="flex items-center gap-2 flex-1 justify-end min-w-0">
       
       <!-- Prompt Selector -->
       <Select :model-value="promptStore.currentPrompt?.id" @update:model-value="setPrompt">
         <SelectTrigger class="w-[120px] h-8 text-xs truncate">
-          <SelectValue placeholder="Prompt" />
+          <SelectValue :placeholder="t('record.chat.header.promptPlaceholder')" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem v-for="prompt in promptStore.promptList" :key="prompt.id" :value="prompt.id">
@@ -18,7 +18,7 @@
       <!-- Model Selector -->
       <Select :model-value="settingStore.primaryModel || ''" @update:model-value="setModel">
         <SelectTrigger class="w-[140px] h-8 text-xs truncate">
-          <SelectValue placeholder="Model" />
+          <SelectValue :placeholder="t('record.chat.header.modelPlaceholder')" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem v-for="model in settingStore.aiModelList" :key="model.key" :value="model.key">
@@ -27,7 +27,7 @@
         </SelectContent>
       </Select>
       
-      <Button variant="ghost" size="icon" class="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive" @click="clearChats" title="Clear Chat History">
+      <Button variant="ghost" size="icon" class="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive" @click="clearChats" :title="t('record.chat.header.clearButtonTitle')">
         <Trash2 class="h-4 w-4" />
       </Button>
     </div>
@@ -40,6 +40,7 @@ import { useSettingStore } from '@/stores/setting'
 import { useChatStore } from '@/stores/chat'
 import { useTagStore } from '@/stores/tag'
 import { usePromptStore } from '@/stores/prompt'
+import { useI18n } from '@/hooks/useI18n'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-vue-next'
@@ -49,6 +50,7 @@ const settingStore = useSettingStore()
 const chatStore = useChatStore()
 const tagStore = useTagStore()
 const promptStore = usePromptStore()
+const { t } = useI18n()
 
 onMounted(() => {
   promptStore.initPromptData()
@@ -67,8 +69,8 @@ const setPrompt = (val: string) => {
 
 const clearChats = async () => {
   // 使用 Tauri 的异步 ask 函数显示确认对话框
-  const confirmed = await ask('Are you sure you want to clear chat history for this tag?', {
-    title: 'Clear Chat History',
+  const confirmed = await ask(t('record.chat.header.clearDialogMessage'), {
+    title: t('record.chat.header.clearDialogTitle'),
     kind: 'warning'
   })
   
