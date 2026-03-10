@@ -30,10 +30,12 @@ pub fn rank_keywords(text: &str, top_k: usize, allowed_pos: Option<Vec<String>>)
     
     let pos_tags = allowed_pos.unwrap_or_else(|| 
         vec![
-            String::from("n"),    // noun
-            String::from("ns"),   // place name
-            String::from("v"),    // verb
-            String::from("vn"),   // verbal noun
+            String::from("n"),    // 名词
+            String::from("ns"),   // 地名
+            String::from("nz"),   // 其他专名 (新增)
+            String::from("eng"),  // 英文 (新增，关键！)
+            String::from("v"),    // 动词
+            String::from("vn"),   // 名动词
         ]
     );
     

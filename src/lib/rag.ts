@@ -380,69 +380,92 @@ export interface Keyword {
  * 根据关键词数组获取相关上下文
  * @param keywords 关键词数组，每个元素包含关键词文本和权重
  */
-export async function getContextForQuery(keywords: Keyword[]): Promise<string> {
+export async function getContextForQuery(query: string, keywords: Keyword[]): Promise<string> {
   try {
     const store = await Store.load('store.json');
     const resultCount = await store.get<number>('ragResultCount') || 5;
     const similarityThreshold = await store.get<number>('ragSimilarityThreshold') || 0.7;
-    // 存储所有相关上下文的结果集
     const allContexts: { filename: string, content: string, score: number, keyword?: string, type?: string }[] = [];
-    
-    // 如果没有关键词，返回空结果
-    if (!keywords || keywords.length === 0) {
+// 如果查询太短或主要是标点符号，直接跳过向量搜索，只做模糊搜索或直接返回空
+    const isMeaningfulQuery = query.trim().length > 2 && /[\u4e00\u3040-\u30FFa-zA-Z0-9]/.test(query);
+
+    if (!isMeaningfulQuery) {
+      console.log('Query is too short or meaningless, skipping vector search.');
+      // 可以选择直接返回空，或者只走模糊搜索
       return '';
     }
-    
-    // 将关键词按权重排序，优先考虑权重高的关键词
-    const sortedKeywords = [...keywords].sort((a, b) => b.weight - a.weight);
-    
-    // 1. 使用逐个关键词进行模糊搜索找到相关文件内容
-    try {
-      // 收集所有Markdown文件内容
+    // ==========================================
+    // 核心改进 1：使用【完整原句】进行一次向量检索 (最重要)
+    // ==========================================
+    if (query && query.trim().length > 0) {
+      console.log(`Searching vector for full query: ${query}`);
+      const queryEmbedding = await fetchEmbedding(query);
+      if (queryEmbedding) {
+        let similarDocs = await getSimilarDocuments(queryEmbedding, resultCount, similarityThreshold);
+        console.log(`Found ${similarDocs.length} vector docs for full query`);
+
+        if (similarDocs.length > 0) {
+          const rerankAvailable = await checkRerankModelAvailable();
+          if (rerankAvailable) {
+            similarDocs = await rerankDocuments(query, similarDocs);
+          }
+          for (const doc of similarDocs) {
+            allContexts.push({
+              filename: doc.filename,
+              content: doc.content,
+              score: doc.similarity || 0,
+              type: 'vector'
+            });
+          }
+        }
+      }
+    }
+
+    // ==========================================
+    // 核心改进 2：过滤垃圾关键词
+    // ==========================================
+    // 过滤掉单字、限制权重上限
+    const validKeywords = keywords
+        .filter(k => k.text.length > 1 && k.weight < 1000)
+        .sort((a, b) => b.weight - a.weight)
+        .slice(0, 3);
+
+    // ==========================================
+    // 核心改进 3：仅使用【有效关键词】进行模糊匹配 (作为兜底)
+    // ==========================================
+    if (validKeywords.length > 0) {
       const items = await collectMarkdownContents();
       if (items.length > 0) {
-        // 为每个关键词单独进行搜索
-        for (const keyword of sortedKeywords) {
-          // 对每个关键词调用Rust的fuzzy_search函数
-          const fuzzyResults: FuzzySearchResult[] = await invoke('fuzzy_search', {
+        for (const keyword of validKeywords) {
+          const fuzzyResults = await invoke<FuzzySearchResult[]>('fuzzy_search', {
             items,
-            query: keyword.text,  // 单独使用每个关键词
+            query: keyword.text,
             keys: ['title', 'article'],
-            threshold: 0.3, // 模糊搜索阈值
+            threshold: 0.3,
             includeScore: true,
             includeMatches: true
           });
-          
-          // 处理模糊搜索结果
+
           for (const result of fuzzyResults) {
             if (result.score > 0) {
-              const item = result.item;
-              // 提取匹配的文本片段作为上下文
               const articleMatches = result.matches.filter(m => m.key === 'article');
               if (articleMatches.length > 0) {
-                // 使用匹配部分的上下文（周围大约500个字符）
                 const match = articleMatches[0];
                 const content = match.value;
-                
-                // 找到第一个匹配位置的索引
-                let startIdx = 0;
-                let endIdx = content.length;
+                let startIdx = 0, endIdx = content.length;
                 if (match.indices.length > 0) {
-                  const firstMatch = match.indices[0];
-                  startIdx = Math.max(0, firstMatch[0] - 250);
-                  endIdx = Math.min(content.length, firstMatch[1] + 250);
+                  startIdx = Math.max(0, match.indices[0][0] - 250);
+                  endIdx = Math.min(content.length, match.indices[0][1] + 250);
                 }
-                
-                // 使用当前关键词的权重作为得分因子
-                const finalScore = result.score * keyword.weight;
-                
-                const contextSnippet = content.substring(startIdx, endIdx);
-                
+                // 标准化权重
+                const normalizedWeight = Math.min(keyword.weight, 2.0);
+                const finalScore = result.score * normalizedWeight;
+
                 allContexts.push({
-                  filename: item.title || '未命名文件',
-                  content: contextSnippet,
+                  filename: result.item.title || '未命名文件',
+                  content: content.substring(startIdx, endIdx),
                   score: finalScore,
-                  keyword: keyword.text,  // 记录匹配的关键词
+                  keyword: keyword.text,
                   type: 'fuzzy'
                 });
               }
@@ -450,79 +473,28 @@ export async function getContextForQuery(keywords: Keyword[]): Promise<string> {
           }
         }
       }
-    } catch (error) {
-      console.error('模糊搜索失败:', error);
     }
 
-    // 2. 使用向量搜索找到相关文档
-    try {
-      // 为每个关键词生成向量并执行查询
-      for (const keyword of sortedKeywords) {
-        console.log(`Searching vector for keyword: ${keyword.text}`);
-        // 计算查询文本的向量
-        const queryEmbedding = await fetchEmbedding(keyword.text);
-        if (queryEmbedding) {
-          // 查询最相关的文档
-          let similarDocs = await getSimilarDocuments(queryEmbedding, resultCount, similarityThreshold);
-          console.log(`Found ${similarDocs.length} similar docs for keyword: ${keyword.text}`);
-          
-          if (similarDocs.length > 0) {
-            // 如果配置了重排序模型，使用它进一步优化结果
-            const rerankAvailable = await checkRerankModelAvailable();
-            if (rerankAvailable) {
-               console.log('Reranking documents...');
-               similarDocs = await rerankDocuments(keyword.text, similarDocs);
-            }
-            
-            // 添加到结果集，考虑关键词权重
-            for (const doc of similarDocs) {
-              allContexts.push({
-                filename: doc.filename,
-                content: doc.content,
-                score: (doc.similarity || 0) * keyword.weight, // 用相似度乘以权重作为分数
-                keyword: keyword.text,  // 记录匹配的关键词
-                type: 'vector'
-              });
-            }
-          }
-        } else {
-            console.warn(`Failed to generate embedding for keyword: ${keyword.text}`);
-        }
-      }
-    } catch (error) {
-      console.error('向量搜索失败:', error);
-    }
+    // 注意：这里删除了原来的旧代码循环
 
-    // 如果没有找到任何相关上下文，返回空字符串
-    if (allContexts.length === 0) {
-      return '';
-    }
-    
-    // 对结果进行去重（同一文件的同一段落可能被多个关键词匹配）
+    if (allContexts.length === 0) return '';
+
+    // 去重并排序
     const uniqueContexts = [];
     const seen = new Set();
-    
+
     for (const ctx of allContexts) {
-      // 使用文件名和内容前100字符作为标识符
       const identifier = `${ctx.filename}-${ctx.content.substring(0, 100)}`;
       if (!seen.has(identifier)) {
         seen.add(identifier);
         uniqueContexts.push(ctx);
       }
     }
-    
-    // 对所有上下文按相关性得分排序
+
     uniqueContexts.sort((a, b) => b.score - a.score);
-    
-    // 限制结果数量
     const finalContexts = uniqueContexts.slice(0, resultCount);
 
-    // 构建最终的上下文字符串
-    return finalContexts.map(ctx => {
-      return `文件：${ctx.filename}
-${ctx.content}
-`;
-    }).join('\n---\n\n');
+    return finalContexts.map(ctx => `文件：${ctx.filename}\n${ctx.content}\n`).join('\n---\n\n');
   } catch (error) {
     console.error('获取查询上下文失败:', error);
     return '';
