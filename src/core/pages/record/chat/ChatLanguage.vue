@@ -1,7 +1,7 @@
 <template>
   <DropdownMenu>
     <DropdownMenuTrigger as-child>
-      <Button size="icon" variant="ghost" class="absolute bottom-2 left-2 h-8 w-8">
+      <Button size="icon" variant="ghost" class="h-8 w-8">
         <Globe class="h-4 w-4" />
       </Button>
     </DropdownMenuTrigger>
