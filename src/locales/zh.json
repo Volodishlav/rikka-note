@@ -21,6 +21,31 @@
   "editor": {
     "placeholder": "开始写作..."
   },
+  "article": {
+    "fileToolbar": {
+      "newFile": "新建文章",
+      "newFileShortcut": "新建文章 (Ctrl+N)",
+      "newFolder": "新建文件夹",
+      "newFolderShortcut": "新建文件夹 (Ctrl+Shift+N)",
+      "processingVectors": "正在处理向量...",
+      "calculateVectors": "计算向量",
+      "enableVectorDb": "启用向量数据库",
+      "sort": "排序",
+      "sortByName": "按名称排序",
+      "sortByCreated": "按创建时间排序",
+      "sortByModified": "按修改时间排序",
+      "descending": "降序",
+      "ascending": "升序",
+      "collapseAll": "折叠全部",
+      "expandAll": "展开全部",
+      "refresh": "刷新",
+      "fileCreated": "文件已创建",
+      "folderCreated": "文件夹已创建",
+      "createFileFailed": "创建文件失败",
+      "createFolderFailed": "创建文件夹失败",
+      "refreshed": "已刷新"
+    }
+  },
   "record": {
     "trash": {
       "records": "回收站 ({count})",

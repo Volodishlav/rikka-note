@@ -14,7 +14,7 @@
           </button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>New Article (Ctrl+N)</p>
+          <p>{{ t('article.fileToolbar.newFileShortcut') }}</p>
         </TooltipContent>
       </Tooltip>
 
@@ -29,7 +29,7 @@
           </button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>New Folder (Ctrl+Shift+N)</p>
+          <p>{{ t('article.fileToolbar.newFolderShortcut') }}</p>
         </TooltipContent>
       </Tooltip>
 
@@ -46,7 +46,7 @@
           </button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{{ isProcessing ? 'Processing vectors...' : (isVectorDbEnabled ? 'Calculate vectors' : 'Enable vector DB') }}</p>
+          <p>{{ isProcessing ? t('article.fileToolbar.processingVectors') : (isVectorDbEnabled ? t('article.fileToolbar.calculateVectors') : t('article.fileToolbar.enableVectorDb')) }}</p>
         </TooltipContent>
       </Tooltip>
 
@@ -70,26 +70,26 @@
           <DropdownMenuContent align="end">
             <DropdownMenuItem @click="handleSortType('name')" :class="{ 'bg-accent': sortType === 'name' }">
               <ArrowDownAZ class="mr-2 h-4 w-4" />
-              Sort by Name
+              {{ t('article.fileToolbar.sortByName') }}
             </DropdownMenuItem>
             <DropdownMenuItem @click="handleSortType('created')" :class="{ 'bg-accent': sortType === 'created' }">
               <Calendar class="mr-2 h-4 w-4" />
-              Sort by Created
+              {{ t('article.fileToolbar.sortByCreated') }}
             </DropdownMenuItem>
             <DropdownMenuItem @click="handleSortType('modified')" :class="{ 'bg-accent': sortType === 'modified' }">
               <Clock class="mr-2 h-4 w-4" />
-              Sort by Modified
+              {{ t('article.fileToolbar.sortByModified') }}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem @click="handleSortDirection">
               <component :is="sortDirection === 'asc' ? SortDesc : SortAsc" class="mr-2 h-4 w-4"/>
-              {{ sortDirection === 'asc' ? 'Descending' : 'Ascending' }}
+              {{ sortDirection === 'asc' ? t('article.fileToolbar.descending') : t('article.fileToolbar.ascending') }}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
         <TooltipContent>
-          <p>Sort</p>
+          <p>{{ t('article.fileToolbar.sort') }}</p>
         </TooltipContent>
       </Tooltip>
 
@@ -104,7 +104,7 @@
           </button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{{ collapsibleList.length > 0 ? 'Collapse All' : 'Expand All' }}</p>
+          <p>{{ collapsibleList.length > 0 ? t('article.fileToolbar.collapseAll') : t('article.fileToolbar.expandAll') }}</p>
         </TooltipContent>
       </Tooltip>
 
@@ -119,7 +119,7 @@
           </button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Refresh</p>
+          <p>{{ t('article.fileToolbar.refresh') }}</p>
         </TooltipContent>
       </Tooltip>
     </div>
@@ -158,6 +158,7 @@ import {
 import { useArticleStore } from '@/stores/article'
 import { useVectorStore } from '@/stores/vector'
 import { useToast } from '@/composables/useToast'
+import { useI18n } from '@/hooks/useI18n'
 import { appDataDir, join } from '@tauri-apps/api/path'
 import { exists, mkdir, writeTextFile } from '@tauri-apps/plugin-fs'
 // import { useUsername } from '@/composables/useUsername'
@@ -165,6 +166,7 @@ import { exists, mkdir, writeTextFile } from '@tauri-apps/plugin-fs'
 const articleStore = useArticleStore()
 const vectorStore = useVectorStore()
 const { show } = useToast()
+const { t } = useI18n()
 // const { username } = useUsername()
 
 // 计算属性映射到 store
@@ -209,10 +211,10 @@ const handleNewFile = debounce(async () => {
     
     // 重新加载文件树
     await articleStore.loadFileTree()
-    show({ title: 'File created', variant: 'success' })
+    show({ title: t('article.fileToolbar.fileCreated'), variant: 'success' })
   } catch (err) {
     console.error('Create file failed:', err)
-    show({ title: 'Create file failed', variant: 'error' })
+    show({ title: t('article.fileToolbar.createFileFailed'), variant: 'error' })
   }
 }, 200)
 
@@ -241,10 +243,10 @@ const handleNewFolder = debounce(async () => {
     
     // 重新加载文件树
     await articleStore.loadFileTree()
-    show({ title: 'Folder created', variant: 'success' })
+    show({ title: t('article.fileToolbar.folderCreated'), variant: 'success' })
   } catch (err) {
     console.error('Create folder failed:', err)
-    show({ title: 'Create folder failed', variant: 'error' })
+    show({ title: t('article.fileToolbar.createFolderFailed'), variant: 'error' })
   }
 }, 200)
 
@@ -266,7 +268,7 @@ const handleToggleFolders = async () => {
 // 刷新处理
 const handleRefresh = async () => {
   await articleStore.loadFileTree()
-  show({ title: 'Refreshed' })
+  show({ title: t('article.fileToolbar.refreshed') })
 }
 
 // 向量数据库处理

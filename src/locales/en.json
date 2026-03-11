@@ -21,6 +21,31 @@
   "editor": {
     "placeholder": "Start writing..."
   },
+  "article": {
+    "fileToolbar": {
+      "newFile": "New Article",
+      "newFileShortcut": "New Article (Ctrl+N)",
+      "newFolder": "New Folder",
+      "newFolderShortcut": "New Folder (Ctrl+Shift+N)",
+      "processingVectors": "Processing vectors...",
+      "calculateVectors": "Calculate vectors",
+      "enableVectorDb": "Enable vector DB",
+      "sort": "Sort",
+      "sortByName": "Sort by Name",
+      "sortByCreated": "Sort by Created",
+      "sortByModified": "Sort by Modified",
+      "descending": "Descending",
+      "ascending": "Ascending",
+      "collapseAll": "Collapse All",
+      "expandAll": "Expand All",
+      "refresh": "Refresh",
+      "fileCreated": "File created",
+      "folderCreated": "Folder created",
+      "createFileFailed": "Create file failed",
+      "createFolderFailed": "Create folder failed",
+      "refreshed": "Refreshed"
+    }
+  },
   "record": {
     "trash": {
       "records": "Recycle Bin ({count})",
