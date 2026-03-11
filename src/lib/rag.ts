@@ -9,8 +9,8 @@ import {
 } from "@/db/vector";
 import { invoke } from "@tauri-apps/api/core";
 
-// 重新导出initVectorDb，使其可在其他模块中导入
-export { initVectorDb, getVectorDocumentCount };
+// 重新导出initVectorDb和checkRerankModelAvailable，使其可在其他模块中导入
+export { initVectorDb, getVectorDocumentCount, checkRerankModelAvailable };
 import { getFilePathOptions, getWorkspacePath } from "./workspace";
 import { DirTree } from "@/stores/article";
 import { toast } from "@/components/ui/toast/use-toast";
@@ -110,7 +110,7 @@ export async function processMarkdownFile(
 ): Promise<boolean> {
   try {
     const workspace = await getWorkspacePath()
-    let content = ''
+    let content: string
     if (workspace.isCustom) {
       content = fileContent || await readTextFile(filePath)
     } else {
@@ -378,6 +378,7 @@ export interface Keyword {
 
 /**
  * 根据关键词数组获取相关上下文
+ * @param query
  * @param keywords 关键词数组，每个元素包含关键词文本和权重
  */
 export async function getContextForQuery(query: string, keywords: Keyword[]): Promise<string> {

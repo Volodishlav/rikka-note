@@ -11,20 +11,22 @@
             <ChartScatter class="h-4 w-4" />
             <Label>{{ t('settings.rag.embeddingLabel') }}</Label>
           </div>
-          <Select :model-value="settingStore.embeddingModel || ''" @update:model-value="settingStore.setEmbeddingModel">
-            <SelectTrigger class="w-[200px]">
-              <SelectValue :placeholder="t('settings.ai.noModelSelected')" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="model in settingStore.aiModelList" :key="model.key" :value="model.key">
-                {{ model.title }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm" @click="testEmbedding" :disabled="isTesting">
-            <Loader2 v-if="isTesting" class="h-4 w-4 animate-spin" />
-            <span v-else>Test</span>
-          </Button>
+          <div class="flex items-center gap-2">
+            <Button variant="outline" size="sm" @click="testEmbedding" :disabled="isTesting">
+              <Loader2 v-if="isTesting" class="h-4 w-4 animate-spin" />
+              <span v-else>Test</span>
+            </Button>
+            <Select :model-value="settingStore.embeddingModel || ''" @update:model-value="settingStore.setEmbeddingModel">
+              <SelectTrigger class="w-[200px]">
+                <SelectValue :placeholder="t('settings.ai.noModelSelected')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="model in settingStore.aiModelList" :key="model.key" :value="model.key">
+                  {{ model.title }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div class="text-sm text-muted-foreground">{{ t('settings.rag.embeddingDesc') }}</div>
       </div>
@@ -36,16 +38,22 @@
             <ListOrdered class="h-4 w-4" />
             <Label>{{ t('settings.rag.rerankLabel') }}</Label>
           </div>
-          <Select :model-value="settingStore.rerankModel || ''" @update:model-value="settingStore.setRerankModel">
-            <SelectTrigger class="w-[200px]">
-              <SelectValue :placeholder="t('settings.ai.noModelSelected')" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="model in settingStore.aiModelList" :key="model.key" :value="model.key">
-                {{ model.title }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <div class="flex items-center gap-2">
+            <Button variant="outline" size="sm" @click="testRerank" :disabled="isTestingRerank">
+              <Loader2 v-if="isTestingRerank" class="h-4 w-4 animate-spin" />
+              <span v-else>Test</span>
+            </Button>
+            <Select :model-value="settingStore.rerankModel || ''" @update:model-value="settingStore.setRerankModel">
+              <SelectTrigger class="w-[200px]">
+                <SelectValue :placeholder="t('settings.ai.noModelSelected')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="model in settingStore.aiModelList" :key="model.key" :value="model.key">
+                  {{ model.title }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div class="text-sm text-muted-foreground">{{ t('settings.rag.rerankDesc') }}</div>
       </div>
@@ -151,7 +159,7 @@ import { Store } from '@tauri-apps/plugin-store'
 import { clearVectorDb, initVectorDb } from '@/db/vector'
 import { toast } from '@/components/ui/toast/use-toast'
 import { ask } from '@tauri-apps/plugin-dialog'
-import { checkEmbeddingModelAvailable } from '@/lib/rag'
+import { checkEmbeddingModelAvailable, checkRerankModelAvailable } from '@/lib/rag'
 const { t } = useI18n()
 const settingStore = useSettingStore()
 const vectorStore = useVectorStore()
@@ -161,6 +169,7 @@ const chunkOverlap = ref(200)
 const resultCount = ref(5)
 const similarityThreshold = ref(0.7)
 const isTesting = ref(false)
+const isTestingRerank = ref(false)
 
 const chunkSizeVal = ref([1000])
 const chunkOverlapVal = ref([200])
@@ -244,6 +253,21 @@ const testEmbedding = async () => {
   } else {
     toast({ 
       description: typeof result === 'string' ? result : 'Embedding model test failed.', 
+      variant: 'destructive' 
+    })
+  }
+}
+
+const testRerank = async () => {
+  isTestingRerank.value = true
+  const result = await checkRerankModelAvailable()
+  isTestingRerank.value = false
+  
+  if (result) {
+    toast({ description: 'Rerank model test passed!', variant: 'success' })
+  } else {
+    toast({ 
+      description: 'Rerank model test failed. Please check your model configuration.', 
       variant: 'destructive' 
     })
   }
