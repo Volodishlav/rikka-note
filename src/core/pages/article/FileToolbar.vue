@@ -55,54 +55,43 @@
     <!-- 右侧按钮组 -->
     <div class="flex gap-1">
       <!-- 排序菜单 -->
-      <DropdownMenu>
-        <DropdownMenuTrigger as-child>
-          <Tooltip>
-            <TooltipTrigger as-child>
+      <Tooltip>
+        <DropdownMenu>
+          <TooltipTrigger as-child>
+            <DropdownMenuTrigger as-child>
               <button
                   class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                   :class="{ 'text-primary': sortType !== 'none' }"
               >
                 <component :is="sortDirection === 'asc' ? SortAsc : SortDesc" class="w-4 h-4" />
               </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Sort</p>
-            </TooltipContent>
-          </Tooltip>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem
-              @click="handleSortType('name')"
-              :class="{ 'bg-accent': sortType === 'name' }"
-          >
-            <ArrowDownAZ class="mr-2 h-4 w-4" />
-            Sort by Name
-          </DropdownMenuItem>
-          <DropdownMenuItem
-              @click="handleSortType('created')"
-              :class="{ 'bg-accent': sortType === 'created' }"
-          >
-            <Calendar class="mr-2 h-4 w-4" />
-            Sort by Created
-          </DropdownMenuItem>
-          <DropdownMenuItem
-              @click="handleSortType('modified')"
-              :class="{ 'bg-accent': sortType === 'modified' }"
-          >
-            <Clock class="mr-2 h-4 w-4" />
-            Sort by Modified
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem @click="handleSortDirection">
-            <component
-                :is="sortDirection === 'asc' ? SortDesc : SortAsc"
-                class="mr-2 h-4 w-4"
-            />
-            {{ sortDirection === 'asc' ? 'Descending' : 'Ascending' }}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem @click="handleSortType('name')" :class="{ 'bg-accent': sortType === 'name' }">
+              <ArrowDownAZ class="mr-2 h-4 w-4" />
+              Sort by Name
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="handleSortType('created')" :class="{ 'bg-accent': sortType === 'created' }">
+              <Calendar class="mr-2 h-4 w-4" />
+              Sort by Created
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="handleSortType('modified')" :class="{ 'bg-accent': sortType === 'modified' }">
+              <Clock class="mr-2 h-4 w-4" />
+              Sort by Modified
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem @click="handleSortDirection">
+              <component :is="sortDirection === 'asc' ? SortDesc : SortAsc" class="mr-2 h-4 w-4"/>
+              {{ sortDirection === 'asc' ? 'Descending' : 'Ascending' }}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <TooltipContent>
+          <p>Sort</p>
+        </TooltipContent>
+      </Tooltip>
 
       <!-- 展开/收缩所有 -->
       <Tooltip>
