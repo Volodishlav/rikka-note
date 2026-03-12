@@ -93,9 +93,20 @@
         "title": "AI 聊天",
         "promptPlaceholder": "提示词",
         "modelPlaceholder": "模型",
+        "newChatButtonTitle": "新建聊天",
+        "historyButtonTitle": "历史会话",
         "clearButtonTitle": "清空聊天记录",
         "clearDialogTitle": "清空聊天记录",
         "clearDialogMessage": "确定要清空此标签的聊天记录吗？"
+      },
+      "sessions": {
+        "title": "会话历史",
+        "new": "新建会话",
+        "empty": "暂无会话历史",
+        "editTitle": "重命名",
+        "saveTitle": "保存修改",
+        "deleteTitle": "删除会话",
+        "deleteConfirm": "确定要删除这个会话吗？"
       },
       "input": {
         "placeholder": "输入消息... (Shift+Enter 换行)"

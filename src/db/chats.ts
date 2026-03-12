@@ -5,7 +5,7 @@ export type ChatType = 'chat' | 'note' | 'clipboard' | 'clear'
 
 export interface Chat {
   id: number
-  tagId: number
+  sessionId: number
   content?: string
   role: Role
   type: ChatType
@@ -17,10 +17,22 @@ export interface Chat {
 // 创建 chats 表
 export async function initChatsDb() {
   const db = await getDb()
+  
+  // 检查旧表结构，如果没有 sessionId（代表旧版本），则直接丢弃不作迁移
+  try {
+    const result = await db.select("PRAGMA table_info(chats);") as any[]
+    const hasSessionId = result.some(r => r.name === 'sessionId')
+    if (result.length > 0 && !hasSessionId) {
+      await db.execute("DROP TABLE chats;")
+    }
+  } catch (e) {
+    console.error("Failed to check or drop old chats table", e)
+  }
+
   await db.execute(`
     create table if not exists chats (
                                        id integer primary key autoincrement,
-                                       tagId integer not null,
+                                       sessionId integer not null,
                                        content text default null,
                                        role text not null,
                                        type text not null,
@@ -36,16 +48,16 @@ export async function insertChat(chat: Omit<Chat, 'id' | 'createdAt'>) {
   const db = await getDb()
   const createdAt = Date.now();
   return await db.execute(
-      "insert into chats (tagId, content, role, type, image, inserted, createdAt) values ($1, $2, $3, $4, $5, $6, $7)",
-      [chat.tagId, chat.content, chat.role, chat.type, chat.image, chat.inserted ? 1 : 0, createdAt])
+      "insert into chats (sessionId, content, role, type, image, inserted, createdAt) values ($1, $2, $3, $4, $5, $6, $7)",
+      [chat.sessionId, chat.content, chat.role, chat.type, chat.image, chat.inserted ? 1 : 0, createdAt])
 }
 
 // 获取所有 chats
-export async function getChats(tagId: number) {
+export async function getChats(sessionId: number) {
   const db = await getDb()
   const result = await db.select<Chat[]>(
-      "select * from chats where tagId = $1 order by createdAt",
-      [tagId]
+      "select * from chats where sessionId = $1 order by createdAt",
+      [sessionId]
   )
   return result
 }
@@ -65,8 +77,8 @@ export async function insertChats(chats: Chat[]) {
   const db = await getDb()
   for (const chat of chats) {
     await db.execute(
-        "insert into chats (tagId, content, role, type, image, inserted, createdAt) values ($1, $2, $3, $4, $5, $6, $7)",
-        [chat.tagId, chat.content, chat.role, chat.type, chat.image, chat.inserted ? 1 : 0, chat.createdAt]
+        "insert into chats (sessionId, content, role, type, image, inserted, createdAt) values ($1, $2, $3, $4, $5, $6, $7)",
+        [chat.sessionId, chat.content, chat.role, chat.type, chat.image, chat.inserted ? 1 : 0, chat.createdAt]
     )
   }
 }
@@ -88,12 +100,12 @@ export async function updateChat(chat: Chat) {
       [chat.content, chat.role, chat.type, chat.image, chat.inserted ? 1 : 0, chat.id])
 }
 
-// 清空 tagId 下的所有 chats
-export async function clearChatsByTagId(tagId: number) {
+// 清空 sessionId 下的所有 chats
+export async function clearChatsBySessionId(sessionId: number) {
   const db = await getDb()
   return await db.execute(
-      "delete from chats where tagId = $1",
-      [tagId])
+      "delete from chats where sessionId = $1",
+      [sessionId])
 }
 
 // 已插入

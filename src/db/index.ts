@@ -38,9 +38,10 @@ export { db };
 
 // 初始化所有数据库表
 export async function initAllDatabases() {
-    const database = await getDb(); // 确保数据库已加载
+    await getDb(); // 确保数据库已加载
 
     const { initChatsDb } = await import('./chats');
+    const { initChatSessionsDb } = await import('./chat_sessions');
     const { initMarksDb } = await import('./marks');
     const { initNotesDb } = await import('./notes');
     const { initTagsDb } = await import('./tags');
@@ -49,6 +50,7 @@ export async function initAllDatabases() {
     // 并行初始化所有表
     await Promise.all([
         initChatsDb(),
+        initChatSessionsDb(),
         initMarksDb(),
         initNotesDb(),
         initTagsDb(),

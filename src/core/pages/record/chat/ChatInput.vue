@@ -22,7 +22,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useChatStore } from '@/stores/chat'
-import { useTagStore } from '@/stores/tag'
 import { useVectorStore } from '@/stores/vector'
 import { useI18n } from '@/hooks/useI18n'
 import { Textarea } from '@/components/ui/textarea'
@@ -37,7 +36,6 @@ import { toast } from '@/components/ui/toast/use-toast'
 const input = ref('')
 const isSending = ref(false)
 const chatStore = useChatStore()
-const tagStore = useTagStore()
 const vectorStore = useVectorStore()
 const { isRagEnabled, documentCount } = storeToRefs(vectorStore)
 const { t } = useI18n()
@@ -57,11 +55,8 @@ const sendMessage = async () => {
   isSending.value = true
 
   try {
-    const currentTagId = tagStore.currentTagId
-
     // 1. Insert User Message
     await chatStore.insert({
-      tagId: currentTagId,
       role: 'user',
       content: content,
       type: 'chat',
@@ -70,7 +65,6 @@ const sendMessage = async () => {
 
     // 2. Insert AI Placeholder
     const aiChat = await chatStore.insert({
-      tagId: currentTagId,
       role: 'assistant',
       content: 'Thinking...',
       type: 'chat',

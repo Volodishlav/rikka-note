@@ -93,9 +93,20 @@
         "title": "AI Chat",
         "promptPlaceholder": "Prompt",
         "modelPlaceholder": "Model",
+        "newChatButtonTitle": "New Chat",
+        "historyButtonTitle": "Chat History",
         "clearButtonTitle": "Clear Chat History",
         "clearDialogTitle": "Clear Chat History",
         "clearDialogMessage": "Are you sure you want to clear chat history for this tag?"
+      },
+      "sessions": {
+        "title": "Chat History",
+        "new": "New Session",
+        "empty": "No session history",
+        "editTitle": "Rename",
+        "saveTitle": "Save",
+        "deleteTitle": "Delete Session",
+        "deleteConfirm": "Are you sure you want to delete this session?"
       },
       "input": {
         "placeholder": "Type a message... (Shift+Enter for new line)"

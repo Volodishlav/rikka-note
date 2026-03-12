@@ -28,60 +28,58 @@
         </SelectContent>
       </Select>
       
-      <Button variant="ghost" size="icon" class="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive" @click="clearChats" :title="t('record.chat.header.clearButtonTitle')">
-        <Trash2 class="h-4 w-4" />
+      <Button variant="ghost" size="icon" class="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground" @click="isSessionsOpen = true" :title="t('record.chat.header.historyButtonTitle')">
+        <History class="h-4 w-4" />
+      </Button>
+
+      <Button variant="ghost" size="icon" class="h-8 w-8 shrink-0 text-muted-foreground hover:text-primary" @click="createNewSession" :title="t('record.chat.header.newChatButtonTitle')">
+        <MessageSquarePlus class="h-4 w-4" />
       </Button>
     </div>
+    
+    <ChatSessionsSheet :isOpen="isSessionsOpen" @update:open="isSessionsOpen = $event" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useSettingStore } from '@/stores/setting'
 import { useChatStore } from '@/stores/chat'
-import { useTagStore } from '@/stores/tag'
 import { usePromptStore } from '@/stores/prompt'
 import { useI18n } from '@/hooks/useI18n'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { Trash2 } from 'lucide-vue-next'
-import { ask } from '@tauri-apps/plugin-dialog'
-import ChatLanguage from "@/core/pages/record/chat/ChatLanguage.vue";
-import RagSwitch from "@/core/pages/record/chat/RagSwitch.vue";
+import { History, MessageSquarePlus } from 'lucide-vue-next'
+import ChatLanguage from "@/core/pages/record/chat/ChatLanguage.vue"
+import RagSwitch from "@/core/pages/record/chat/RagSwitch.vue"
+import ChatSessionsSheet from './ChatSessionsSheet.vue'
 
 const settingStore = useSettingStore()
 const chatStore = useChatStore()
-const tagStore = useTagStore()
 const promptStore = usePromptStore()
 const { t } = useI18n()
+
+const isSessionsOpen = ref(false)
 
 onMounted(() => {
   promptStore.initPromptData()
 })
 
-const setModel = (val: string) => {
-  settingStore.setPrimaryModel(val)
+const setModel = (val: any) => {
+  settingStore.setPrimaryModel(val as string)
 }
 
-const setPrompt = (val: string) => {
+const setPrompt = (val: any) => {
   const prompt = promptStore.promptList.find(p => p.id === val)
   if (prompt) {
     promptStore.setCurrentPrompt(prompt)
   }
 }
 
-const clearChats = async () => {
-  // 使用 Tauri 的异步 ask 函数显示确认对话框
-  const confirmed = await ask(t('record.chat.header.clearDialogMessage'), {
-    title: t('record.chat.header.clearDialogTitle'),
-    kind: 'warning'
-  })
-  
-  // 只有用户确认后才执行清空操作
-  if (confirmed) {
-    console.log('Clearing chats for tag:', tagStore.currentTagId)
-    await chatStore.clearChats(tagStore.currentTagId)
-    console.log('Chats cleared')
+const createNewSession = async () => {
+  if (chatStore.currentSessionId && chatStore.chats.length === 0) {
+    return
   }
+  await chatStore.createSession()
 }
 </script>
