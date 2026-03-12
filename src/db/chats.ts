@@ -18,16 +18,7 @@ export interface Chat {
 export async function initChatsDb() {
   const db = await getDb()
   
-  // 检查旧表结构，如果没有 sessionId（代表旧版本），则直接丢弃不作迁移
-  try {
-    const result = await db.select("PRAGMA table_info(chats);") as any[]
-    const hasSessionId = result.some(r => r.name === 'sessionId')
-    if (result.length > 0 && !hasSessionId) {
-      await db.execute("DROP TABLE chats;")
-    }
-  } catch (e) {
-    console.error("Failed to check or drop old chats table", e)
-  }
+
 
   await db.execute(`
     create table if not exists chats (
