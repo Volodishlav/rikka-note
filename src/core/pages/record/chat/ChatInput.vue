@@ -30,8 +30,7 @@ import { Button } from '@/components/ui/button'
 import { Send } from 'lucide-vue-next'
 import { fetchAiStream } from '@/lib/ai'
 import { getContextForQuery } from '@/lib/rag'
-// 【移除】不再需要 invoke 关键词提取
-// import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '@tauri-apps/api/core'
 import { storeToRefs } from 'pinia'
 import { toast } from '@/components/ui/toast/use-toast'
 
@@ -94,11 +93,20 @@ const sendMessage = async () => {
           try {
             console.log('Fetching RAG context for:', content)
 
-            // 【优化】极简关键词策略
-            // 不再调用 Rust 进行复杂的 TextRank 提取
-            // 直接将【原句】作为唯一的关键词，用于兜底的 Fuzzy Search
-            // 这样既保留了字面匹配能力，又避免了权重爆炸、词性误杀等问题
-            const keywords = [{ text: content, weight: 1.0 }]
+            // 【优化】混合搜索关键词策略
+            // 对于长句，调用 Rust 的 TextRank 提取核心词汇，并在前端抹平权重以避免分数爆炸
+            // 对于不到 10 个字的短句，维持直接将【原句】作为关键字匹配
+            let keywords: { text: string; weight: number }[]
+            if (content.length > 10) {
+              const rawKeywords = await invoke<{text: string, weight: number}[]>('rank_keywords', { 
+                text: content, 
+                topK: 3 
+              })
+              // 强制抹平离谱的抽取权重，将它们设为基础值 1.0
+              keywords = rawKeywords.map(k => ({ text: k.text, weight: 1.0 }))
+            } else {
+              keywords = [{ text: content, weight: 1.0 }]
+            }
 
             // 传入原句 (用于向量搜索) 和 关键词列表 (用于兜底模糊搜索)
             ragContext = await getContextForQuery(content, keywords)

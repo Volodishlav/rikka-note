@@ -385,20 +385,18 @@ export async function getContextForQuery(query: string, keywords: Keyword[]): Pr
   try {
     const store = await Store.load('store.json');
     const resultCount = await store.get<number>('ragResultCount') || 5;
-    const similarityThreshold = await store.get<number>('ragSimilarityThreshold') || 0.7;
+    const similarityThreshold = await store.get<number>('ragSimilarityThreshold') || 0.5;
     const allContexts: { filename: string, content: string, score: number, keyword?: string, type?: string }[] = [];
-// 如果查询太短或主要是标点符号，直接跳过向量搜索，只做模糊搜索或直接返回空
-    const isMeaningfulQuery = query.trim().length > 2 && /[\u4e00\u3040-\u30FFa-zA-Z0-9]/.test(query);
+// 如果查询太短或主要是标点符号，跳过向量搜索，但保留模糊搜索
+    const isMeaningfulQuery = query.trim().length > 2 && /[\u4e00-\u9fa5\u3040-\u30ffa-zA-Z0-9]/i.test(query);
 
     if (!isMeaningfulQuery) {
       console.log('Query is too short or meaningless, skipping vector search.');
-      // 可以选择直接返回空，或者只走模糊搜索
-      return '';
     }
     // ==========================================
     // 核心改进 1：使用【完整原句】进行一次向量检索 (最重要)
     // ==========================================
-    if (query && query.trim().length > 0) {
+    if (isMeaningfulQuery && query && query.trim().length > 0) {
       console.log(`Searching vector for full query: ${query}`);
       const queryEmbedding = await fetchEmbedding(query);
       if (queryEmbedding) {
@@ -406,10 +404,6 @@ export async function getContextForQuery(query: string, keywords: Keyword[]): Pr
         console.log(`Found ${similarDocs.length} vector docs for full query`);
 
         if (similarDocs.length > 0) {
-          const rerankAvailable = await checkRerankModelAvailable();
-          if (rerankAvailable) {
-            similarDocs = await rerankDocuments(query, similarDocs);
-          }
           for (const doc of similarDocs) {
             allContexts.push({
               filename: doc.filename,
@@ -480,19 +474,69 @@ export async function getContextForQuery(query: string, keywords: Keyword[]): Pr
 
     if (allContexts.length === 0) return '';
 
-    // 去重并排序
-    const uniqueContexts = [];
-    const seen = new Set();
+    // 使用 RRF (Reciprocal Rank Fusion) 合并不同检索源的结果
+    // 1. 按 type 分组排序
+    const vectorResults = allContexts.filter(c => c.type === 'vector').sort((a, b) => b.score - a.score);
+    const fuzzyResults = allContexts.filter(c => c.type === 'fuzzy').sort((a, b) => b.score - a.score);
 
-    for (const ctx of allContexts) {
-      const identifier = `${ctx.filename}-${ctx.content.substring(0, 100)}`;
-      if (!seen.has(identifier)) {
-        seen.add(identifier);
-        uniqueContexts.push(ctx);
+    // 2. 计算 RRF 分数 (保留标准常量 k=60)
+    const k = 60;
+    const rrfScores = new Map<string, { ctx: any, rrfScore: number }>();
+
+    const processRank = (results: typeof allContexts) => {
+      results.forEach((ctx, index) => {
+        const identifier = `${ctx.filename}-${ctx.content.substring(0, 100)}`;
+        const rank = index + 1;
+        const scoreToAdd = 1 / (k + rank);
+        
+        if (rrfScores.has(identifier)) {
+          rrfScores.get(identifier)!.rrfScore += scoreToAdd;
+        } else {
+          rrfScores.set(identifier, { ctx, rrfScore: scoreToAdd });
+        }
+      });
+    };
+
+    processRank(vectorResults);
+    processRank(fuzzyResults);
+
+    // 3. 根据 RRF 分数排序并初步去重
+    let uniqueContexts = Array.from(rrfScores.values())
+      .sort((a, b) => b.rrfScore - a.rrfScore)
+      .map(item => item.ctx);
+
+    // ==========================================
+    // 核心改进 4：【精排阶段】对混合结果进行二次重排
+    // ==========================================
+    // 如果启用重排模型，对 RRF 筛选出的前 N 个结果进行最终的语意校验
+    if (uniqueContexts.length > 0) {
+      const rerankAvailable = await checkRerankModelAvailable();
+      if (rerankAvailable) {
+        console.log('Applying Rerank to top candidates...');
+        // 准备重排格式 (rerankDocuments 需要 id, filename,内容,相似度)
+        const candidates = uniqueContexts.slice(0, 10).map((ctx, idx) => ({
+          id: idx,
+          filename: ctx.filename,
+          content: ctx.content,
+          similarity: ctx.score // 传入原始得分供参考
+        }));
+        
+        const reranked = await rerankDocuments(query, candidates);
+        
+        // 使用重排后的顺序替换前面的顺位
+        const rerankedCtxs = reranked.map(r => ({
+          filename: r.filename,
+          content: r.content,
+          score: r.similarity,
+          type: 'rerank'
+        }));
+        
+        // 将重排后的结果补回 uniqueContexts 的头部
+        const remaining = uniqueContexts.slice(10);
+        uniqueContexts = [...rerankedCtxs, ...remaining];
       }
     }
 
-    uniqueContexts.sort((a, b) => b.score - a.score);
     const finalContexts = uniqueContexts.slice(0, resultCount);
 
     return finalContexts.map(ctx => `文件：${ctx.filename}\n${ctx.content}\n`).join('\n---\n\n');

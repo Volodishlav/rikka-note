@@ -65,7 +65,7 @@ export async function checkVectorDocumentExists(filename: string) {
 export async function getSimilarDocuments(
   queryEmbedding: number[], 
   limit: number = 5,
-  threshold: number = 0.7
+  threshold: number = 0.5
 ): Promise<{id: number, filename: string, content: string, similarity: number}[]> {
   // 获取所有文档向量
   const docs = await db.select<VectorDocument[]>(`
