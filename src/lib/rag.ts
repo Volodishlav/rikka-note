@@ -377,11 +377,22 @@ export interface Keyword {
 }
 
 /**
- * 根据关键词数组获取相关上下文
- * @param query
- * @param keywords 关键词数组，每个元素包含关键词文本和权重
+ * 检索到的文档片段结构
  */
-export async function getContextForQuery(query: string, keywords: Keyword[]): Promise<string> {
+export interface RetrievedDoc {
+  filename: string;
+  content: string;
+  score: number;
+  type?: string;
+  keyword?: string;
+}
+
+/**
+ * 根据关键词数组获取检索到的文档列表
+ * @param query 
+ * @param keywords 
+ */
+export async function getRetrievedDocs(query: string, keywords: Keyword[]): Promise<RetrievedDoc[]> {
   try {
     const store = await Store.load('store.json');
     const resultCount = await store.get<number>('ragResultCount') || 5;
@@ -537,13 +548,22 @@ export async function getContextForQuery(query: string, keywords: Keyword[]): Pr
       }
     }
 
-    const finalContexts = uniqueContexts.slice(0, resultCount);
-
-    return finalContexts.map(ctx => `文件：${ctx.filename}\n${ctx.content}\n`).join('\n---\n\n');
+    return uniqueContexts.slice(0, resultCount);
   } catch (error) {
-    console.error('获取查询上下文失败:', error);
-    return '';
+    console.error('获取查询文档失败:', error);
+    return [];
   }
+}
+
+/**
+ * 根据关键词数组获取格式化后的上下文字符串
+ * @param query
+ * @param keywords 关键词数组，每个元素包含关键词文本和权重
+ */
+export async function getContextForQuery(query: string, keywords: Keyword[]): Promise<string> {
+  const docs = await getRetrievedDocs(query, keywords);
+  if (docs.length === 0) return '';
+  return docs.map(ctx => `文件：${ctx.filename}\n${ctx.content}\n`).join('\n---\n\n');
 }
 
 /**
