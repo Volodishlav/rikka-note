@@ -25,8 +25,7 @@ const layoutStore = useLayoutStore()
       <!-- 正常布局：分割面板 -->
       <splitpanes v-else class="default-theme h-full w-full">
         <!-- 左侧导航面板 -->
-        <pane v-if="layoutStore.isLeftSidebarVisible && !layoutStore.isSearchPanelVisible" size="20" min-size="15"
-              max-size="40">
+        <pane v-if="layoutStore.isLeftSidebarVisible && !layoutStore.isSearchPanelVisible" size="20" min-size="15">
           <FileSidebar/>
         </pane>
 
@@ -45,7 +44,7 @@ const layoutStore = useLayoutStore()
         </pane>
 
         <!-- 右侧 AI 聊天面板 -->
-        <pane v-if="layoutStore.isRightSidebarVisible" size="30" min-size="20" max-size="50">
+        <pane v-if="layoutStore.isRightSidebarVisible" size="30" min-size="20">
           <ChatLayout/>
         </pane>
         <!-- 没有面板处于打开状态时显示应用图标+应用名 -->
