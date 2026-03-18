@@ -116,7 +116,9 @@
       },
       "list": {
         "emptyState": "Start a conversation...",
-        "loading": "Loading..."
+        "loading": "Loading...",
+        "scrollToBottom": "Scroll to bottom",
+        "newMessages": "New messages"
       },
       "message": {
         "userAvatar": "ME",

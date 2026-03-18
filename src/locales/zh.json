@@ -116,7 +116,9 @@
       },
       "list": {
         "emptyState": "开始对话...",
-        "loading": "加载中..."
+        "loading": "加载中...",
+        "scrollToBottom": "回到底部",
+        "newMessages": "有新消息"
       },
       "message": {
         "userAvatar": "我",
