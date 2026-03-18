@@ -10,7 +10,7 @@ import MdEditor from '@/core/pages/article/MdEditor.vue' // 中间面板：Markd
 import ChatLayout from '@/core/pages/record/chat/ChatLayout.vue' // 右侧面板：AI 聊天
 import SearchPage from '@/core/pages/SearchPage.vue' // 搜索面板
 import SettingPage from '@/core/pages/setting/SettingPage.vue' // 设置页面（独占窗口）
-
+import Start from '../../shared/pages/start.vue'
 const layoutStore = useLayoutStore()
 
 </script>
@@ -49,14 +49,21 @@ const layoutStore = useLayoutStore()
         </pane>
         <!-- 没有面板处于打开状态时显示应用图标+应用名 -->
         <pane v-if="!layoutStore.isLeftSidebarVisible&&!layoutStore.isRightSidebarVisible&&!layoutStore.isEditorVisible" size="100">
-          <div class="h-full p-1 overflow-hidden flex flex-col items-center justify-center">
-            <!-- 应用图标 -->
-            <img 
-              src="../../assets/icon.png"
-              class="w-24 h-24 mb-4"
-             alt="应用图标"/>
-            <!-- 应用名称 -->
-            <h1 class="text-2xl font-bold text-foreground">rikka-note</h1>
+          <!-- 外层容器：相对定位，作为绝对定位的参考 -->
+          <div class="h-full w-full relative overflow-hidden">
+            <!-- 动态 Canvas 背景（Start 组件） -->
+            <Start class="absolute inset-0 z-0" />
+
+            <!-- 图标+名称：绝对定位，居中显示，层级高于 Canvas -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center z-10 p-1">
+              <!-- 应用图标 -->
+              <img
+                  src="../../assets/icon.png"
+                  class="w-24 h-24 mb-4"
+                  alt="应用图标"/>
+              <!-- 应用名称 -->
+              <h1 class="text-2xl font-bold text-foreground">rikka-note</h1>
+            </div>
           </div>
         </pane>
       </splitpanes>
