@@ -31,7 +31,7 @@
             <Button 
               variant="ghost" 
               size="icon" 
-              class="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-background/50 backdrop-blur-sm border opacity-0 group-hover:opacity-100 hover:bg-destructive hover:text-white transition-all z-10"
+              class="absolute top-0 right-0 h-6 w-6 rounded-full bg-background/50 backdrop-blur-sm border opacity-0 group-hover:opacity-100 hover:bg-destructive hover:text-white transition-all z-10"
               @click.stop="removeDoc(index)"
             >
               <X class="h-3 w-3" />
@@ -42,7 +42,7 @@
                 <FileText class="h-3.5 w-3.5 text-primary" />
               </div>
               <span class="text-sm font-semibold truncate flex-1 pr-6">{{ doc.filename }}</span>
-              <span class="text-[10px] font-medium px-1.5 py-0.5 bg-primary/5 text-primary/70 rounded-full border border-primary/10">
+              <span class="text-[10px] font-medium px-1.5 py-0 bg-primary/5 text-primary/70 rounded-full border border-primary/10">
                 相关度: {{ (doc.score * 100).toFixed(0) }}%
               </span>
             </div>
