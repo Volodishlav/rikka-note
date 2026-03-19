@@ -50,32 +50,33 @@ const layoutStore = useLayoutStore()
         </pane>
         <!-- 没有面板处于打开状态时显示应用图标+应用名 -->
         <pane v-if="!layoutStore.isLeftSidebarVisible&&!layoutStore.isRightSidebarVisible&&!layoutStore.isEditorVisible" size="100">
-          <!-- 外层容器：相对定位，作为绝对定位的参考 -->
+          <!-- 外层容器：相对定位 -->
           <div class="h-full w-full relative overflow-hidden">
-            <!-- 动态 Canvas 背景（Start 组件） -->
+            <!-- 1. 动态 Canvas 背景（底层） -->
             <Start class="absolute inset-0 z-0" />
 
-            <!-- 图标+名称：绝对定位，居中显示，层级高于 Canvas -->
-            <div class="absolute inset-0 flex flex-col items-center justify-center z-10 p-1">
-              <!-- 径向渐变模糊遮罩容器 -->
-              <div class="relative rounded-xl p-8">
-                <!-- 伪元素实现径向渐变背景 + 模糊 -->
-                <div class="absolute inset-0 rounded-xl
-        bg-background/40
-        backdrop-blur-sm
-        [mask-image:radial-gradient(circle_at_center,rgba(0,0,0,1)_0%,rgba(0,0,0,0.8)_60%,rgba(0,0,0,0)_100%)]
-        -z-10">
-                </div>
+            <!-- 2. 全屏径向渐变模糊遮罩（核心层） -->
+            <div
+                class="absolute inset-0 z-0 backdrop-blur-xl"
+                style="
+        /* 径向渐变 Mask：中心不透明（显示模糊）→ 边缘透明（隐藏模糊） */
+        mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0) 70%);
+        -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0) 70%);
+      "
+            ></div>
 
-                <!-- 内容区域：统一管理层级 -->
+            <!-- 3. 图标+名称（顶层内容） -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center z-10 p-1">
+              <div class="relative rounded-xl p-8">
+                <!-- 内容区域 -->
                 <div class="flex flex-col items-center relative z-10">
-                  <!-- 1. 应用图标 (在上) -->
+                  <!-- 应用图标 -->
                   <img
                       src="../../assets/icon.png"
                       class="w-24 h-24 mb-2 drop-shadow-lg"
                       alt="应用图标"
                   />
-                  <!-- 2. 艺术标题 (在下，被遮罩覆盖) -->
+                  <!-- 艺术标题 -->
                   <ArtTitle class="w-full max-w-2xl" showBackground="graphic"></ArtTitle>
                 </div>
               </div>
