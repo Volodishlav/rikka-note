@@ -11,6 +11,7 @@ import ChatLayout from '@/core/pages/record/chat/ChatLayout.vue' // 右侧面板
 import SearchPage from '@/core/pages/SearchPage.vue' // 搜索面板
 import SettingPage from '@/core/pages/setting/SettingPage.vue' // 设置页面（独占窗口）
 import Start from '../../shared/pages/start.vue'
+import ArtTitle from "@/core/layouts/ArtTitle.vue";
 const layoutStore = useLayoutStore()
 
 </script>
@@ -56,21 +57,27 @@ const layoutStore = useLayoutStore()
 
             <!-- 图标+名称：绝对定位，居中显示，层级高于 Canvas -->
             <div class="absolute inset-0 flex flex-col items-center justify-center z-10 p-1">
-              <!-- 径向渐变模糊遮罩：中间最模糊、最不透明，向四周渐变透明 -->
-              <div class="relative rounded-xl p-6">
+              <!-- 径向渐变模糊遮罩容器 -->
+              <div class="relative rounded-xl p-8">
                 <!-- 伪元素实现径向渐变背景 + 模糊 -->
                 <div class="absolute inset-0 rounded-xl
-                bg-background/40
-                backdrop-blur-sm
-                [mask-image:radial-gradient(circle_at_center,rgba(0,0,0,1)_0%,rgba(0,0,0,0.8)_60%,rgba(0,0,0,0)_100%)]
-                -z-10"></div>
+        bg-background/40
+        backdrop-blur-sm
+        [mask-image:radial-gradient(circle_at_center,rgba(0,0,0,1)_0%,rgba(0,0,0,0.8)_60%,rgba(0,0,0,0)_100%)]
+        -z-10">
+                </div>
 
-                <!-- 图标和文字 -->
-                <img
-                    src="../../assets/icon.png"
-                    class="w-24 h-24 mb-4 mx-auto relative z-10"
-                    alt="应用图标"/>
-                <h1 class="text-2xl font-bold text-foreground text-center drop-shadow-md relative z-10">rikka-note</h1>
+                <!-- 内容区域：统一管理层级 -->
+                <div class="flex flex-col items-center relative z-10">
+                  <!-- 1. 应用图标 (在上) -->
+                  <img
+                      src="../../assets/icon.png"
+                      class="w-24 h-24 mb-2 drop-shadow-lg"
+                      alt="应用图标"
+                  />
+                  <!-- 2. 艺术标题 (在下，被遮罩覆盖) -->
+                  <ArtTitle class="w-full max-w-2xl" showBackground="graphic"></ArtTitle>
+                </div>
               </div>
             </div>
           </div>

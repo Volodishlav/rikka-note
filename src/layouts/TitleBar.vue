@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {getCurrentWindow} from '@tauri-apps/api/window';
 import {onMounted, onUnmounted, ref} from 'vue';
-
+import ArtTitle from "@/core/layouts/ArtTitle.vue";
 import { useLayoutStore } from '@/stores/layout';
 
 // 初始化布局状态
@@ -94,7 +94,10 @@ onUnmounted(() => {
         <!-- 应用图标 -->
         <img src="@/assets/icon.png" alt="应用图标" class="app-icon" />
         <!-- 应用名称 -->
-        <span class="app-name">rikka-note</span>
+<!--        <span class="app-name">rikka-note</span>-->
+        <div class="art-title-container">
+          <ArtTitle showBackground="brush" />
+        </div>
       </div>
     </div>
 
@@ -239,10 +242,25 @@ onUnmounted(() => {
 .app-info {
   @apply flex items-center gap-2 px-3;
 }
+/* 艺术标题容器：控制尺寸适配标题栏 */
+.art-title-container {
+  @apply h-full flex items-center;
+  /* 缩放艺术标题组件，适配36px高的标题栏 */
+  & :deep(.art-title-wrapper) {
+    padding: 0 !important; /* 清空原组件的2rem内边距 */
+    width: auto;
+    height: 36px; /* 标题栏内显示高度，可按需调整 */
+  }
+  & :deep(svg) {
+    width: auto !important;
+    height: 100% !important;
+    max-width: none !important; /* 取消原组件的宽度限制 */
+  }
+}
 
 /* 应用图标样式 */
 .app-icon {
-  @apply w-5 h-5 rounded-sm;
+  @apply w-6 h-6 rounded-sm;
 }
 
 /* 应用名称样式 */
