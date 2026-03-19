@@ -87,8 +87,16 @@ onUnmounted(() => {
 
 <template>
   <div class="titlebar">
-    <!-- 拖拽区域 -->
-    <div data-tauri-drag-region class="drag-area"></div>
+    <!-- 拖拽区域（包含应用图标和名称） -->
+    <div data-tauri-drag-region class="drag-area">
+      <!-- 应用信息区域 -->
+      <div class="app-info">
+        <!-- 应用图标 -->
+        <img src="@/assets/icon.png" alt="应用图标" class="app-icon" />
+        <!-- 应用名称 -->
+        <span class="app-name">rikka-note</span>
+      </div>
+    </div>
 
     <!-- 控制按钮组（使用Vue原生@click绑定） -->
     <div class="controls">
@@ -224,6 +232,22 @@ onUnmounted(() => {
 .titlebar .drag-area {
   width: 100%;
   height: 100%;
+  @apply flex items-center;
+}
+
+/* 应用信息区域样式 */
+.app-info {
+  @apply flex items-center gap-2 px-3;
+}
+
+/* 应用图标样式 */
+.app-icon {
+  @apply w-5 h-5 rounded-sm;
+}
+
+/* 应用名称样式 */
+.app-name {
+  @apply text-sm font-medium text-foreground;
 }
 
 .titlebar > .controls {
