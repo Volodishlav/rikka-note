@@ -24,8 +24,22 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <Button variant="ghost" size="icon" @click="setPrimary(config.key)" :title="t('settings.ai.setAsDefault')">
-            <Star class="h-4 w-4" :class="{'fill-primary text-primary': settingStore.primaryModel === config.key}" />
+          <Button
+              variant="ghost"
+              size="icon"
+              @click="setPrimary(config.key)"
+              :title="t('settings.ai.setAsDefault')"
+          >
+            <!-- 已选中：显示带勾选的方块 -->
+            <CheckSquareIcon
+                v-if="settingStore.primaryModel === config.key"
+                class="h-4 w-4 text-primary"
+            />
+            <!-- 未选中：显示空白方块 -->
+            <Square
+                v-else
+                class="h-4 w-4"
+            />
           </Button>
           <Button variant="ghost" size="icon" @click="editModel(config)">
             <Pencil class="h-4 w-4" />
@@ -52,7 +66,7 @@ import { useSettingStore } from '@/stores/setting'
 import { AiConfig } from '@/types/ai'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Trash2, Star, Bot } from 'lucide-vue-next'
+import { Plus, Pencil, Trash2, Square, Bot ,CheckSquareIcon} from 'lucide-vue-next'
 import AiModelEdit from './AiModelEdit.vue'
 
 const { t } = useI18n()
