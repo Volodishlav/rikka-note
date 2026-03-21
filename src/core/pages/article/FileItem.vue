@@ -3,9 +3,9 @@
   <ContextMenu>
     <ContextMenuTrigger>
       <div
-          class="flex items-center gap-1 px-2 py-1 text-sm cursor-pointer hover:bg-accent rounded"
+          class="flex items-center gap-1 px-2 py-1 text-sm cursor-pointer rounded"
           :class="[
-          path === activeFilePath && 'bg-accent',
+          path === activeFilePath ? 'bg-brand-purple/15 text-brand-purple font-medium' : 'hover:bg-accent text-foreground',
           !isRoot && 'translate-x-5'
         ]"
           @click="(e) => handleSelectFile(e)"
