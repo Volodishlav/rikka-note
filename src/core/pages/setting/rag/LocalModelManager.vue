@@ -2,9 +2,9 @@
   <div class="space-y-4 rounded-md border p-4 bg-muted/20">
     <div class="flex items-center justify-between">
       <div class="space-y-0.5">
-        <h3 class="text-base font-medium">{{ t('settings.rag.localModelTitle') || '本地Embedding模型 (半本地化)' }}</h3>
+        <h3 class="text-base font-medium">{{ t('settings.rag.localModelTitle') }}</h3>
         <p class="text-sm text-muted-foreground">
-          使用本地 llama.cpp 运行 embedding 模型，节省 API 费用并提高隐私性。
+          {{ t('settings.rag.localModelDesc') }}
         </p>
       </div>
       <div class="flex items-center space-x-2">
@@ -16,7 +16,7 @@
           @change="(e) => handleSwitchChange((e.target as HTMLInputElement).checked)" 
         />
         <label for="local-model-switch" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          启用
+          {{ t('settings.rag.localModelEnabled') }}
         </label>
       </div>
     </div>
@@ -24,7 +24,7 @@
     <div v-if="settingStore.useLocalEmbedding" class="space-y-4 pt-4 border-t">
       <!-- 选择预设模型 -->
       <div class="space-y-2">
-        <Label>预设推荐模型 (GGUF)</Label>
+        <Label>{{ t('settings.rag.presetModel') }}</Label>
         <Select v-model="selectedModel" @update:model-value="onModelSelect">
           <SelectTrigger>
             <SelectValue placeholder="选择预设模型" />
@@ -39,24 +39,24 @@
 
       <!-- 或者自定义 URL -->
       <div class="space-y-2">
-        <Label>模型下载链接 (例如 HuggingFace 直链)</Label>
+        <Label>{{ t('settings.rag.customUrl') }}</Label>
         <Input v-model="customUrl" placeholder="https://..." :disabled="isDownloading" />
       </div>
 
       <div class="space-y-2">
-        <Label>保存的文件名</Label>
+        <Label>{{ t('settings.rag.modelFile') }}</Label>
         <Input v-model="modelFilename" placeholder="model.gguf" :disabled="isDownloading" />
       </div>
       
       <div class="space-y-2">
-        <Label>运行端口</Label>
+        <Label>{{ t('settings.rag.localPort') }}</Label>
         <Input type="number" v-model="localPort" @change="updatePort" :disabled="isServerRunning" />
       </div>
 
       <!-- 进度条 -->
       <div v-if="isDownloading" class="space-y-1">
         <div class="flex justify-between text-xs text-muted-foreground">
-          <span>下载中...</span>
+          <span>{{ t('settings.rag.downloading') }}</span>
           <span v-if="downloadTotal > 0">{{ (downloadedBytes / 1024 / 1024).toFixed(2) }} MB / {{ (downloadTotal / 1024 / 1024).toFixed(2) }} MB</span>
         </div>
         <progress class="w-full h-2 rounded overflow-hidden" :value="downloadedBytes" :max="downloadTotal || 100" />
@@ -65,25 +65,25 @@
       <!-- 操作按钮 -->
       <div class="flex items-center gap-2 pt-2">
         <Button size="sm" variant="outline" @click="checkLocalFile" :disabled="isDownloading || !modelFilename">
-          <RefreshCw class="w-4 h-4 mr-2" /> 检测文件
+          <RefreshCw class="w-4 h-4 mr-2" /> {{ t('settings.rag.checkFile') }}
         </Button>
         <Button size="sm" @click="downloadModel" :disabled="isDownloading || isFileExists || !customUrl || !modelFilename">
           <Download class="w-4 h-4 mr-2" /> 
-          {{ isFileExists ? '此文件已存在' : '一键下载' }}
+          {{ isFileExists ? t('settings.rag.fileExist') : t('settings.rag.oneClickDownload') }}
         </Button>
         
         <div class="flex-1"></div>
         
         <Button v-if="!isServerRunning" size="sm" variant="default" @click="startServer" :disabled="!isFileExists || isStarting">
-          <Play class="w-4 h-4 mr-2 text-green-500" /> {{ isStarting ? '启动中...' : '启动服务' }}
+          <Play class="w-4 h-4 mr-2 text-green-500" /> {{ isStarting ? t('settings.rag.starting') : t('settings.rag.startServer') }}
         </Button>
         <Button v-else size="sm" variant="destructive" @click="stopServer">
-          <Square class="w-4 h-4 mr-2" /> 停止服务
+          <Square class="w-4 h-4 mr-2" /> {{ t('settings.rag.stopServer') }}
         </Button>
       </div>
       
       <div v-if="isServerRunning" class="text-xs text-green-600 font-medium">
-        已连接: http://127.0.0.1:{{ localPort }}/v1/embeddings
+        {{ t('settings.rag.connected') }}: http://127.0.0.1:{{ localPort }}/v1/embeddings
       </div>
     </div>
   </div>
@@ -124,7 +124,7 @@ const presetModels = [
   {
     name: 'Qwen3-Embedding-0.6B (首选推荐)',
     filename: 'qwen3-embedding-0.6b-q8_0.gguf',
-    url: 'https://huggingface.co/Qwen/Qwen3-Embedding-0.6B-GGUF/resolve/main/qwen3-embedding-0.6b-q8_0.gguf'
+    url: 'https://huggingface.co/Qwen/Qwen3-Embedding-0.6B-GGUF/resolve/main/Qwen3-Embedding-0.6B-Q8_0.gguf'
   },
   {
     name: 'bce-embedding-base_v1 (备选)',
@@ -158,7 +158,7 @@ onMounted(async () => {
          isDownloading.value = false
          isFileExists.value = true
          downloadProgress.value = 100
-         toast({ title: '下载完成', description: `${modelFilename.value} 已成功下载。` })
+         toast({ title: t('settings.rag.downloadComplete'), description: `${modelFilename.value} ${t('settings.rag.downloadSuccess')}` })
        }
     }
   })
@@ -174,10 +174,10 @@ const handleSwitchChange = async (val: boolean) => {
   await settingStore.setUseLocalEmbedding(val)
   if (val) {
      console.log('=== [DEBUG] 启用了本地模型开关 ===')
-     toast({ description: '已开启本地模型优先' })
+     toast({ description: t('settings.rag.localPriorityEnabled') })
      await checkLocalFile()
   } else {
-     toast({ description: '已切换回云端模型' })
+     toast({ description: t('settings.rag.cloudFallback') })
   }
 }
 
@@ -242,7 +242,7 @@ const startServer = async () => {
     })
     console.log(`=== [DEBUG] Server started: ${res} ===`)
     isServerRunning.value = true
-    toast({ description: '服务已成功启动', variant: 'success' })
+    toast({ description: t('settings.rag.serverStarted') })
   } catch(e: any) {
     console.error('Start server failed', e)
     toast({ variant: 'destructive', description: `启动失败: ${e}` })
@@ -256,7 +256,7 @@ const stopServer = async () => {
   try {
     await invoke<string>('stop_llama_server')
     isServerRunning.value = false
-    toast({ description: '服务已停止' })
+    toast({ description: t('settings.rag.serverStopped') })
   } catch(e) {
     console.error('Stop err', e)
   }

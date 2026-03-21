@@ -17,9 +17,9 @@
           <div class="flex items-center gap-2">
             <Button variant="outline" size="sm" @click="testEmbedding" :disabled="isTesting">
               <Loader2 v-if="isTesting" class="h-4 w-4 animate-spin" />
-              <span v-else>Test</span>
+              <span v-else>{{ t('settings.rag.test') }}</span>
             </Button>
-            <Select :model-value="settingStore.embeddingModel || ''" @update:model-value="settingStore.setEmbeddingModel">
+            <Select :model-value="settingStore.embeddingModel || ''" @update:model-value="(val) => settingStore.setEmbeddingModel(val as string)">
               <SelectTrigger class="w-[200px]">
                 <SelectValue :placeholder="t('settings.ai.noModelSelected')" />
               </SelectTrigger>
@@ -44,9 +44,9 @@
           <div class="flex items-center gap-2">
             <Button variant="outline" size="sm" @click="testRerank" :disabled="isTestingRerank">
               <Loader2 v-if="isTestingRerank" class="h-4 w-4 animate-spin" />
-              <span v-else>Test</span>
+              <span v-else>{{ t('settings.rag.test') }}</span>
             </Button>
-            <Select :model-value="settingStore.rerankModel || ''" @update:model-value="settingStore.setRerankModel">
+            <Select :model-value="settingStore.rerankModel || ''" @update:model-value="(val) => settingStore.setRerankModel(val as string)">
               <SelectTrigger class="w-[200px]">
                 <SelectValue :placeholder="t('settings.ai.noModelSelected')" />
               </SelectTrigger>
@@ -205,10 +205,10 @@ const updateParam = async (key: string, val: number) => {
   await store.save()
 }
 
-const updateChunkSize = (val: number[]) => updateParam('ragChunkSize', val[0])
-const updateChunkOverlap = (val: number[]) => updateParam('ragChunkOverlap', val[0])
-const updateResultCount = (val: number[]) => updateParam('ragResultCount', val[0])
-const updateSimilarityThreshold = (val: number[]) => updateParam('ragSimilarityThreshold', val[0])
+const updateChunkSize = (val: number[] | undefined) => { if (val) updateParam('ragChunkSize', val[0]) }
+const updateChunkOverlap = (val: number[] | undefined) => { if (val) updateParam('ragChunkOverlap', val[0]) }
+const updateResultCount = (val: number[] | undefined) => { if (val) updateParam('ragResultCount', val[0]) }
+const updateSimilarityThreshold = (val: number[] | undefined) => { if (val) updateParam('ragSimilarityThreshold', val[0]) }
 
 const resetDefaults = async () => {
   chunkSize.value = 1000
@@ -253,10 +253,10 @@ const testEmbedding = async () => {
   isTesting.value = false
   
   if (result === true) {
-    toast({ description: 'Embedding model test passed!', variant: 'success' })
+    toast({ description: t('settings.rag.testSuccess'), variant: 'success' })
   } else {
     toast({ 
-      description: typeof result === 'string' ? result : 'Embedding model test failed.', 
+      description: typeof result === 'string' ? result : t('settings.rag.testFailed'), 
       variant: 'destructive' 
     })
   }
@@ -268,10 +268,10 @@ const testRerank = async () => {
   isTestingRerank.value = false
   
   if (result) {
-    toast({ description: 'Rerank model test passed!', variant: 'success' })
+    toast({ description: t('settings.rag.testSuccess'), variant: 'success' })
   } else {
     toast({ 
-      description: 'Rerank model test failed. Please check your model configuration.', 
+      description: t('settings.rag.testFailed'), 
       variant: 'destructive' 
     })
   }

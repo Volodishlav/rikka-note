@@ -220,7 +220,31 @@
       "clearVector": "Clear Vector DB",
       "deleteTitle": "Confirm Clear",
       "deleteConfirm": "Are you sure you want to clear the vector database? This will delete all generated vector indexes.",
-      "deleteSuccess": "Vector database cleared"
+      "deleteSuccess": "Vector database cleared",
+      "test": "Test",
+      "testSuccess": "Test passed!",
+      "testFailed": "Test failed. Please check your model configuration.",
+      "localModelTitle": "Local Embedding Model (Semi-localized)",
+      "localModelDesc": "Run embedding models locally using llama.cpp to save API costs and improve privacy.",
+      "localModelEnabled": "Enabled",
+      "presetModel": "Preset Recommended Model (GGUF)",
+      "customUrl": "Model Download Link (e.g. HuggingFace direct link)",
+      "modelFile": "Saved Filename",
+      "localPort": "Local Port",
+      "downloading": "Downloading...",
+      "checkFile": "Check File",
+      "oneClickDownload": "One-click Download",
+      "fileExist": "File already exists",
+      "startServer": "Start Server",
+      "stopServer": "Stop Server",
+      "starting": "Starting...",
+      "connected": "Connected",
+      "localPriorityEnabled": "Local model priority enabled",
+      "cloudFallback": "Switched back to cloud model",
+      "downloadComplete": "Download Complete",
+      "downloadSuccess": "Downloaded successfully",
+      "serverStarted": "Server started successfully",
+      "serverStopped": "Server stopped"
     }
   }
 }

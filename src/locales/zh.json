@@ -220,7 +220,31 @@
       "clearVector": "清空向量库",
       "deleteTitle": "确认清空",
       "deleteConfirm": "确定要清空向量数据库吗？这将删除所有已生成的向量索引。",
-      "deleteSuccess": "向量数据库已清空"
+      "deleteSuccess": "向量数据库已清空",
+      "test": "测试",
+      "testSuccess": "测试通过！",
+      "testFailed": "测试失败，请检查模型配置。",
+      "localModelTitle": "本地 Embedding 模型 (半本地化)",
+      "localModelDesc": "使用本地 llama.cpp 运行 embedding 模型，节省 API 费用并提高隐私性。",
+      "localModelEnabled": "启用",
+      "presetModel": "预设推荐模型 (GGUF)",
+      "customUrl": "模型下载链接 (例如 HuggingFace 直链)",
+      "modelFile": "保存的文件名",
+      "localPort": "运行端口",
+      "downloading": "下载中...",
+      "checkFile": "检测文件",
+      "oneClickDownload": "一键下载",
+      "fileExist": "此文件已存在",
+      "startServer": "启动服务",
+      "stopServer": "停止服务",
+      "starting": "启动中...",
+      "connected": "已连接",
+      "localPriorityEnabled": "已开启本地模型优先",
+      "cloudFallback": "已切换回云端模型",
+      "downloadComplete": "下载完成",
+      "downloadSuccess": "已成功下载",
+      "serverStarted": "服务已成功启动",
+      "serverStopped": "服务已停止"
     }
   }
 }
