@@ -22,6 +22,12 @@ export const useSettingStore = defineStore('setting', () => {
     // Backup Configs
     const primaryBackupMethod = ref<'github' | 'gitee' | 'gitlab' | null>(null)
 
+    // Local Embedding Configs
+    const useLocalEmbedding = ref<boolean>(false)
+    const localEmbeddingModelStr = ref<string>('qwen3-embedding-0.6b-q8_0.gguf')
+    const localEmbeddingPort = ref<number>(8080)
+
+
     // actions
     async function initSettingData() {
         try {
@@ -65,6 +71,15 @@ export const useSettingStore = defineStore('setting', () => {
 
             const savedPrimaryBackupMethod = await tauriGet<'github' | 'gitee' | 'gitlab'>('primaryBackupMethod')
             if (savedPrimaryBackupMethod) primaryBackupMethod.value = savedPrimaryBackupMethod
+
+            const savedUseLocalEmbedding = await tauriGet<boolean>('useLocalEmbedding')
+            if (savedUseLocalEmbedding !== undefined && savedUseLocalEmbedding !== null) useLocalEmbedding.value = savedUseLocalEmbedding
+            
+            const savedLocalEmbeddingModelStr = await tauriGet<string>('localEmbeddingModelStr')
+            if (savedLocalEmbeddingModelStr) localEmbeddingModelStr.value = savedLocalEmbeddingModelStr
+            
+            const savedLocalEmbeddingPort = await tauriGet<number>('localEmbeddingPort')
+            if (savedLocalEmbeddingPort) localEmbeddingPort.value = savedLocalEmbeddingPort
 
         } catch (e) {
             console.error('initSettingData error', e)
@@ -137,6 +152,21 @@ export const useSettingStore = defineStore('setting', () => {
         await tauriSet('primaryBackupMethod', method)
     }
 
+    async function setUseLocalEmbedding(val: boolean) {
+        useLocalEmbedding.value = val
+        await tauriSet('useLocalEmbedding', val)
+    }
+    
+    async function setLocalEmbeddingModelStr(val: string) {
+        localEmbeddingModelStr.value = val
+        await tauriSet('localEmbeddingModelStr', val)
+    }
+    
+    async function setLocalEmbeddingPort(val: number) {
+        localEmbeddingPort.value = val
+        await tauriSet('localEmbeddingPort', val)
+    }
+
     return {
         // state
         theme,
@@ -163,6 +193,12 @@ export const useSettingStore = defineStore('setting', () => {
         setMarkDescModel,
         setTranslateModel,
         setPlaceholderModel,
-        setPrimaryBackupMethod
+        setPrimaryBackupMethod,
+        useLocalEmbedding,
+        localEmbeddingModelStr,
+        localEmbeddingPort,
+        setUseLocalEmbedding,
+        setLocalEmbeddingModelStr,
+        setLocalEmbeddingPort
     }
 })

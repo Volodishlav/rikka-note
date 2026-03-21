@@ -9,7 +9,9 @@ mod tray;
 mod window;
 mod app_setup;
 mod backup;
-
+mod model_manager;
+use tauri::{AppHandle, Manager, State, WindowEvent};
+use model_manager::LlamaServerState;
 use screenshot::{screenshot};
 use webdav::{webdav_backup, webdav_sync, webdav_test, webdav_create_dir};
 use fuzzy_search::{fuzzy_search, fuzzy_search_parallel};
@@ -20,6 +22,9 @@ use backup::{export_app_data, import_app_data};
 
 fn main() {
     tauri::Builder::default()
+        .manage(model_manager::LlamaServerState {
+            process: std::sync::Mutex::new(None),
+        })
         // 核心插件 - 最先加载
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_store::Builder::new().build())
@@ -51,6 +56,10 @@ fn main() {
             webdav_create_dir,
             export_app_data,
             import_app_data,
+            model_manager::download_local_model,
+            model_manager::check_model_exists,
+            model_manager::start_llama_server,
+            model_manager::stop_llama_server,
         ])
 
         // 应用设置 - 在所有插件和命令注册后
@@ -60,8 +69,17 @@ fn main() {
         .expect("error while running tauri application")
         .run(|app_handle, event| match event {
             #[cfg(target_os = "macos")]
-            RunEvent::Reopen { has_visible_windows, .. } => {
+            tauri::RunEvent::Reopen { has_visible_windows, .. } => {
                 window::handle_macos_reopen(&app_handle, has_visible_windows);
+            }
+            tauri::RunEvent::ExitRequested { .. } | tauri::RunEvent::Exit => {
+                let state: tauri::State<model_manager::LlamaServerState> = app_handle.state();
+                let mut process_state = state.process.lock().unwrap();
+                if let Some(mut child) = process_state.take() {
+                    println!("=== [DEBUG] App Exiting: Killing llama-server process (PID: {})", child.id());
+                    let _ = child.kill();
+                    let _ = child.wait();
+                }
             }
             _ => {}
         });

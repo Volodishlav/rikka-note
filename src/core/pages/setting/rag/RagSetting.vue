@@ -4,6 +4,9 @@
     <div class="space-y-4">
       <h3 class="text-lg font-medium">{{ t('settings.rag.modelTitle') }}</h3>
       
+      <!-- 本地架构 (新增) -->
+      <LocalModelManager />
+
       <!-- Embedding Model -->
       <div class="space-y-2">
         <div class="flex items-center justify-between">
@@ -149,6 +152,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useSettingStore } from '@/stores/setting'
 import { useVectorStore } from '@/stores/vector'
 import { useI18n } from '@/hooks/useI18n'
+import LocalModelManager from './LocalModelManager.vue'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'

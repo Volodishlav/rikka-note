@@ -181,37 +181,74 @@ export async function checkRerankModelAvailable(): Promise<boolean> {
 export async function fetchEmbedding(text: string, throwError = false): Promise<number[] | null> {
   try {
     if (text.length) {
-      // 获取嵌入模型信息
-      const modelInfo = await getEmbeddingModelInfo();
-      if (!modelInfo) {
-        throw new Error('未配置嵌入模型或模型配置不正确');
-      }
+      const store = await Store.load('store.json');
+      const useLocalEmbedding = await store.get<boolean>('useLocalEmbedding');
       
-      const { baseURL, apiKey, model } = modelInfo;
+      let baseURL, apiKey, model;
+
+      if (useLocalEmbedding) {
+        console.log("=== [DEBUG] Using Local Embedding Server in fetchEmbedding ===");
+        const port = await store.get<number>('localEmbeddingPort') || 8080;
+        const localModelStr = await store.get<string>('localEmbeddingModelStr') || 'local-model';
+        baseURL = `http://127.0.0.1:${port}/v1`;
+        apiKey = 'llama.cpp';
+        model = localModelStr;
+      } else {
+        // 获取嵌入模型信息
+        const modelInfo = await getEmbeddingModelInfo();
+        if (!modelInfo) {
+          throw new Error('未配置嵌入模型或模型配置不正确');
+        }
+        baseURL = modelInfo.baseURL;
+        apiKey = modelInfo.apiKey;
+        model = modelInfo.model;
+      }
 
       if (!baseURL || !model) {
         throw new Error('嵌入模型配置不完整');
       }
       
-      // 发送嵌入请求
-      const response = await fetch(baseURL + '/embeddings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'Origin': ""
-        },
-        body: JSON.stringify({
-          model: model,
-          input: text,
-          encoding_format: 'float'
-        })
-      });
+      // 发送嵌入请求，增加对本地服务的重试机制（模型加载可能需要几秒钟）
+      const maxRetries = useLocalEmbedding ? 5 : 1;
+      let attempt = 0;
+      let response: any = null;
+      let lastError: any = null;
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message || response.statusText;
-        throw new Error(`嵌入请求失败: ${response.status} ${errorMessage}`);
+      while (attempt < maxRetries) {
+        try {
+          response = await fetch(baseURL + '/embeddings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`,
+              'Origin': ""
+            },
+            body: JSON.stringify({
+              model: model,
+              input: text,
+              encoding_format: 'float'
+            })
+          });
+          
+          if (response.ok) {
+            break; // 成功则跳出重试循环
+          } else {
+             const errorData = await response.json().catch(() => ({}));
+             lastError = new Error(`嵌入请求失败: ${response.status} ${errorData.error?.message || response.statusText}`);
+          }
+        } catch (e: any) {
+          lastError = e;
+        }
+
+        attempt++;
+        if (attempt < maxRetries) {
+           console.log(`=== [DEBUG] Local server not ready, retrying (${attempt}/${maxRetries}) in 2s...`);
+           await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+
+      if (!response || !response.ok) {
+        throw lastError || new Error('嵌入请求失败');
       }
       
       const data = await response.json() as EmbeddingResponse;
