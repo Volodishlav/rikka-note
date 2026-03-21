@@ -235,6 +235,7 @@
       "checkFile": "Check File",
       "oneClickDownload": "One-click Download",
       "fileExist": "File already exists",
+      "fileNotExist": "File does not exist",
       "startServer": "Start Server",
       "stopServer": "Stop Server",
       "starting": "Starting...",

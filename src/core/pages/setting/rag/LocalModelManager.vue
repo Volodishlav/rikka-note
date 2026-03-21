@@ -64,7 +64,7 @@
 
       <!-- 操作按钮 -->
       <div class="flex items-center gap-2 pt-2">
-        <Button size="sm" variant="outline" @click="checkLocalFile" :disabled="isDownloading || !modelFilename">
+        <Button size="sm" variant="outline" @click="checkLocalFile(true)" :disabled="isDownloading || !modelFilename">
           <RefreshCw class="w-4 h-4 mr-2" /> {{ t('settings.rag.checkFile') }}
         </Button>
         <Button size="sm" @click="downloadModel" :disabled="isDownloading || isFileExists || !customUrl || !modelFilename">
@@ -203,14 +203,24 @@ watch(modelFilename, async (newVal) => {
   }
 })
 
-const checkLocalFile = async () => {
+const checkLocalFile = async (showToast: boolean = false) => {
   if (!modelFilename.value) return
   try {
     const exists = await invoke<boolean>('check_model_exists', { filename: modelFilename.value })
     isFileExists.value = exists
     console.log(`=== [DEBUG] Check file ${modelFilename.value}: exists=${exists}`)
+    if (showToast) {
+      if (exists) {
+        toast({ description: t('settings.rag.fileExist') })
+      } else {
+        toast({ variant: 'destructive', description: t('settings.rag.fileNotExist') })
+      }
+    }
   } catch(e) {
     console.error('Check file err', e)
+    if (showToast) {
+      toast({ variant: 'destructive', description: `${e}` })
+    }
   }
 }
 

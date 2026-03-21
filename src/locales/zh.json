@@ -235,6 +235,7 @@
       "checkFile": "检测文件",
       "oneClickDownload": "一键下载",
       "fileExist": "此文件已存在",
+      "fileNotExist": "文件不存在",
       "startServer": "启动服务",
       "stopServer": "停止服务",
       "starting": "启动中...",
