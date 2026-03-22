@@ -244,51 +244,34 @@ export const useArticleStore = defineStore('article', () => {
             const workspace = await getWorkspacePath()
 
             // 确保工作区目录存在
-            if (workspace.isCustom) {
-                const isWorkspaceExists = await exists(workspace.path)
-                if (!isWorkspaceExists) {
-                    await mkdir(workspace.path)
-                }
-            } else {
-                const isArticleDir = await exists('article', { baseDir: BaseDirectory.AppData })
-                if (!isArticleDir) {
-                    await mkdir('article', { baseDir: BaseDirectory.AppData })
-                }
+            if (!workspace.isCustom) {
+                // 不再回退到默认的Appdata目录，如果没有配置仓库，直接视为空
+                fileTree.value = []
+                fileTreeLoading.value = false
+                return
+            }
+
+            const isWorkspaceExists = await exists(workspace.path)
+            if (!isWorkspaceExists) {
+                await mkdir(workspace.path)
             }
 
             // 读取工作区文件
             let dirs: DirTree[]
-            if (workspace.isCustom) {
-                dirs = (await readDir(workspace.path))
-                    .filter(file =>
-                        file.name !== '.DS_Store' &&
-                        !file.name.startsWith('.') &&
-                        (file.isDirectory || file.name.endsWith('.md') || file.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i))
-                    ).map(file => ({
-                        ...file,
-                        isEditing: false,
-                        isLocale: true,
-                        parent: undefined,
-                        sha: '',
-                        createdAt: undefined,
-                        modifiedAt: undefined
-                    }))
-            } else {
-                dirs = (await readDir('article', { baseDir: BaseDirectory.AppData }))
-                    .filter(file =>
-                        file.name !== '.DS_Store' &&
-                        !file.name.startsWith('.') &&
-                        (file.isDirectory || file.name.endsWith('.md') || file.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i))
-                    ).map(file => ({
-                        ...file,
-                        isEditing: false,
-                        isLocale: true,
-                        parent: undefined,
-                        sha: '',
-                        createdAt: undefined,
-                        modifiedAt: undefined
-                    }))
-            }
+            dirs = (await readDir(workspace.path))
+                .filter(file =>
+                    file.name !== '.DS_Store' &&
+                    !file.name.startsWith('.') &&
+                    (file.isDirectory || file.name.endsWith('.md') || file.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i))
+                ).map(file => ({
+                    ...file,
+                    isEditing: false,
+                    isLocale: true,
+                    parent: undefined,
+                    sha: '',
+                    createdAt: undefined,
+                    modifiedAt: undefined
+                }))
 
             // 递归处理工作区下的所有文件和文件夹（内联函数）
             async function processEntriesRecursively(parent: string, entries: DirTree[]) {
@@ -300,21 +283,6 @@ export const useArticleStore = defineStore('article', () => {
 
                         if (workspace.isCustom) {
                             children = (await readDir(dir))
-                                .filter(file =>
-                                    file.name !== '.DS_Store' &&
-                                    !file.name.startsWith('.') &&
-                                    (file.isDirectory || file.name.endsWith('.md') || file.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i))
-                                ).map(file => ({
-                                    ...file,
-                                    parent: entry,
-                                    isEditing: false,
-                                    isLocale: true,
-                                    sha: ''
-                                })) as DirTree[]
-                        } else {
-                            const dirRelative = await toWorkspaceRelativePath(dir)
-                            const pathOptions = await getFilePathOptions(dirRelative)
-                            children = (await readDir(pathOptions.path, { baseDir: pathOptions.baseDir }))
                                 .filter(file =>
                                     file.name !== '.DS_Store' &&
                                     !file.name.startsWith('.') &&
@@ -478,21 +446,16 @@ export const useArticleStore = defineStore('article', () => {
                 const pathOptions = await getFilePathOptions(path)
                 let content = ''
 
-                // 检查文件是否存在
-                let fileExists: boolean
-                if (workspace.isCustom) {
-                    fileExists = await exists(pathOptions.path)
-                } else {
-                    fileExists = await exists(pathOptions.path, { baseDir: pathOptions.baseDir })
+                if (!workspace.isCustom) {
+                    currentArticle.value = ''
+                    return
                 }
+
+                const fileExists = await exists(pathOptions.path)
 
                 if (fileExists) {
                     // 读取本地文件
-                    if (workspace.isCustom) {
-                        content = await readTextFile(pathOptions.path)
-                    } else {
-                        content = await readTextFile(pathOptions.path, { baseDir: pathOptions.baseDir })
-                    }
+                    content = await readTextFile(pathOptions.path)
                     currentArticle.value = content
                 } else {
                     currentArticle.value = ''
@@ -519,15 +482,13 @@ export const useArticleStore = defineStore('article', () => {
         try {
             const path = activeFilePath.value
             const workspace = await getWorkspacePath()
+            
+            if (!workspace.isCustom) return
+            
             const pathOptions = await getFilePathOptions(path)
 
             // 1. 检查文件是否已存在（决定后续是否需要更新文件树状态）
-            let isLocale: boolean
-            if (workspace.isCustom) {
-                isLocale = await exists(pathOptions.path)
-            } else {
-                isLocale = await exists(pathOptions.path, { baseDir: pathOptions.baseDir })
-            }
+            const isLocale = await exists(pathOptions.path)
 
             // 2. 确保目录结构存在 (递归创建不存在的父文件夹)
             if (path.includes('/')) {
@@ -537,29 +498,16 @@ export const useArticleStore = defineStore('article', () => {
                     dir += `${dirPath[index]}/`
                     const dirOptions = await getFilePathOptions(dir)
 
-                    let dirExists = false
-                    if (workspace.isCustom) {
-                        dirExists = await exists(dirOptions.path)
-                    } else {
-                        dirExists = await exists(dirOptions.path, { baseDir: dirOptions.baseDir })
-                    }
+                    const dirExists = await exists(dirOptions.path)
 
                     if (!dirExists) {
-                        if (workspace.isCustom) {
-                            await mkdir(dirOptions.path)
-                        } else {
-                            await mkdir(dirOptions.path, { baseDir: dirOptions.baseDir })
-                        }
+                        await mkdir(dirOptions.path)
                     }
                 }
             }
 
             // 3. 保存文件内容到物理磁盘
-            if (workspace.isCustom) {
-                await writeTextFile(pathOptions.path, content)
-            } else {
-                await writeTextFile(pathOptions.path, content, { baseDir: pathOptions.baseDir })
-            }
+            await writeTextFile(pathOptions.path, content)
 
             // 4. 更新内部状态
             currentArticle.value = content
@@ -600,15 +548,18 @@ export const useArticleStore = defineStore('article', () => {
         errorMsg.value = null
         try {
             const workspace = await getWorkspacePath()
+            if (!workspace.isCustom) {
+                allArticle.value = []
+                return
+            }
+            
             let allArticles: Article[]
 
-            const readDirRecursively = async (dirPath: string, basePath: string, isCustomWorkspace: boolean): Promise<Article[]> => {
+            const readDirRecursively = async (dirPath: string, basePath: string): Promise<Article[]> => {
                 let articles: Article[] = []
 
                 // 读取当前目录
-                const res = isCustomWorkspace
-                    ? await readDir(dirPath)
-                    : await readDir(dirPath, { baseDir: BaseDirectory.AppData })
+                const res = await readDir(dirPath)
 
                 // 过滤并读取MD文件
                 const files = res.filter(file =>
@@ -620,15 +571,8 @@ export const useArticleStore = defineStore('article', () => {
 
                 for (const file of files) {
                     const relativePath = await join(basePath, file.name)
-                    let articleContent = ''
-
-                    if (isCustomWorkspace) {
-                        const fullPath = await join(dirPath, file.name)
-                        articleContent = await readTextFile(fullPath)
-                    } else {
-                        const filePath = await join(dirPath, file.name)
-                        articleContent = await readTextFile(filePath, { baseDir: BaseDirectory.AppData })
-                    }
+                    const fullPath = await join(dirPath, file.name)
+                    const articleContent = await readTextFile(fullPath)
 
                     articles.push({ article: articleContent, path: relativePath })
                 }
@@ -642,18 +586,14 @@ export const useArticleStore = defineStore('article', () => {
                 for (const dir of directories) {
                     const newDirPath = await join(dirPath, dir.name)
                     const newBasePath = await join(basePath, dir.name)
-                    const subDirArticles = await readDirRecursively(newDirPath, newBasePath, isCustomWorkspace)
+                    const subDirArticles = await readDirRecursively(newDirPath, newBasePath)
                     articles = [...articles, ...subDirArticles]
                 }
 
                 return articles
             }
 
-            if (workspace.isCustom) {
-                allArticles = await readDirRecursively(workspace.path, '', true)
-            } else {
-                allArticles = await readDirRecursively('article', '', false)
-            }
+            allArticles = await readDirRecursively(workspace.path, '')
 
             allArticle.value = allArticles
         } catch (error) {

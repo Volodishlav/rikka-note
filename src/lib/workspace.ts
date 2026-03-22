@@ -1,6 +1,6 @@
 import { BaseDirectory } from '@tauri-apps/plugin-fs'
 import { join } from '@tauri-apps/api/path'
-import { Store } from '@tauri-apps/plugin-store'
+import { tauriGet } from '@/utils/tauriStore'
 
 /**
  * 获取当前工作区路径
@@ -8,8 +8,7 @@ import { Store } from '@tauri-apps/plugin-store'
  * 否则返回默认的 AppData/article 路径
  */
 export async function getWorkspacePath(): Promise<{ path: string, isCustom: boolean }> {
-    const store = await Store.load('store.json')
-    const workspacePath = await store.get<string>('workspacePath')
+    const workspacePath = await tauriGet<string>('workspacePath')
 
     if (workspacePath) {
         return {
@@ -18,8 +17,9 @@ export async function getWorkspacePath(): Promise<{ path: string, isCustom: bool
         }
     }
 
+    // 已经彻底废弃了原有的 AppData 默认工作区机制，返回空路径
     return {
-        path: 'article',
+        path: '',
         isCustom: false
     }
 }
@@ -36,10 +36,21 @@ export async function getFilePathOptions(relativePath: string): Promise<{ path: 
         const fullPath = await join(workspace.path, relativePath)
         return { path: fullPath }
     } else {
-        return {
-            path: `article/${relativePath}`,
-            baseDir: BaseDirectory.AppData
-        }
+        throw new Error("Cannot get file path options without an active workspace.")
+    }
+}
+
+/**
+ * 获取文件的绝对物理路径
+ * @param relativePath 相对于工作区的路径
+ * @returns 绝对路径字符串
+ */
+export async function getAbsoluteFilePath(relativePath: string): Promise<string> {
+    const workspace = await getWorkspacePath()
+    if (workspace.isCustom) {
+        return await join(workspace.path, relativePath)
+    } else {
+        throw new Error("Cannot get absolute file path without an active workspace.")
     }
 }
 
@@ -64,17 +75,7 @@ export async function getGenericPathOptions(path: string, prefix?: string): Prom
 
         return { path: fullPath }
     } else {
-        if (prefix && !path.startsWith(`${prefix}/`) && !path.startsWith(prefix)) {
-            return {
-                path: `${prefix}/${path}`,
-                baseDir: BaseDirectory.AppData
-            }
-        }
-
-        return {
-            path: path,
-            baseDir: BaseDirectory.AppData
-        }
+        throw new Error("Cannot get generic path options without an active workspace.")
     }
 }
 
@@ -85,11 +86,6 @@ export async function getGenericPathOptions(path: string, prefix?: string): Prom
  */
 export async function toWorkspaceRelativePath(path: string): Promise<string> {
     const workspace = await getWorkspacePath()
-
-    const defaultDirRegex = /^(article[\\\/])/
-    if (!workspace.isCustom && defaultDirRegex.test(path)) {
-        return path.replace(/article[\\\/]/g, '')
-    }
 
     if (workspace.isCustom && path.startsWith(workspace.path)) {
         const relativePath = path.substring(workspace.path.length)

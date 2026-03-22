@@ -109,10 +109,10 @@ import {computed, nextTick, onMounted, ref} from 'vue'
 import {ask} from '@tauri-apps/plugin-dialog'
 import {BaseDirectory, exists, readTextFile, remove, rename, writeTextFile} from '@tauri-apps/plugin-fs'
 import {openPath} from '@tauri-apps/plugin-opener'
-import {appDataDir, join} from '@tauri-apps/api/path'
 import {Image} from 'lucide-vue-next'
 import type {DirTree} from '@/stores/article'
 import {useArticleStore} from '@/stores/article'
+import { getAbsoluteFilePath, getFilePathOptions } from '@/lib/workspace'
 import {useToast} from '@/composables/useToast'
 import FileIcon from './FileIcon.vue'
 import {
@@ -267,9 +267,8 @@ const handleRename = async () => {
   const newPath = path.value.replace(/[^/]*$/, finalName)
 
   try {
-    const appData = await appDataDir()
-    const oldFullPath = await join(appData, 'article', path.value)
-    const newFullPath = await join(appData, 'article', newPath)
+    const oldFullPath = await getAbsoluteFilePath(path.value)
+    const newFullPath = await getAbsoluteFilePath(newPath)
 
     // 7. 冲突检测
     if (await exists(newFullPath)) {
@@ -310,11 +309,7 @@ const handleDeleteFile = async () => {
   if (!confirmed) return
 
   try {
-    const fullPath = await join(
-        await appDataDir(),
-        'article',
-        path.value
-    )
+    const fullPath = await getAbsoluteFilePath(path.value)
 
     await remove(fullPath)
     await articleStore.loadFileTree()
@@ -333,11 +328,7 @@ const handleDeleteFile = async () => {
 
 const handleShowFileManager = async () => {
   const parentPath = path.value.substring(0, path.value.lastIndexOf('/'))
-  const fullPath = await join(
-      await appDataDir(),
-      'article',
-      parentPath || '.'
-  )
+  const fullPath = await getAbsoluteFilePath(parentPath || '.')
 
   await openPath(fullPath)
 }
@@ -368,22 +359,31 @@ const handlePasteFile = async () => {
   }
 
   try {
-    const sourcePath = `article/${item.path}`
+    const sourceOpts = await getFilePathOptions(item.path)
     const targetDir = path.value.includes('/') ? path.value.substring(0, path.value.lastIndexOf('/')) : ''
-    const targetPath = targetDir ? `article/${targetDir}/${item.name}` : `article/${item.name}`
+    const targetPath = targetDir ? `${targetDir}/${item.name}` : `${item.name}`
+    const targetOpts = await getFilePathOptions(targetPath)
 
-    const existsTarget = await exists(targetPath, { baseDir: BaseDirectory.AppData })
+    const existsTarget = targetOpts.baseDir ? await exists(targetOpts.path, { baseDir: targetOpts.baseDir }) : await exists(targetOpts.path)
     if (existsTarget) {
       const confirmOverwrite = await ask(`"${item.name}" already exists. Overwrite?`, { title: 'Confirm', kind: 'warning' })
       if (!confirmOverwrite) return
     }
 
-    const content = await readTextFile(sourcePath, { baseDir: BaseDirectory.AppData })
-    await writeTextFile(targetPath, content, { baseDir: BaseDirectory.AppData })
+    const content = sourceOpts.baseDir ? await readTextFile(sourceOpts.path, { baseDir: sourceOpts.baseDir }) : await readTextFile(sourceOpts.path)
+    if (targetOpts.baseDir) {
+      await writeTextFile(targetOpts.path, content, { baseDir: targetOpts.baseDir })
+    } else {
+      await writeTextFile(targetOpts.path, content)
+    }
 
     if (clipboardOperation.value === 'cut') {
       // 删除源文件并清空剪贴板
-      await remove(sourcePath, { baseDir: BaseDirectory.AppData })
+      if (sourceOpts.baseDir) {
+        await remove(sourceOpts.path, { baseDir: sourceOpts.baseDir })
+      } else {
+        await remove(sourceOpts.path)
+      }
       setClipboardItem(null, 'none')
     }
 

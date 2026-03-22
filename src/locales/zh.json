@@ -42,8 +42,54 @@
       "fileCreated": "文件已创建",
       "folderCreated": "文件夹已创建",
       "createFileFailed": "创建文件失败",
-      "createFolderFailed": "创建文件夹失败",
-      "refreshed": "已刷新"
+      "createFolderFailed": "创建文件夹失败"
+    }
+  },
+  "workspace": {
+    "selector": {
+      "noWorkspace": "暂无仓库",
+      "storedWorkspaces": "已存储的仓库",
+      "rename": "重命名",
+      "removeRecord": "移除记录",
+      "addLocalWorkspace": "新建 / 添加本地仓库",
+      "renameTitle": "重命名仓库",
+      "renameDesc": "修改仓库的显示名称（不会修改本地物理文件夹名称）。",
+      "inputNewName": "输入新名称",
+      "save": "保存",
+      "cancel": "取消",
+      "addTitle": "添加笔记仓库",
+      "addDesc": "选定的目录需初始化为 Rikka Note 仓库。请确认并为其命名。",
+      "storagePath": "存储路径",
+      "displayName": "显示名称",
+      "workspaceNamePlaceholder": "仓库名称",
+      "confirmAddAndSwitch": "确认添加并切换",
+      "removeTitle": "移除仓库记录",
+      "removeDescHtml": "确定要从应用列表中移除该仓库吗？<br/>注意：在此处的移除仅清理应用的记录列表，<b>不会删除任何历史文件或本地物理磁盘资料</b>。",
+      "confirmRemove": "确认移除"
+    },
+    "guide": {
+      "title": "暂无笔记仓库",
+      "desc": "欢迎使用 Rikka Note。在开始记录之前，请先选择一个本地文件夹作为你的笔记仓库，所有数据将安全地保存在该目录下。",
+      "selectFolder": "选择文件夹 / 新建仓库",
+      "initializing": "初始化中..."
+    },
+    "toast": {
+      "pathSelectionFailed": "路径选择失败",
+      "addFailed": "添加失败",
+      "switched": "已切换仓库",
+      "switchFailed": "切换失败",
+      "renameSuccessTitle": "重命名成功",
+      "renameSuccessMsg": "已更新仓库名称",
+      "recordRemoved": "已移除记录",
+      "initSuccessTitle": "成功",
+      "initSuccessMsg": "成功初始化并切换至笔记仓库",
+      "initFailedTitle": "失败",
+      "initFailedMsg": "初始化仓库失败，请重试",
+      "selectNewFolder": "选择新的笔记仓库文件夹",
+      "selectFolder": "选择笔记仓库文件夹",
+      "unnamedWorkspace": "未命名仓库",
+      "markerCreateFailed": "无法在选择的文件夹内创建标识文件，可能是权限不足。",
+      "workspaceNotFound": "工作区不存在"
     }
   },
   "record": {

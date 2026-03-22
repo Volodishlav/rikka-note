@@ -4,6 +4,7 @@
       <slot />
       <!-- 全局Toast容器 -->
       <Toaster />
+      <WelcomeGuide ref="welcomeGuideRef" />
     </TooltipProvider>
   </ThemeProvider>
 </template>
@@ -21,12 +22,14 @@ import zh from 'dayjs/locale/zh-cn'
 import en from 'dayjs/locale/en'
 import { initAllDatabases } from '@/db'
 import { useToast } from "@/composables/useToast";
+import WelcomeGuide from '@/components/WelcomeGuide.vue'
 
 const settingStore = useSettingStore()
 const vectorStore = useVectorStore()
 const { locale } = useI18n()
 const toast = useToast()
 const dbInitialized = ref(false)
+const welcomeGuideRef = ref<InstanceType<typeof WelcomeGuide> | null>(null)
 
 onMounted(async () => {
   // 初始化设置数据
@@ -49,6 +52,11 @@ onMounted(async () => {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error('应用数据库初始化失败:', errorMsg);
     alert(`数据库初始化失败：\n${errorMsg}\n请检查配置后重启应用`);
+  }
+  
+  // 检查并提示工作区初始化
+  if (welcomeGuideRef.value) {
+    await welcomeGuideRef.value.checkVisibility()
   }
   
   console.log('TooltipProvider has been added to RootLayout')

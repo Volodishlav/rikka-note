@@ -10,7 +10,7 @@
     </div>
 
     <!-- 底部工作区选择器 -->
-<!--    <WorkspaceSelector />-->
+    <WorkspaceSelector />
   </div>
 </template>
 
@@ -19,7 +19,7 @@ import { onMounted } from 'vue'
 import { useArticleStore } from '@/stores/article'
 import FileToolbar from './components/FileToolbar.vue'
 import FileManager from './components/FileManager.vue'
-// import WorkspaceSelector from './components/WorkspaceSelector.vue'
+import WorkspaceSelector from './components/WorkspaceSelector.vue'
 
 const articleStore = useArticleStore()
 

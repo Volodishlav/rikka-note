@@ -23,6 +23,7 @@ import { ref, computed, onMounted } from 'vue'
 import { BaseDirectory, writeTextFile, writeFile } from '@tauri-apps/plugin-fs'
 import { useArticleStore } from '@/stores/article'
 import { useToast } from '@/composables/useToast'
+import { getFilePathOptions } from '@/lib/workspace'
 import TreeItem from './TreeItem.vue'
 
 const isDragging = ref(false)
@@ -53,12 +54,13 @@ const handleDrop = async (e: DragEvent) => {
       if (file.name.endsWith('.md')) {
         const text = await file.text()
         const sanitizedFileName = file.name.replace(/\s+/g, '_')
+        const targetOpts = await getFilePathOptions(sanitizedFileName)
 
-        await writeTextFile(
-            `article/${sanitizedFileName}`,
-            text,
-            { baseDir: BaseDirectory.AppData }
-        )
+        if (targetOpts.baseDir) {
+          await writeTextFile(targetOpts.path, text, { baseDir: targetOpts.baseDir })
+        } else {
+          await writeTextFile(targetOpts.path, text)
+        }
 
         articleStore.addFile({
           name: sanitizedFileName,
@@ -75,12 +77,13 @@ const handleDrop = async (e: DragEvent) => {
         const arrayBuffer = await file.arrayBuffer()
         const uint8Array = new Uint8Array(arrayBuffer)
         const sanitizedImageFileName = file.name.replace(/\s+/g, '_')
+        const targetOpts = await getFilePathOptions(sanitizedImageFileName)
 
-        await writeFile(
-            `article/${sanitizedImageFileName}`,
-            uint8Array,
-            { baseDir: BaseDirectory.AppData }
-        )
+        if (targetOpts.baseDir) {
+          await writeFile(targetOpts.path, uint8Array, { baseDir: targetOpts.baseDir })
+        } else {
+          await writeFile(targetOpts.path, uint8Array)
+        }
 
         articleStore.addFile({
           name: sanitizedImageFileName,

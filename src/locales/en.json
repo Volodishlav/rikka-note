@@ -42,8 +42,54 @@
       "fileCreated": "File created",
       "folderCreated": "Folder created",
       "createFileFailed": "Create file failed",
-      "createFolderFailed": "Create folder failed",
-      "refreshed": "Refreshed"
+      "createFolderFailed": "Create folder failed"
+    }
+  },
+  "workspace": {
+    "selector": {
+      "noWorkspace": "No Workspace",
+      "storedWorkspaces": "Stored Workspaces",
+      "rename": "Rename",
+      "removeRecord": "Remove Record",
+      "addLocalWorkspace": "New / Add Local Workspace",
+      "renameTitle": "Rename Workspace",
+      "renameDesc": "Modify the display name of the workspace (will not rename the local physical folder).",
+      "inputNewName": "Enter new name",
+      "save": "Save",
+      "cancel": "Cancel",
+      "addTitle": "Add Workspace",
+      "addDesc": "The selected directory will be initialized as a Rikka Note workspace. Please confirm and name it.",
+      "storagePath": "Storage Path",
+      "displayName": "Display Name",
+      "workspaceNamePlaceholder": "Workspace Name",
+      "confirmAddAndSwitch": "Confirm Add & Switch",
+      "removeTitle": "Remove Workspace Record",
+      "removeDescHtml": "Are you sure you want to remove this workspace from the list?<br/>Note: This only clears the record in this app. <b>It will NOT delete any historical files or physical disk data.</b>",
+      "confirmRemove": "Confirm Remove"
+    },
+    "guide": {
+      "title": "No Workspace Found",
+      "desc": "Welcome to Rikka Note. Before you start recording, please select a local folder as your workspace. All data will be safely stored in that directory.",
+      "selectFolder": "Select Folder / New Workspace",
+      "initializing": "Initializing..."
+    },
+    "toast": {
+      "pathSelectionFailed": "Path selection failed",
+      "addFailed": "Add failed",
+      "switched": "Switched workspace",
+      "switchFailed": "Switch failed",
+      "renameSuccessTitle": "Renamed Successfully",
+      "renameSuccessMsg": "Workspace name updated",
+      "recordRemoved": "Record removed",
+      "initSuccessTitle": "Success",
+      "initSuccessMsg": "Successfully initialized and switched to the workspace",
+      "initFailedTitle": "Failed",
+      "initFailedMsg": "Failed to initialize workspace, please try again",
+      "selectNewFolder": "Select new workspace folder",
+      "selectFolder": "Select workspace folder",
+      "unnamedWorkspace": "Unnamed Workspace",
+      "markerCreateFailed": "Failed to create marker file in the selected folder, possibly due to insufficient permissions.",
+      "workspaceNotFound": "Workspace does not exist"
     }
   },
   "record": {

@@ -1,4 +1,6 @@
 // src/utils/tauriStore.ts
+import { Store } from '@tauri-apps/plugin-store'
+
 /**
  * 增强版：自动适配Tauri/浏览器，支持泛型，可自定义存储文件
  */
@@ -18,10 +20,10 @@ export async function tauriGet<T = any>(
 ): Promise<T | undefined> {
     try {
         // Tauri环境：使用@tauri-apps/plugin-store
-        const { Store } = await import('@tauri-apps/plugin-store')
         const store = await Store.load(options.filename!)
         return await store.get<T>(key) // 保留泛型，类型安全
     } catch (e) {
+        console.warn('tauriGet plugin-store error, falling back to localStorage:', e)
         // 浏览器环境：使用localStorage
         const raw = localStorage.getItem(key)
         if (raw === null) return undefined // 没找到返回undefined
@@ -46,11 +48,11 @@ export async function tauriSet<T = any>(
 ): Promise<void> {
     try {
         // Tauri环境：使用@tauri-apps/plugin-store
-        const { Store } = await import('@tauri-apps/plugin-store')
         const store = await Store.load(options.filename!)
         await store.set(key, value)
         await store.save()
     } catch (e) {
+        console.warn('tauriSet plugin-store error, falling back to localStorage:', e)
         // 浏览器环境：使用localStorage（序列化后存储）
         localStorage.setItem(key, JSON.stringify(value))
     }

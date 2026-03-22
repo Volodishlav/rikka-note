@@ -78,8 +78,9 @@ import {computed, nextTick, onMounted, ref} from 'vue'
 import {ChevronRight, Folder} from 'lucide-vue-next'
 import {ask} from '@tauri-apps/plugin-dialog'
 import {openPath} from '@tauri-apps/plugin-opener'
-import {appDataDir, join} from '@tauri-apps/api/path'
+import {join} from '@tauri-apps/api/path'
 import {exists, mkdir, readTextFile, remove, rename, writeTextFile} from '@tauri-apps/plugin-fs'
+import { getAbsoluteFilePath } from '@/lib/workspace'
 import type {DirTree} from '@/stores/article'
 import {useArticleStore} from '@/stores/article'
 import TreeItem from './TreeItem.vue'
@@ -191,16 +192,8 @@ const handleRename = async () => {
     // 4. 执行文件系统操作
     if (props.item.name) {
       // --- 情况 A: 现有文件夹重命名 ---
-      const oldFullPath = await join(
-          await appDataDir(),
-          'article',
-          path.value
-      )
-      const newFullPath = await join(
-          await appDataDir(),
-          'article',
-          newPath
-      )
+      const oldFullPath = await getAbsoluteFilePath(path.value)
+      const newFullPath = await getAbsoluteFilePath(newPath)
 
       // 检查目标是否存在
       if (await exists(newFullPath)) {
@@ -213,11 +206,7 @@ const handleRename = async () => {
       await rename(oldFullPath, newFullPath)
     } else {
       // --- 情况 B: 新建文件夹创建 ---
-      const fullPath = await join(
-          await appDataDir(),
-          'article',
-          newPath
-      )
+      const fullPath = await getAbsoluteFilePath(newPath)
 
       if (await exists(fullPath)) {
         show({ title: 'Folder already exists', variant: 'warning' })
@@ -293,7 +282,7 @@ const handleFolderClick = (e: MouseEvent) => {
 
 const handleNewFile = async () => {
   try {
-    const fullPath = await join(await appDataDir(), 'article', path.value)
+    const fullPath = await getAbsoluteFilePath(path.value)
     let newFileName = 'New Article.md'
     let counter = 1
     while (await exists(await join(fullPath, newFileName))) {
@@ -315,7 +304,7 @@ const handleNewFolder = async () => {
   // 这里其实应该插入一个临时的空 DirTree item 到 children 触发编辑模式
   // 但为了简化，这里保持原有逻辑创建一个默认名字的文件夹
   try {
-    const fullPath = await join(await appDataDir(), 'article', path.value)
+    const fullPath = await getAbsoluteFilePath(path.value)
     let newFolderName = 'New Folder'
     let counter = 1
     while (await exists(await join(fullPath, newFolderName))) {
@@ -334,7 +323,7 @@ const handleNewFolder = async () => {
 
 const handleShowFileManager = async () => {
   try {
-    const fullPath = await join(await appDataDir(), 'article', path.value)
+    const fullPath = await getAbsoluteFilePath(path.value)
     await openPath(fullPath)
   } catch (err) {
     console.error('Open file manager failed:', err)
@@ -351,7 +340,7 @@ const handleDeleteFolder = async () => {
   if (!confirmed) return
 
   try {
-    const fullPath = await join(await appDataDir(), 'article', path.value)
+    const fullPath = await getAbsoluteFilePath(path.value)
     await remove(fullPath, { recursive: true })
     await articleStore.loadFileTree()
 
@@ -377,10 +366,10 @@ const handleDrop = async (e: DragEvent) => {
     const clipboardItem = clipboardStore.clipboardItem
     if (!clipboardItem) return
 
-    const targetFullPath = await join(await appDataDir(), 'article', path.value)
+    const targetFullPath = await getAbsoluteFilePath(path.value)
 
     if (!clipboardItem.isDirectory) {
-      const sourcePath = await join(await appDataDir(), 'article', clipboardItem.path)
+      const sourcePath = await getAbsoluteFilePath(clipboardItem.path)
       const targetFilePath = await join(targetFullPath, clipboardItem.name)
 
       if (await exists(targetFilePath)) {

@@ -161,6 +161,7 @@ import { useToast } from '@/composables/useToast'
 import { useI18n } from '@/hooks/useI18n'
 import { appDataDir, join } from '@tauri-apps/api/path'
 import { exists, mkdir, writeTextFile } from '@tauri-apps/plugin-fs'
+import { getWorkspacePath } from '@/lib/workspace'
 // import { useUsername } from '@/composables/useUsername'
 
 const articleStore = useArticleStore()
@@ -181,10 +182,15 @@ const handleNewFile = debounce(async () => {
   try {
     // 获取当前选中的文件夹路径，如果没有选中则使用根目录
     const selectedPath = articleStore.selectedFolder
-    const appData = await appDataDir()
-    const fullPath = selectedPath 
-      ? await join(appData, 'article', selectedPath) 
-      : await join(appData, 'article')
+    const workspace = await getWorkspacePath()
+    let fullPath: string
+    
+    if (workspace.isCustom) {
+      fullPath = selectedPath ? await join(workspace.path, selectedPath) : workspace.path
+    } else {
+      const appData = await appDataDir()
+      fullPath = selectedPath ? await join(appData, 'article', selectedPath) : await join(appData, 'article')
+    }
     
     // 生成新文件名
     let newFileName = 'New Article.md'
@@ -222,10 +228,15 @@ const handleNewFolder = debounce(async () => {
   try {
     // 获取当前选中的文件夹路径，如果没有选中则使用根目录
     const selectedPath = articleStore.selectedFolder
-    const appData = await appDataDir()
-    const fullPath = selectedPath 
-      ? await join(appData, 'article', selectedPath) 
-      : await join(appData, 'article')
+    const workspace = await getWorkspacePath()
+    let fullPath: string
+    
+    if (workspace.isCustom) {
+      fullPath = selectedPath ? await join(workspace.path, selectedPath) : workspace.path
+    } else {
+      const appData = await appDataDir()
+      fullPath = selectedPath ? await join(appData, 'article', selectedPath) : await join(appData, 'article')
+    }
     
     // 生成新文件夹名
     let newFolderName = 'New Folder'
