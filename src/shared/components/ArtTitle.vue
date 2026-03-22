@@ -31,30 +31,36 @@
           <feGaussianBlur stdDeviation="0.4" />
         </filter>
 
-        <!-- 定义指定的颜色与渐变 -->
+        <!-- 定义指定的颜色与渐变 - 使用 Tailwind 配置中的品牌颜色 -->
 
-        <!-- 粉色: ED90BD / 阴影: B5447B -->
+        <!-- 粉色: 使用 brand-pink 和 brand-pink-shadow -->
         <linearGradient id="g-pink" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#FFB3D1" />
-          <stop offset="100%" stop-color="#ED90BD" />
+          <stop offset="0%" :style="{ stopColor: pinkLight }" />
+          <stop offset="100%" :style="{ stopColor: pinkMain }" />
         </linearGradient>
 
-        <!-- 紫色: 5D5F86 / 阴影: 3C3D4F -->
+        <!-- 紫色: 使用 brand-purple 和 brand-purple-shadow -->
         <linearGradient id="g-purple" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#7B7DA6" />
-          <stop offset="100%" stop-color="#5D5F86" />
+          <stop offset="0%" :style="{ stopColor: purpleLight }" />
+          <stop offset="100%" :style="{ stopColor: purpleMain }" />
         </linearGradient>
 
-        <!-- 橙色: C87438 / 阴影: 873706 -->
+        <!-- 橙色: 使用 brand-orange 和 brand-orange-shadow -->
         <linearGradient id="g-orange" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#E89458" />
-          <stop offset="100%" stop-color="#C87438" />
+          <stop offset="0%" :style="{ stopColor: orangeLight }" />
+          <stop offset="100%" :style="{ stopColor: orangeMain }" />
         </linearGradient>
 
-        <!-- 绿色: 54C1CC - 335F66 / 阴影: 2B3E44 -->
-        <linearGradient id="g-green" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#54C1CC" />
-          <stop offset="100%" stop-color="#335F66" />
+        <!-- 青色: 使用 brand-cyan 和 brand-cyan-shadow -->
+        <linearGradient id="g-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" :style="{ stopColor: cyanLight }" />
+          <stop offset="100%" :style="{ stopColor: cyanMain }" />
+        </linearGradient>
+
+        <!-- muted 颜色: 用于 NOTE 字母 -->
+        <linearGradient id="g-muted" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" :style="{ stopColor: mutedLight }" />
+          <stop offset="100%" :style="{ stopColor: mutedMain }" />
         </linearGradient>
       </defs>
 
@@ -131,111 +137,111 @@
       <!-- 主体文字层 -->
       <g filter="url(#crayon-texture)">
         <!-- RIKKA -->
-        <!-- R: 橙色 -->
+        <!-- R: 橙色 - 使用 brand-orange -->
         <text
             x="50" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="90"
             font-weight="900"
             fill="url(#g-orange)"
-            stroke="#873706"
+            :stroke="orangeShadow"
             stroke-width="5"
             stroke-linejoin="round"
         >R</text>
 
-        <!-- I: 紫色 -->
+        <!-- I: 紫色 - 使用 brand-purple -->
         <text
             x="140" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="90"
             font-weight="900"
             fill="url(#g-purple)"
-            stroke="#3C3D4F"
+            :stroke="purpleShadow"
             stroke-width="5"
             stroke-linejoin="round"
         >I</text>
 
-        <!-- K: 粉色 -->
+        <!-- K: 粉色 - 使用 brand-pink -->
         <text
             x="190" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="90"
             font-weight="900"
             fill="url(#g-pink)"
-            stroke="#B5447B"
+            :stroke="pinkShadow"
             stroke-width="5"
             stroke-linejoin="round"
         >K</text>
 
-        <!-- K: 粉色-->
+        <!-- K: 粉色 - 使用 brand-pink -->
         <text
             x="290" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="90"
             font-weight="900"
             fill="url(#g-pink)"
-            stroke="#B5447B"
+            :stroke="pinkShadow"
             stroke-width="5"
             stroke-linejoin="round"
         >K</text>
 
-        <!-- A: 绿色 -->
+        <!-- A: 青色 - 使用 brand-cyan -->
         <text
             x="390" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="90"
             font-weight="900"
-            fill="url(#g-green)"
-            stroke="#2B3E44"
+            fill="url(#g-cyan)"
+            :stroke="cyanShadow"
             stroke-width="5"
             stroke-linejoin="round"
         >A</text>
 
         <!-- NOTE -->
-        <!-- N: 紫色 -->
+        <!-- N: muted 填充, muted-foreground 描边 -->
         <text
             x="535" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="90"
             font-weight="900"
-            fill="url(#g-purple)"
-            stroke="#3C3D4F"
+            fill="url(#g-muted)"
+            :stroke="mutedForeground"
             stroke-width="5"
             stroke-linejoin="round"
         >N</text>
 
-        <!-- O: 橙色 -->
+        <!-- O: muted 填充, muted-foreground 描边 -->
         <text
             x="630" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="90"
             font-weight="900"
-            fill="url(#g-orange)"
-            stroke="#873706"
+            fill="url(#g-muted)"
+            :stroke="mutedForeground"
             stroke-width="5"
             stroke-linejoin="round"
         >O</text>
 
-        <!-- T: 绿色 -->
+        <!-- T: muted 填充, muted-foreground 描边 -->
         <text
             x="725" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="90"
             font-weight="900"
-            fill="url(#g-green)"
-            stroke="#2B3E44"
+            fill="url(#g-muted)"
+            :stroke="mutedForeground"
             stroke-width="5"
             stroke-linejoin="round"
         >T</text>
 
-        <!-- E: 粉色 -->
+        <!-- E: muted 填充, muted-foreground 描边 -->
         <text
             x="810" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="90"
             font-weight="900"
-            fill="url(#g-pink)"
-            stroke="#B5447B"
+            fill="url(#g-muted)"
+            :stroke="mutedForeground"
             stroke-width="5"
             stroke-linejoin="round"
         >E</text>
@@ -244,7 +250,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
+
 /**
  * 装饰物类型常量定义
  * - 'graphic': 几何图形装饰（圆形、矩形等）
@@ -270,6 +278,91 @@ const props = defineProps({
     }
   }
 })
+
+/**
+ * 从 CSS 变量获取 HSL 颜色值
+ * @param varName - CSS 变量名（如 --brand-purple）
+ * @returns HSL 颜色字符串
+ */
+const getCssVarColor = (varName: string): string => {
+  if (typeof document === 'undefined') return 'hsl(0, 0%, 0%)'
+  const styles = getComputedStyle(document.documentElement)
+  const value = styles.getPropertyValue(varName).trim()
+  return value ? `hsl(${value})` : 'hsl(0, 0%, 0%)'
+}
+
+/**
+ * 将 HSL 颜色调亮
+ * @param hslValue - HSL 值字符串（如 "247 41% 24%"）
+ * @param amount - 调亮百分比
+ * @returns 调亮后的 HSL 颜色字符串
+ */
+const lightenHsl = (hslValue: string, amount: number): string => {
+  const parts = hslValue.split(' ')
+  if (parts.length !== 3) return `hsl(${hslValue})`
+  
+  const h = parts[0]
+  const s = parts[1]
+  const l = parseFloat(parts[2])
+  const newL = Math.min(100, l + amount)
+  
+  return `hsl(${h} ${s} ${newL}%)`
+}
+
+// 响应式颜色值，用于在组件挂载后获取 CSS 变量
+const isMounted = ref(false)
+
+onMounted(() => {
+  isMounted.value = true
+})
+
+// 品牌颜色 - 主色
+const pinkMain = computed(() => isMounted.value ? getCssVarColor('--brand-pink') : 'hsl(333, 82%, 73%)')
+const purpleMain = computed(() => isMounted.value ? getCssVarColor('--brand-purple') : 'hsl(247, 41%, 24%)')
+const orangeMain = computed(() => isMounted.value ? getCssVarColor('--brand-orange') : 'hsl(32, 95%, 44%)')
+const cyanMain = computed(() => isMounted.value ? getCssVarColor('--brand-cyan') : 'hsl(190, 100%, 42%)')
+
+// 品牌颜色 - 浅色（用于渐变起点）
+const pinkLight = computed(() => {
+  if (!isMounted.value) return 'hsl(333, 82%, 83%)'
+  const styles = getComputedStyle(document.documentElement)
+  const value = styles.getPropertyValue('--brand-pink').trim()
+  return value ? lightenHsl(value, 10) : 'hsl(333, 82%, 83%)'
+})
+const purpleLight = computed(() => {
+  if (!isMounted.value) return 'hsl(247, 41%, 44%)'
+  const styles = getComputedStyle(document.documentElement)
+  const value = styles.getPropertyValue('--brand-purple').trim()
+  return value ? lightenHsl(value, 20) : 'hsl(247, 41%, 44%)'
+})
+const orangeLight = computed(() => {
+  if (!isMounted.value) return 'hsl(32, 95%, 64%)'
+  const styles = getComputedStyle(document.documentElement)
+  const value = styles.getPropertyValue('--brand-orange').trim()
+  return value ? lightenHsl(value, 20) : 'hsl(32, 95%, 64%)'
+})
+const cyanLight = computed(() => {
+  if (!isMounted.value) return 'hsl(190, 100%, 62%)'
+  const styles = getComputedStyle(document.documentElement)
+  const value = styles.getPropertyValue('--brand-cyan').trim()
+  return value ? lightenHsl(value, 20) : 'hsl(190, 100%, 62%)'
+})
+
+// 品牌颜色 - 阴影色
+const pinkShadow = computed(() => isMounted.value ? getCssVarColor('--brand-pink-shadow') : 'hsl(331, 45%, 49%)')
+const purpleShadow = computed(() => isMounted.value ? getCssVarColor('--brand-purple-shadow') : 'hsl(237, 16%, 27%)')
+const orangeShadow = computed(() => isMounted.value ? getCssVarColor('--brand-orange-shadow') : 'hsl(23, 91%, 28%)')
+const cyanShadow = computed(() => isMounted.value ? getCssVarColor('--brand-cyan-shadow') : 'hsl(194, 17%, 22%)')
+
+// muted 颜色 - 用于 NOTE 字母
+const mutedMain = computed(() => isMounted.value ? getCssVarColor('--muted') : 'hsl(220, 14%, 91%)')
+const mutedLight = computed(() => {
+  if (!isMounted.value) return 'hsl(220, 14%, 96%)'
+  const styles = getComputedStyle(document.documentElement)
+  const value = styles.getPropertyValue('--muted').trim()
+  return value ? lightenHsl(value, 5) : 'hsl(220, 14%, 96%)'
+})
+const mutedForeground = computed(() => isMounted.value ? getCssVarColor('--sidebar-primary') : 'hsl(215, 14%, 46%)')
 </script>
 
 <style scoped>

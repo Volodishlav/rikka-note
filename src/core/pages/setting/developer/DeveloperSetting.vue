@@ -102,10 +102,10 @@ const brandColors = computed(() => [
 
 // 品牌阴影颜色定义
 const brandShadowColors = computed(() => [
-  { name: 'brand-pink-shadow (粉丝阴影)', cssVar: '--brand-pink-shadow', tailwind: 'bg-brand-pink-shadow' },
   { name: 'brand-purple-shadow (紫色阴影)', cssVar: '--brand-purple-shadow', tailwind: 'bg-brand-purple-shadow' },
-  { name: 'brand-orange-shadow (橙色阴影)', cssVar: '--brand-orange-shadow', tailwind: 'bg-brand-orange-shadow' },
   { name: 'brand-cyan-shadow (青色阴影)', cssVar: '--brand-cyan-shadow', tailwind: 'bg-brand-cyan-shadow' },
+  { name: 'brand-pink-shadow (粉丝阴影)', cssVar: '--brand-pink-shadow', tailwind: 'bg-brand-pink-shadow' },
+  { name: 'brand-orange-shadow (橙色阴影)', cssVar: '--brand-orange-shadow', tailwind: 'bg-brand-orange-shadow' },
 ])
 
 // 交互状态颜色定义
