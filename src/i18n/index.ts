@@ -12,8 +12,8 @@ const messages = {
     zh,
 }
 
-// 初始语言：优先来源 localStorage（或可改用 Pinia / Tauri store）
-const saved = localStorage.getItem('locale') || 'zh'
+// 初始语言（兜底）：优先从 localStorage 读取，后续由 SettingStore 接管
+const saved = typeof window !== 'undefined' ? (localStorage.getItem('locale') || 'zh') : 'zh'
 
 export const i18n = createI18n({
     legacy: false,       // 使用 composition API 风格

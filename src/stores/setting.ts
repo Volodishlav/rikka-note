@@ -1,13 +1,25 @@
-// src/stores/setting.ts
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { tauriGet, tauriSet } from '@/utils/tauriStore'
 import { AiConfig, baseAiConfig } from '@/types/ai'
 
 export const useSettingStore = defineStore('setting', () => {
     // state
     const theme = ref<'light' | 'dark' | 'system'>('system')
+    const locale = ref<string>('zh')
     const uiScale = ref<number>(100)
+
+    // 系统偏好状态
+    const preferDarkQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
+    const systemIsDark = ref<boolean>(preferDarkQuery ? preferDarkQuery.matches : false)
+
+    // 计算属性：最终生效的主题类型 ('dark' | 'light')
+    const effectiveTheme = computed<'dark' | 'light'>(() => {
+        if (theme.value === 'system') {
+            return systemIsDark.value ? 'dark' : 'light'
+        }
+        return theme.value === 'dark' ? 'dark' : 'light'
+    })
     
     // AI Configs
     const aiModelList = ref<AiConfig[]>([])
@@ -33,6 +45,16 @@ export const useSettingStore = defineStore('setting', () => {
         try {
             const savedTheme = await tauriGet<string>('theme')
             if (savedTheme) theme.value = savedTheme as any
+
+            const savedLocale = await tauriGet<string>('locale')
+            if (savedLocale) {
+                locale.value = savedLocale
+                // 初始化时也同步一次
+                try {
+                    const { setLocale: syncI18n } = await import('@/i18n')
+                    syncI18n(savedLocale)
+                } catch {}
+            }
 
             const savedUiScale = await tauriGet<number>('uiScale')
             if (savedUiScale) uiScale.value = savedUiScale
@@ -81,6 +103,13 @@ export const useSettingStore = defineStore('setting', () => {
             const savedLocalEmbeddingPort = await tauriGet<number>('localEmbeddingPort')
             if (savedLocalEmbeddingPort) localEmbeddingPort.value = savedLocalEmbeddingPort
 
+            // 初始化系统主题监听
+            if (preferDarkQuery) {
+                preferDarkQuery.addEventListener('change', (e) => {
+                    systemIsDark.value = e.matches
+                })
+            }
+
         } catch (e) {
             console.error('initSettingData error', e)
         }
@@ -89,6 +118,19 @@ export const useSettingStore = defineStore('setting', () => {
     async function setTheme(t: 'light' | 'dark' | 'system') {
         theme.value = t
         await tauriSet('theme', t)
+    }
+
+    async function setLocale(l: string) {
+        locale.value = l
+        await tauriSet('locale', l)
+        
+        // 同步更新 i18n 运行时和 dayjs (如果已初始化)
+        try {
+            const { setLocale: syncI18n } = await import('@/i18n')
+            syncI18n(l)
+        } catch (e) {
+            console.warn('Failed to sync i18n in store:', e)
+        }
     }
 
     async function setUiScale(s: number) {
@@ -170,6 +212,9 @@ export const useSettingStore = defineStore('setting', () => {
     return {
         // state
         theme,
+        systemIsDark,
+        effectiveTheme,
+        locale,
         uiScale,
         aiModelList,
         primaryModel,
@@ -183,6 +228,7 @@ export const useSettingStore = defineStore('setting', () => {
         // actions
         initSettingData,
         setTheme,
+        setLocale,
         setUiScale,
         setAiModelList,
         updateAiModel,

@@ -7,6 +7,7 @@ export type ThemeKey = 'light' | 'dark' | 'system'
 export function useTheme() {
   const settingStore = useSettingStore()
   const theme = computed<ThemeKey>(() => settingStore.theme)
+  const effectiveTheme = computed<'dark' | 'light'>(() => settingStore.effectiveTheme)
 
   function setTheme(t: ThemeKey) { return settingStore.setTheme(t) }
   function toggleTheme() {
@@ -14,5 +15,5 @@ export function useTheme() {
     return settingStore.setTheme(next)
   }
 
-  return { theme, setTheme, toggleTheme }
+  return { theme, effectiveTheme, setTheme, toggleTheme }
 }
