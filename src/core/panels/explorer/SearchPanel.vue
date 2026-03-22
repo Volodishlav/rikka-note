@@ -5,7 +5,7 @@ import {Search} from 'lucide-vue-next'
 import {useI18n} from '@/hooks/useI18n'
 import useArticleStore from '@/stores/article'
 import {FuzzySearchResult, RustFuzzySearch, SearchItem as ISearchItem} from '@/lib/fuzzy-search'
-import SearchItem from './search/SearchItem.vue'
+import SearchItem from '../../pages/search/SearchItem.vue'
 
 const { t } = useI18n()
 

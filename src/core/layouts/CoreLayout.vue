@@ -5,10 +5,10 @@ import {Splitpanes, Pane} from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
 // 引入将作为面板的组件
-import FileSidebar from '@/core/pages/article/FileSidebar.vue' // 左侧面板：文件和标签导航
-import MdEditor from '@/core/pages/article/MdEditor.vue' // 中间面板：Markdown 编辑器
-import ChatLayout from '@/core/pages/record/chat/ChatLayout.vue' // 右侧面板：AI 聊天
-import SearchPage from '@/core/pages/SearchPage.vue' // 搜索面板
+import FileSidebar from '@/core/panels/explorer/FileSidebar.vue' // 左侧面板：文件和标签导航
+import MdEditor from '@/core/panels/editor/MdEditor.vue' // 中间面板：Markdown 编辑器
+import ChatPanel from '@/core/panels/assistant/ChatPanel.vue' // 右侧面板：AI 聊天
+import SearchPanel from '@/core/panels/explorer/SearchPanel.vue' // 搜索面板
 import SettingPage from '@/core/pages/setting/SettingPage.vue' // 设置页面（独占窗口）
 import Start from '../../shared/pages/start.vue'
 import ArtTitle from "@/core/layouts/ArtTitle.vue";
@@ -33,7 +33,7 @@ const layoutStore = useLayoutStore()
         <!-- 搜索面板 -->
         <pane v-else-if="layoutStore.isLeftSidebarVisible &&layoutStore.isSearchPanelVisible" size="20" min-size="15"
               max-size="40">
-          <SearchPage/>
+          <SearchPanel/>
         </pane>
 
         <!-- 中间编辑器面板 -->
@@ -46,7 +46,7 @@ const layoutStore = useLayoutStore()
 
         <!-- 右侧 AI 聊天面板 -->
         <pane v-if="layoutStore.isRightSidebarVisible" size="30" min-size="20">
-          <ChatLayout/>
+          <ChatPanel/>
         </pane>
         <!-- 没有面板处于打开状态时显示应用图标+应用名 -->
         <pane v-if="!layoutStore.isLeftSidebarVisible&&!layoutStore.isRightSidebarVisible&&!layoutStore.isEditorVisible" size="100">

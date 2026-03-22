@@ -10,9 +10,9 @@
 import { watch } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import { useTagStore } from '@/stores/tag'
-import ChatHeader from './ChatHeader.vue'
-import ChatList from './ChatList.vue'
-import ChatInput from './ChatInput.vue'
+import ChatHeader from './chat/ChatHeader.vue'
+import ChatList from './chat/ChatList.vue'
+import ChatInput from './chat/ChatInput.vue'
 
 const chatStore = useChatStore()
 const tagStore = useTagStore()

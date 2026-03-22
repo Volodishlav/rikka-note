@@ -14,22 +14,15 @@ import CoreLayout from '@/core/layouts/CoreLayout.vue' // 核心布局
 import MobileLayout from '@/mobile/layouts/MobileLayout.vue' // 移动端布局
 
 // 导入页面组件
-import RecordPage from '@/core/pages/RecordPage.vue' // 记录页面
-import ChatPage from '@/mobile/pages/ChatPage.vue' // 聊天页面
-import TestPage from '@/core/pages/test.vue' // 测试页面
-import DataTestPage from '@/core/pages/DataTestPage.vue' // 数据测试页面
-import ArticlePage from "@/core/pages/ArticlePage.vue"; // 文章测试页面
 import SettingPage from '@/core/pages/setting/SettingPage.vue' // 设置页面
-import SearchPage from '@/core/pages/SearchPage.vue' // 搜索页面
+import ChatPage from '@/mobile/pages/ChatPage.vue' // 聊天页面
 
-// 路由表 - 仅保留指定的三个路由
+// 路由表 - 仅保留必要的路由
 const routes: Array<RouteRecordRaw> = [
     {
         path: '/',
         name: 'root',
-        // 添加默认重定向（解决类型错误的核心）
-        redirect: '/core/record',
-        // 进入根时根据设备和持久化的currentPage重定向到合适页面
+        redirect: '/core',
         beforeEnter: async (
             _to: RouteLocationNormalized,
             _from: RouteLocationNormalized,
@@ -45,46 +38,35 @@ const routes: Array<RouteRecordRaw> = [
                 // 设备检测
                 const isMobile = isMobileDevice()
 
-                // 确定最终重定向路径
                 let redirectPath: string
 
                 if (currentPage) {
-                    // 检查currentPage是否有效且匹配当前设备类型
                     if (isMobile && currentPage.startsWith('/mobile/')) {
                         redirectPath = currentPage
-                    } else if (!isMobile && currentPage.startsWith('/core/')) {
+                    } else if (!isMobile && currentPage.startsWith('/core')) {
                         redirectPath = currentPage
                     } else {
-                        // currentPage无效或不匹配设备类型，使用默认路由
-                        redirectPath = isMobile ? '/mobile/chat' : '/core/record'
+                        redirectPath = isMobile ? '/mobile/chat' : '/core'
                     }
                 } else {
-                    // 没有currentPage，使用默认路由
-                    redirectPath = isMobile ? '/mobile/chat' : '/core/record'
+                    redirectPath = isMobile ? '/mobile/chat' : '/core'
                 }
 
-                // 执行重定向
                 next(redirectPath)
             } catch (e) {
                 console.error('路由重定向处理失败:', e)
-                // 异常时的兜底重定向
-                next(isMobileDevice() ? '/mobile/chat' : '/core/record')
+                next(isMobileDevice() ? '/mobile/chat' : '/core')
             }
         }
     },
     {
         path: '/core',
         name: 'core',
-        component: CoreLayout, // 使用CoreLayout布局组件
+        component: CoreLayout,
         children: [
-            { path: 'record', name: 'core-record', component: RecordPage }, // 记录页面
-            { path: 'test', name: 'core-test', component: TestPage }, // 测试页面
-            { path: 'data-test', name: 'core-data-test', component: DataTestPage }, // 数据测试页面
-            { path: 'setting', name: 'core-setting', component: SettingPage }, // 设置页面
-            { path: 'search', name: 'core-search', component: SearchPage }, // 搜索页面
-            // 添加404路由，匹配所有未定义的core子路由
-            { path: ':pathMatch(.*)*', name: 'core-404', component: TestPage }, // 暂时使用TestPage作为404页面
-            {path: 'article',component: ArticlePage,name: 'Article'},
+            { path: 'setting', name: 'core-setting', component: SettingPage },
+            // 添加404路由
+            { path: ':pathMatch(.*)*', redirect: '/core' },
         ]
     },
     {

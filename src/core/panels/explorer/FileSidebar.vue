@@ -17,9 +17,9 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useArticleStore } from '@/stores/article'
-import FileToolbar from './FileToolbar.vue'
-import FileManager from './FileManager.vue'
-// import WorkspaceSelector from './WorkspaceSelector.vue'
+import FileToolbar from './components/FileToolbar.vue'
+import FileManager from './components/FileManager.vue'
+// import WorkspaceSelector from './components/WorkspaceSelector.vue'
 
 const articleStore = useArticleStore()
 

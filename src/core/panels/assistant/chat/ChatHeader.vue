@@ -50,8 +50,8 @@ import { useI18n } from '@/hooks/useI18n'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { History, MessageSquarePlus } from 'lucide-vue-next'
-import ChatLanguage from "@/core/pages/record/chat/ChatLanguage.vue"
-import RagSwitch from "@/core/pages/record/chat/RagSwitch.vue"
+import ChatLanguage from "./ChatLanguage.vue"
+import RagSwitch from "./RagSwitch.vue"
 import ChatSessionsSheet from './ChatSessionsSheet.vue'
 
 const settingStore = useSettingStore()

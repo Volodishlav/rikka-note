@@ -101,7 +101,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useI18n } from '@/hooks/useI18n'
