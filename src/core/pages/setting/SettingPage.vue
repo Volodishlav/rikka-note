@@ -64,7 +64,7 @@ const navItems = computed(() => [
   },
   {
     id: 'developer',
-    label: '开发者',
+    label: t('settings.developer.title'),
     icon: Code2
   }
 ])

@@ -2,39 +2,39 @@
   <div class="space-y-6">
     <!-- 配色方案调试区域 -->
     <div class="space-y-4">
-      <h3 class="text-lg font-medium">配色方案调试</h3>
+      <h3 class="text-lg font-medium">{{ t('settings.developer.colorScheme.title') }}</h3>
       <p class="text-sm text-muted-foreground">
-        展示项目中所有 Tailwind CSS 配置的颜色变量，方便开发调试
+        {{ t('settings.developer.colorScheme.description') }}
       </p>
 
       <!-- 主题切换提示 -->
       <div class="p-3 rounded-md bg-muted text-sm">
-        <span class="text-muted-foreground">当前主题：</span>
-        <span class="font-medium">{{ isDark ? '深色模式' : '浅色模式' }}</span>
+        <span class="text-muted-foreground">{{ t('settings.developer.colorScheme.currentTheme') }}</span>
+        <span class="font-medium">{{ isDark ? t('settings.developer.colorScheme.darkMode') : t('settings.developer.colorScheme.lightMode') }}</span>
       </div>
 
       <!-- 核心颜色 -->
-      <ColorSection title="核心颜色" :colors="coreColors" />
+      <ColorSection :title="t('settings.developer.colorSections.core')" :colors="coreColors" />
 
       <!-- 品牌颜色 -->
-      <ColorSection title="品牌颜色 (六花专属)" :colors="brandColors" />
+      <ColorSection :title="t('settings.developer.colorSections.brand')" :colors="brandColors" />
 
       <!-- 品牌阴影颜色 -->
-      <ColorSection title="品牌阴影颜色 (六花主题)" :colors="brandShadowColors" />
+      <ColorSection :title="t('settings.developer.colorSections.brandShadow')" :colors="brandShadowColors" />
 
       <!-- 交互状态颜色 -->
-      <ColorSection title="交互状态颜色" :colors="interactiveColors" />
+      <ColorSection :title="t('settings.developer.colorSections.interactive')" :colors="interactiveColors" />
 
       <!-- 图表颜色 -->
-      <ColorSection title="图表颜色" :colors="chartColors" />
+      <ColorSection :title="t('settings.developer.colorSections.chart')" :colors="chartColors" />
 
       <!-- 侧边栏颜色 -->
-      <ColorSection title="侧边栏颜色" :colors="sidebarColors" />
+      <ColorSection :title="t('settings.developer.colorSections.sidebar')" :colors="sidebarColors" />
     </div>
 
     <!-- CSS 变量原始值 -->
     <div class="space-y-4">
-      <h3 class="text-lg font-medium">CSS 变量原始值</h3>
+      <h3 class="text-lg font-medium">{{ t('settings.developer.cssVariables.title') }}</h3>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 text-xs">
         <div
           v-for="variable in allVariables"
@@ -51,12 +51,15 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from '@/hooks/useI18n'
 import ColorSection from './ColorSection.vue'
 
 /**
  * 开发者设置组件
  * 用于调试和展示项目中所有 Tailwind CSS 配置的颜色变量
  */
+
+const { t } = useI18n()
 
 // 检测当前是否为深色模式
 const isDark = ref(false)
@@ -94,18 +97,18 @@ const coreColors = computed(() => [
 
 // 品牌颜色定义
 const brandColors = computed(() => [
-  { name: 'brand-purple (六花紫)', cssVar: '--brand-purple', tailwind: 'bg-brand-purple' },
-  { name: 'brand-cyan (六花青)', cssVar: '--brand-cyan', tailwind: 'bg-brand-cyan' },
-  { name: 'brand-pink (六花粉)', cssVar: '--brand-pink', tailwind: 'bg-brand-pink' },
-  { name: 'brand-orange (六花橙)', cssVar: '--brand-orange', tailwind: 'bg-brand-orange' },
+  { name: `brand-purple (${t('settings.developer.colorNames.brandPurple')})`, cssVar: '--brand-purple', tailwind: 'bg-brand-purple' },
+  { name: `brand-cyan (${t('settings.developer.colorNames.brandCyan')})`, cssVar: '--brand-cyan', tailwind: 'bg-brand-cyan' },
+  { name: `brand-pink (${t('settings.developer.colorNames.brandPink')})`, cssVar: '--brand-pink', tailwind: 'bg-brand-pink' },
+  { name: `brand-orange (${t('settings.developer.colorNames.brandOrange')})`, cssVar: '--brand-orange', tailwind: 'bg-brand-orange' },
 ])
 
 // 品牌阴影颜色定义
 const brandShadowColors = computed(() => [
-  { name: 'brand-purple-shadow (紫色阴影)', cssVar: '--brand-purple-shadow', tailwind: 'bg-brand-purple-shadow' },
-  { name: 'brand-cyan-shadow (青色阴影)', cssVar: '--brand-cyan-shadow', tailwind: 'bg-brand-cyan-shadow' },
-  { name: 'brand-pink-shadow (粉丝阴影)', cssVar: '--brand-pink-shadow', tailwind: 'bg-brand-pink-shadow' },
-  { name: 'brand-orange-shadow (橙色阴影)', cssVar: '--brand-orange-shadow', tailwind: 'bg-brand-orange-shadow' },
+  { name: `brand-purple-shadow (${t('settings.developer.colorNames.purpleShadow')})`, cssVar: '--brand-purple-shadow', tailwind: 'bg-brand-purple-shadow' },
+  { name: `brand-cyan-shadow (${t('settings.developer.colorNames.cyanShadow')})`, cssVar: '--brand-cyan-shadow', tailwind: 'bg-brand-cyan-shadow' },
+  { name: `brand-pink-shadow (${t('settings.developer.colorNames.pinkShadow')})`, cssVar: '--brand-pink-shadow', tailwind: 'bg-brand-pink-shadow' },
+  { name: `brand-orange-shadow (${t('settings.developer.colorNames.orangeShadow')})`, cssVar: '--brand-orange-shadow', tailwind: 'bg-brand-orange-shadow' },
 ])
 
 // 交互状态颜色定义

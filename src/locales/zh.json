@@ -292,6 +292,37 @@
       "downloadSuccess": "已成功下载",
       "serverStarted": "服务已成功启动",
       "serverStopped": "服务已停止"
+    },
+    "developer": {
+      "title": "开发者",
+      "colorScheme": {
+        "title": "配色方案调试",
+        "description": "展示项目中所有 Tailwind CSS 配置的颜色变量，方便开发调试",
+        "currentTheme": "当前主题：",
+        "lightMode": "浅色模式",
+        "darkMode": "深色模式"
+      },
+      "colorSections": {
+        "core": "核心颜色",
+        "brand": "品牌颜色 (六花专属)",
+        "brandShadow": "品牌阴影颜色 (六花主题)",
+        "interactive": "交互状态颜色",
+        "chart": "图表颜色",
+        "sidebar": "侧边栏颜色"
+      },
+      "cssVariables": {
+        "title": "CSS 变量原始值"
+      },
+      "colorNames": {
+        "brandPurple": "六花紫",
+        "brandCyan": "六花青",
+        "brandPink": "六花粉",
+        "brandOrange": "六花橙",
+        "purpleShadow": "紫色阴影",
+        "cyanShadow": "青色阴影",
+        "pinkShadow": "粉丝阴影",
+        "orangeShadow": "橙色阴影"
+      }
     }
   }
 }

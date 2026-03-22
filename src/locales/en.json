@@ -292,6 +292,37 @@
       "downloadSuccess": "Downloaded successfully",
       "serverStarted": "Server started successfully",
       "serverStopped": "Server stopped"
+    },
+    "developer": {
+      "title": "Developer",
+      "colorScheme": {
+        "title": "Color Scheme Debug",
+        "description": "Display all Tailwind CSS color variables configured in the project for development debugging",
+        "currentTheme": "Current Theme: ",
+        "lightMode": "Light Mode",
+        "darkMode": "Dark Mode"
+      },
+      "colorSections": {
+        "core": "Core Colors",
+        "brand": "Brand Colors (Rikka)",
+        "brandShadow": "Brand Shadow Colors (Rikka Theme)",
+        "interactive": "Interactive State Colors",
+        "chart": "Chart Colors",
+        "sidebar": "Sidebar Colors"
+      },
+      "cssVariables": {
+        "title": "CSS Variable Raw Values"
+      },
+      "colorNames": {
+        "brandPurple": "Rikka Purple",
+        "brandCyan": "Rikka Cyan",
+        "brandPink": "Rikka Pink",
+        "brandOrange": "Rikka Orange",
+        "purpleShadow": "Purple Shadow",
+        "cyanShadow": "Cyan Shadow",
+        "pinkShadow": "Pink Shadow",
+        "orangeShadow": "Orange Shadow"
+      }
     }
   }
 }
