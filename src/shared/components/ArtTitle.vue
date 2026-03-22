@@ -3,7 +3,7 @@
     <svg
         width="1000"
         height="220"
-        viewBox="0 0 900 220"
+        viewBox="0 0 900 200"
         xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
@@ -103,7 +103,7 @@
         <!-- 加粗的主笔触：模拟毛刷效果 -->
         <path
             d="M80 180 Q250 185, 450 175 T820 180"
-            stroke="url(#g-orange-gradient)"
+            stroke="url(#g-pink-gradient)"
             stroke-width="20"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -141,7 +141,7 @@
         <text
             x="50" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
-            font-size="90"
+            font-size="110"
             font-weight="900"
             fill="url(#g-orange)"
             :stroke="orangeShadow"
@@ -153,7 +153,7 @@
         <text
             x="140" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
-            font-size="90"
+            font-size="110"
             font-weight="900"
             fill="url(#g-purple)"
             :stroke="purpleShadow"
@@ -165,7 +165,7 @@
         <text
             x="190" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
-            font-size="90"
+            font-size="110"
             font-weight="900"
             fill="url(#g-pink)"
             :stroke="pinkShadow"
@@ -177,7 +177,7 @@
         <text
             x="290" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
-            font-size="90"
+            font-size="110"
             font-weight="900"
             fill="url(#g-pink)"
             :stroke="pinkShadow"
@@ -189,7 +189,7 @@
         <text
             x="390" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
-            font-size="90"
+            font-size="110"
             font-weight="900"
             fill="url(#g-cyan)"
             :stroke="cyanShadow"
@@ -202,7 +202,7 @@
         <text
             x="535" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
-            font-size="90"
+            font-size="110"
             font-weight="900"
             fill="url(#g-muted)"
             :stroke="mutedForeground"
@@ -214,7 +214,7 @@
         <text
             x="630" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
-            font-size="90"
+            font-size="110"
             font-weight="900"
             fill="url(#g-muted)"
             :stroke="mutedForeground"
@@ -226,7 +226,7 @@
         <text
             x="725" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
-            font-size="90"
+            font-size="110"
             font-weight="900"
             fill="url(#g-muted)"
             :stroke="mutedForeground"
@@ -238,7 +238,7 @@
         <text
             x="810" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
-            font-size="90"
+            font-size="110"
             font-weight="900"
             fill="url(#g-muted)"
             :stroke="mutedForeground"
