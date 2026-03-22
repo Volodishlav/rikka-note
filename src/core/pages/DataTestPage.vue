@@ -7,7 +7,6 @@ import { useToast } from '@/composables/useToast'
 
 // 导入数据库表操作接口
 import { getTags, insertTag, updateTag, delTag, type Tag } from '@/db/tags'
-import { insertNote, getNoteByTagId, getNoteById, type Note } from '@/db/notes'
 import { getMarks, insertMark, updateMark, delMark, type Mark } from '@/db/marks'
 import { getChats, insertChat, updateChat, deleteChat, type Chat, type Role, type ChatType } from '@/db/chats'
 import { upsertVectorDocument, getVectorDocumentsByFilename, deleteVectorDocumentsByFilename, type VectorDocument } from '@/db/vector'
@@ -21,11 +20,6 @@ const tags = ref<Tag[]>([])
 const newTagName = ref('')
 const updateTagName = ref('')
 const selectedTagId = ref<number | null>(null)
-
-// Notes表测试
-const newNoteContent = ref('')
-const newNoteTagId = ref<string>('1')
-const noteByTagId = ref<Note | null>(null)
 
 // Marks表测试
 const newMark = ref<{
@@ -136,36 +130,6 @@ async function deleteSelectedTag() {
   } catch (error) {
     console.error('删除标签失败:', error)
     toast.error('删除失败', '标签删除失败')
-  }
-}
-
-// Notes表测试函数
-async function loadNoteByTagId() {
-  try {
-    const tagId = parseInt(newNoteTagId.value, 10)
-    noteByTagId.value = await getNoteByTagId(tagId)
-    toast.success('加载成功', '笔记数据已加载')
-  } catch (error) {
-    console.error('加载笔记失败:', error)
-    toast.error('加载失败', '笔记数据加载失败')
-  }
-}
-
-async function addNote() {
-  if (!newNoteContent.value.trim()) {
-    toast.warning('输入错误', '请输入笔记内容')
-    return
-  }
-  
-  try {
-    const tagId = parseInt(newNoteTagId.value, 10)
-    await insertNote({ tagId, content: newNoteContent.value.trim(), locale: 'zh', count: newNoteContent.value.trim().length.toString() })
-    toast.success('添加成功', '笔记已添加')
-    newNoteContent.value = ''
-    await loadNoteByTagId()
-  } catch (error) {
-    console.error('添加笔记失败:', error)
-    toast.error('添加失败', '笔记添加失败')
   }
 }
 
@@ -343,37 +307,6 @@ async function deleteVectorDocs() {
                 </tr>
               </tbody>
             </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Notes表测试 -->
-      <div class="mb-8">
-        <h3 class="text-xl font-semibold mb-4">Notes表测试</h3>
-        
-        <!-- 添加笔记 -->
-        <div class="mb-6">
-          <h4 class="text-lg font-medium mb-2">添加笔记</h4>
-          <div class="flex gap-2 mb-2">
-            <Input v-model="newNoteTagId" placeholder="标签ID" type="number" />
-            <Input v-model="newNoteContent" placeholder="输入笔记内容" class="flex-1" />
-            <Button variant="default" @click="addNote">添加</Button>
-          </div>
-        </div>
-
-        <!-- 加载笔记 -->
-        <div class="mb-6">
-          <h4 class="text-lg font-medium mb-2">加载笔记</h4>
-          <div class="flex gap-2">
-            <Input v-model="newNoteTagId" placeholder="标签ID" type="number" />
-            <Button variant="default" @click="loadNoteByTagId">加载最新笔记</Button>
-          </div>
-          <div v-if="noteByTagId" class="mt-4 p-4 border border-border rounded-md">
-            <p class="text-sm text-muted-foreground mb-1">ID: {{ noteByTagId.id }}</p>
-            <p class="text-sm text-muted-foreground mb-1">标签ID: {{ noteByTagId.tagId }}</p>
-            <p class="text-sm text-muted-foreground mb-1">语言: {{ noteByTagId.locale }}</p>
-            <p class="text-sm text-muted-foreground mb-1">创建时间: {{ new Date(noteByTagId.createdAt).toLocaleString() }}</p>
-            <p class="mt-2">{{ noteByTagId.content }}</p>
           </div>
         </div>
       </div>

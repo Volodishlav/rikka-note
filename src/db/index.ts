@@ -43,7 +43,6 @@ export async function initAllDatabases() {
     const { initChatsDb } = await import('./chats');
     const { initChatSessionsDb } = await import('./chat_sessions');
     const { initMarksDb } = await import('./marks');
-    const { initNotesDb } = await import('./notes');
     const { initTagsDb } = await import('./tags');
     const { initVectorDb } = await import('./vector');
 
@@ -52,7 +51,6 @@ export async function initAllDatabases() {
         initChatsDb(),
         initChatSessionsDb(),
         initMarksDb(),
-        initNotesDb(),
         initTagsDb(),
         initVectorDb()
     ]);
