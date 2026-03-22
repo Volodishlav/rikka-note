@@ -20,7 +20,7 @@
       "@/*": ["./src/*"]
     },
     /* 添加 Node.js 类型支持（解决 path/__dirname 报错） */
-    "types": ["node", "vite/client"],
+    "types": ["node", "vite/client", "vue"],
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

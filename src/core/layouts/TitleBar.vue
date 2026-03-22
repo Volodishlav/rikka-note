@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {getCurrentWindow} from '@tauri-apps/api/window';
 import {onMounted, onUnmounted, ref} from 'vue';
-import ArtTitle from "@/core/layouts/ArtTitle.vue";
+import ArtTitle from "@/shared/components/ArtTitle.vue";
 import { useLayoutStore } from '@/stores/layout';
 
 // 初始化布局状态

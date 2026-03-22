@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import TitleBar from '@/layouts/TitleBar.vue'
+import TitleBar from '@/core/layouts/TitleBar.vue'
 import {useLayoutStore} from '@/stores/layout'
 import {Splitpanes, Pane} from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
@@ -10,8 +10,8 @@ import MdEditor from '@/core/panels/editor/MdEditor.vue' // 中间面板：Markd
 import ChatPanel from '@/core/panels/assistant/ChatPanel.vue' // 右侧面板：AI 聊天
 import SearchPanel from '@/core/panels/explorer/SearchPanel.vue' // 搜索面板
 import SettingPage from '@/core/pages/setting/SettingPage.vue' // 设置页面（独占窗口）
-import Start from '../../shared/pages/start.vue'
-import ArtTitle from "@/core/layouts/ArtTitle.vue";
+import Start from '@/shared/pages/start.vue'
+import ArtTitle from '@/shared/components/ArtTitle.vue'
 const layoutStore = useLayoutStore()
 
 </script>
