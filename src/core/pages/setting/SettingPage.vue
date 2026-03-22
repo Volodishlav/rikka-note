@@ -21,6 +21,7 @@
       <AiSetting v-if="activeTab === 'ai'" />
       <PromptSetting v-if="activeTab === 'prompt'" />
       <RagSetting v-if="activeTab === 'rag'" />
+      <DeveloperSetting v-if="activeTab === 'developer'" />
     </div>
   </div>
 </template>
@@ -29,11 +30,12 @@
 import { ref, computed } from 'vue'
 import { useI18n } from '@/hooks/useI18n'
 import { Button } from '@/components/ui/button'
-import { BotMessageSquare, Drama, Settings, BookText } from 'lucide-vue-next'
+import { BotMessageSquare, Drama, Settings, BookText, Code2 } from 'lucide-vue-next'
 import GeneralSetting from './general/GeneralSetting.vue'
 import AiSetting from './ai/AiSetting.vue'
 import PromptSetting from './prompt/PromptSetting.vue'
 import RagSetting from './rag/RagSetting.vue'
+import DeveloperSetting from './developer/DeveloperSetting.vue'
 
 const { t } = useI18n()
 
@@ -59,6 +61,11 @@ const navItems = computed(() => [
     id: 'rag',
     label: t('settings.rag.title'),
     icon: BookText
+  },
+  {
+    id: 'developer',
+    label: '开发者',
+    icon: Code2
   }
 ])
 </script>
