@@ -35,6 +35,12 @@
     --brand-pink: 333 82% 73%;       /* #F284B6 六花粉 */
     --brand-orange: 32 95% 44%;      /* #D97706 六花橙 */
 
+    /* == 六花主题阴影色 (Shadow Colors) == */
+    --brand-pink-shadow: 331 45% 49%;   /* #B5447B 粉丝阴影 */
+    --brand-purple-shadow: 237 16% 27%; /* #3C3D4F 紫色阴影 */
+    --brand-orange-shadow: 23 91% 28%;  /* #873706 橙色阴影 */
+    --brand-cyan-shadow: 194 17% 22%;   /* #2B3E44 青色阴影 */
+
     --radius: 0.5rem;
 
     /* 图表变量 */
@@ -84,6 +90,12 @@
     --brand-cyan: 190 100% 42%;
     --brand-pink: 333 82% 73%;
     --brand-orange: 32 95% 44%;
+
+    /* 六花主题阴影色在暗色模式下适当调亮 */
+    --brand-pink-shadow: 331 45% 59%;   /* 粉丝阴影 - 调亮 */
+    --brand-purple-shadow: 237 16% 37%; /* 紫色阴影 - 调亮 */
+    --brand-orange-shadow: 23 91% 38%;  /* 橙色阴影 - 调亮 */
+    --brand-cyan-shadow: 194 17% 32%;   /* 青色阴影 - 调亮 */
 
     /* 图表与侧边栏 (Dark Mode 略) */
     --sidebar-background: 221 39% 11%;

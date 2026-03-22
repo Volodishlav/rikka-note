@@ -15,12 +15,17 @@ module.exports = {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 
-				/* 单独剥离的“六花”品牌色 */
+				/* 单独剥离的"六花"品牌色 */
 				brand: {
 					purple: 'hsl(var(--brand-purple))',
 					cyan: 'hsl(var(--brand-cyan))',
 					pink: 'hsl(var(--brand-pink))',
 					orange: 'hsl(var(--brand-orange))',
+					/* 六花主题阴影色 */
+					'pink-shadow': 'hsl(var(--brand-pink-shadow))',
+					'purple-shadow': 'hsl(var(--brand-purple-shadow))',
+					'orange-shadow': 'hsl(var(--brand-orange-shadow))',
+					'cyan-shadow': 'hsl(var(--brand-cyan-shadow))',
 				},
 
 				primary: {

@@ -32,10 +32,7 @@
         </filter>
 
         <!-- 定义指定的颜色与渐变 -->
-<!--        粉：ED90BD  粉丝阴影：B5447B-->
-<!--        紫：5D5F86  紫色阴影：3C3D4F-->
-<!--        橙：C87438  橙色阴影：873706-->
-<!--        绿：54C1CC-335F66  绿色阴影：2B3E44-->
+
         <!-- 粉色: ED90BD / 阴影: B5447B -->
         <linearGradient id="g-pink" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stop-color="#FFB3D1" />
@@ -102,21 +99,21 @@
             d="M80 180 Q250 185, 450 175 T820 180"
             stroke="url(#g-orange-gradient)"
             stroke-width="20"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        fill="none"
-        stroke-dasharray="none"
-        stroke-dashoffset="0"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            fill="none"
+            stroke-dasharray="none"
+            stroke-dashoffset="0"
         />
         <!-- 叠加层笔触：调整宽度和位置，增强毛刷叠色质感 -->
         <path
             d="M80 182 Q250 187, 450 177 T820 182"
             stroke="url(#g-pink-gradient)"
             stroke-width="10"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        fill="none"
-        opacity="0.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            fill="none"
+            opacity="0.8"
         />
         <!-- 额外增加一层极细的纹理笔触，强化毛刷质感 -->
         <path
@@ -134,14 +131,14 @@
       <!-- 主体文字层 -->
       <g filter="url(#crayon-texture)">
         <!-- RIKKA -->
-        <!-- R: 粉色 -->
+        <!-- R: 橙色 -->
         <text
             x="50" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="90"
             font-weight="900"
-            fill="url(#g-pink)"
-            stroke="#B5447B"
+            fill="url(#g-orange)"
+            stroke="#873706"
             stroke-width="5"
             stroke-linejoin="round"
         >R</text>
@@ -158,38 +155,38 @@
             stroke-linejoin="round"
         >I</text>
 
-        <!-- K: 橙色 -->
+        <!-- K: 粉色 -->
         <text
             x="190" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="90"
             font-weight="900"
-            fill="url(#g-orange)"
-            stroke="#873706"
+            fill="url(#g-pink)"
+            stroke="#B5447B"
             stroke-width="5"
             stroke-linejoin="round"
         >K</text>
 
-        <!-- K: 绿色 -->
+        <!-- K: 粉色-->
         <text
             x="290" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="90"
             font-weight="900"
-            fill="url(#g-green)"
-            stroke="#2B3E44"
+            fill="url(#g-pink)"
+            stroke="#B5447B"
             stroke-width="5"
             stroke-linejoin="round"
         >K</text>
 
-        <!-- A: 粉色 -->
+        <!-- A: 绿色 -->
         <text
             x="390" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="90"
             font-weight="900"
-            fill="url(#g-pink)"
-            stroke="#B5447B"
+            fill="url(#g-green)"
+            stroke="#2B3E44"
             stroke-width="5"
             stroke-linejoin="round"
         >A</text>
