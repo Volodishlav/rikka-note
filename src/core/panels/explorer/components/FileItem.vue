@@ -60,30 +60,30 @@
     <!-- 右键菜单 -->
     <ContextMenuContent>
       <ContextMenuItem @click="handleShowFileManager">
-        Show in File Manager
+        {{ t('article.contextMenu.showInFileManager') }}
       </ContextMenuItem>
       <ContextMenuSeparator />
       <ContextMenuItem
           :disabled="!item.isLocale"
           @click="handleCutFile"
       >
-        Cut
+        {{ t('article.contextMenu.cut') }}
       </ContextMenuItem>
       <ContextMenuItem @click="handleCopyFile">
-        Copy
+        {{ t('article.contextMenu.copy') }}
       </ContextMenuItem>
       <ContextMenuItem
           :disabled="!clipboardItem"
           @click="handlePasteFile"
       >
-        Paste
+        {{ t('article.contextMenu.paste') }}
       </ContextMenuItem>
       <ContextMenuSeparator />
       <ContextMenuItem
           :disabled="!item.isLocale"
           @click="handleStartRename"
       >
-        Rename
+        {{ t('article.contextMenu.rename') }}
       </ContextMenuItem>
 <!--      <ContextMenuItem-->
 <!--          :disabled="!item.sha"-->
@@ -97,7 +97,7 @@
           @click="handleDeleteFile"
           class="text-red-900"
       >
-        Delete
+        {{ t('article.contextMenu.delete') }}
       </ContextMenuItem>
     </ContextMenuContent>
   </ContextMenu>
@@ -123,6 +123,7 @@ import {
 } from '@/components/ui/context-menu'
 import useClipboardStore from '@/stores/clipboard'
 import {convertImageByWorkspace} from '@/lib/utils'
+import { useI18n } from '@/hooks/useI18n'
 
 interface Props {
   item: DirTree
@@ -133,6 +134,7 @@ const props = defineProps<Props>()
 const articleStore = useArticleStore()
 const { show } = useToast()
 const clipboardStore = useClipboardStore()
+const { t } = useI18n()
 const clipboardItem = computed(() => clipboardStore.clipboardItem)
 const clipboardOperation = computed(() => clipboardStore.clipboardOperation)
 const setClipboardItem = (item: any, op: 'copy' | 'cut' | 'none') => clipboardStore.setClipboardItem(item, op)
@@ -271,7 +273,7 @@ const handleRename = async () => {
 
     // 7. 冲突检测
     if (await exists(newFullPath)) {
-      show({ title: 'A file with this name already exists', variant: 'warning' })
+      show({ title: t('article.contextMenu.fileAlreadyExists'), variant: 'warning' })
       return // 不关闭编辑模式，让用户继续修改
     }
 
@@ -284,10 +286,10 @@ const handleRename = async () => {
     await articleStore.loadFileTree()
     await articleStore.setActiveFilePath(newPath)
 
-    show({ title: 'Renamed successfully', variant: 'success' })
+    show({ title: t('article.contextMenu.renameSuccess'), variant: 'success' })
   } catch (error) {
     console.error('Rename failed:', error)
-    show({ title: 'Rename failed', variant: 'error' })
+    show({ title: t('article.contextMenu.renameFailed'), variant: 'error' })
   }
 }
 
@@ -300,8 +302,8 @@ const handleEditEnd = () => {
 }
 
 const handleDeleteFile = async () => {
-  const confirmed = await ask(`Delete ${props.item.name}?`, {
-    title: 'Confirm',
+  const confirmed = await ask(t('article.contextMenu.confirmDeleteFileMessage', { name: props.item.name }), {
+    title: t('article.contextMenu.confirmDeleteFileTitle'),
     kind: 'warning'
   })
 
@@ -319,7 +321,7 @@ const handleDeleteFile = async () => {
   } catch (error) {
     console.error('Delete failed:', error)
     show({
-      title: 'Delete failed',
+      title: t('article.contextMenu.deleteFailed'),
       variant: 'error'
     })
   }
@@ -341,22 +343,22 @@ const handleDragStart = (e: DragEvent) => {
 
 const handleCopyFile = () => {
   setClipboardItem({ path: path.value, name: props.item.name, isDirectory: false, sha: props.item.sha, isLocale: props.item.isLocale }, 'copy')
-  show({ title: 'Copied', variant: 'success' })
+  show({ title: t('article.contextMenu.copied'), variant: 'success' })
 }
 
 const handleCutFile = () => {
   setClipboardItem({ path: path.value, name: props.item.name, isDirectory: false, sha: props.item.sha, isLocale: props.item.isLocale }, 'cut')
-  show({ title: 'Cut', variant: 'success' })
+  show({ title: t('article.contextMenu.cutSuccess'), variant: 'success' })
 }
 
 const handlePasteFile = async () => {
   const item = clipboardItem.value
   if (!item) {
-    show({ title: 'Clipboard is empty', variant: 'error' })
+    show({ title: t('article.contextMenu.clipboardEmpty'), variant: 'error' })
     return
   }
   if (item.isDirectory) {
-    show({ title: 'Pasting directories is not supported', variant: 'error' })
+    show({ title: t('article.contextMenu.pasteNotSupportedForDirectory'), variant: 'error' })
     return
   }
 
@@ -368,7 +370,7 @@ const handlePasteFile = async () => {
 
     const existsTarget = targetOpts.baseDir ? await exists(targetOpts.path, { baseDir: targetOpts.baseDir }) : await exists(targetOpts.path)
     if (existsTarget) {
-      const confirmOverwrite = await ask(`"${item.name}" already exists. Overwrite?`, { title: 'Confirm', kind: 'warning' })
+      const confirmOverwrite = await ask(t('article.contextMenu.confirmOverwrite', { name: item.name }), { title: t('article.contextMenu.confirmOverwriteTitle'), kind: 'warning' })
       if (!confirmOverwrite) return
     }
 
@@ -390,10 +392,10 @@ const handlePasteFile = async () => {
     }
 
     await articleStore.loadFileTree()
-    show({ title: 'Pasted', variant: 'success' })
+    show({ title: t('article.contextMenu.pasted'), variant: 'success' })
   } catch (err) {
     console.error('Paste failed:', err)
-    show({ title: 'Paste failed', variant: 'error' })
+    show({ title: t('article.contextMenu.pasteFailed'), variant: 'error' })
   }
 }
 

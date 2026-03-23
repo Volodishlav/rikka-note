@@ -52,17 +52,17 @@
       </ContextMenuTrigger>
 
       <ContextMenuContent>
-        <ContextMenuItem @click="handleNewFile">New File</ContextMenuItem>
-        <ContextMenuItem @click="handleNewFolder">New Folder</ContextMenuItem>
+        <ContextMenuItem @click="handleNewFile">{{ t('article.contextMenu.newFile') }}</ContextMenuItem>
+        <ContextMenuItem @click="handleNewFolder">{{ t('article.contextMenu.newFolder') }}</ContextMenuItem>
         <ContextMenuSeparator />
-        <ContextMenuItem @click="handleShowFileManager">Show in File Manager</ContextMenuItem>
+        <ContextMenuItem @click="handleShowFileManager">{{ t('article.contextMenu.showInFileManager') }}</ContextMenuItem>
         <ContextMenuSeparator />
-        <ContextMenuItem @click="handleStartRename">Rename</ContextMenuItem>
+        <ContextMenuItem @click="handleStartRename">{{ t('article.contextMenu.rename') }}</ContextMenuItem>
         <ContextMenuItem
             @click="handleDeleteFolder"
             class="text-red-900"
         >
-          Delete
+          {{ t('article.contextMenu.delete') }}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
@@ -100,6 +100,7 @@ import {
 } from '@/components/ui/context-menu'
 import {useToast} from '@/composables/useToast'
 import useClipboardStore from '@/stores/clipboard'
+import { useI18n } from '@/hooks/useI18n'
 
 interface Props {
   item: DirTree
@@ -109,6 +110,7 @@ const props = defineProps<Props>()
 const articleStore = useArticleStore()
 const { show } = useToast()
 const clipboardStore = useClipboardStore()
+const { t } = useI18n()
 
 // --- 状态定义 (仿照 FileItem) ---
 const isEditing = ref(props.item.isEditing ?? false)
@@ -201,7 +203,7 @@ const handleRename = async () => {
 
       // 检查目标是否存在
       if (await exists(newFullPath)) {
-        show({ title: 'Folder already exists', variant: 'warning' })
+        show({ title: t('article.contextMenu.folderAlreadyExists'), variant: 'warning' })
         // 恢复原名并退出编辑，或者保持编辑状态让用户重试
         // 此处仿照 FileItem 逻辑，如果存在则警告并不做操作，但 FileItem 此处逻辑是 return
         return
@@ -232,7 +234,7 @@ const handleRename = async () => {
   } catch (error) {
     console.error('Rename failed:', error)
     show({
-      title: 'Rename failed',
+      title: t('article.contextMenu.renameFailed'),
       variant: 'error'
     })
   }
@@ -300,7 +302,7 @@ const handleNewFile = async () => {
     await articleStore.loadFileTree()
   } catch (err) {
     console.error('Create file failed:', err)
-    show({ title: 'Create file failed', variant: 'error' })
+    show({ title: t('article.contextMenu.createFileFailed'), variant: 'error' })
   }
 }
 
@@ -321,7 +323,7 @@ const handleNewFolder = async () => {
     await articleStore.loadFileTree()
   } catch (err) {
     console.error('Create folder failed:', err)
-    show({ title: 'Create folder failed', variant: 'error' })
+    show({ title: t('article.contextMenu.createFolderFailed'), variant: 'error' })
   }
 }
 
@@ -331,13 +333,13 @@ const handleShowFileManager = async () => {
     await openPath(fullPath)
   } catch (err) {
     console.error('Open file manager failed:', err)
-    show({ title: 'Open file manager failed', variant: 'error' })
+    show({ title: t('article.contextMenu.openFileManagerFailed'), variant: 'error' })
   }
 }
 
 const handleDeleteFolder = async () => {
-  const confirmed = await ask(`Delete folder "${props.item.name}"? This will delete all its contents.`, {
-    title: 'Confirm Delete',
+  const confirmed = await ask(t('article.contextMenu.confirmDeleteFolderMessage', { name: props.item.name }), {
+    title: t('article.contextMenu.confirmDeleteFolderTitle'),
     kind: 'warning'
   })
 
@@ -353,7 +355,7 @@ const handleDeleteFolder = async () => {
     }
   } catch (error) {
     console.error('Delete folder failed:', error)
-    show({ title: 'Delete failed', variant: 'error' })
+    show({ title: t('article.contextMenu.deleteFailed'), variant: 'error' })
   }
 }
 
@@ -381,7 +383,7 @@ const handleDrop = async (e: DragEvent) => {
   try {
     const result = await articleStore.moveItem(sourcePath, path.value)
     if (result && !result.isNoOp) {
-      show({ title: 'Moved successfully', variant: 'success' })
+      show({ title: t('article.contextMenu.moveSuccess'), variant: 'success' })
       // 如果目标文件夹未展开，建议展开它
       if (!isExpanded.value) {
         isExpanded.value = true
@@ -389,7 +391,7 @@ const handleDrop = async (e: DragEvent) => {
     }
   } catch (err) {
     // 错误已由 store 处理并显示，这里可以做额外 UI 反馈
-    show({ title: (err as Error).message || 'Move failed', variant: 'error' })
+    show({ title: (err as Error).message || t('article.contextMenu.moveFailed'), variant: 'error' })
   }
 }
 
