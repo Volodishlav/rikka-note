@@ -3,6 +3,8 @@ import { ref } from 'vue'
 import { tauriGet, tauriSet } from '@/utils/tauriStore'
 import { exists, writeTextFile, mkdir } from '@tauri-apps/plugin-fs'
 import { useI18n } from '@/hooks/useI18n'
+import { closeDb, initAllDatabases } from '@/db'
+import { useArticleStore } from '@/stores/article'
 
 export interface WorkspaceItem {
   id: string
@@ -28,11 +30,26 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       if (savedActiveWorkspaceId) {
         const found = workspaces.value.find(w => w.id === savedActiveWorkspaceId)
         if (found) {
-          activeWorkspace.value = found
-          
-          // 更新最后访问时间
-          found.lastAccessed = Date.now()
-          await tauriSet('workspaces', workspaces.value)
+          // 进一步验证该物理路径是否依然存活
+          let isFolderValid = false
+          try {
+            isFolderValid = await exists(found.path)
+          } catch (e) {
+            isFolderValid = false
+          }
+
+          if (isFolderValid) {
+            activeWorkspace.value = found
+            
+            // 更新最后访问时间
+            found.lastAccessed = Date.now()
+            await tauriSet('workspaces', workspaces.value)
+          } else {
+            console.warn(`[Workspace] 启动时发现激活仓库的文件夹(${found.path})已丢失。状态回退。`)
+            // 失效则悬空
+            activeWorkspace.value = null
+            await tauriSet('activeWorkspaceId', null)
+          }
         }
       }
     } catch (e) {
@@ -90,6 +107,18 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     const found = workspaces.value.find(w => w.id === workspaceId)
     if (!found) throw new Error(t('workspace.toast.workspaceNotFound'))
       
+    // 拦截：验证试图切换的仓库物理文件夹是否仍然存在
+    let isFolderValid = false
+    try {
+      isFolderValid = await exists(found.path)
+    } catch (e) {
+      isFolderValid = false
+    }
+
+    if (!isFolderValid) {
+      throw new Error(`无法切换：仓库本地文件夹已失效或被删除 (${found.path})`)
+    }
+
     activeWorkspace.value = found
     found.lastAccessed = Date.now()
     
@@ -98,6 +127,23 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     
     // 同步设置系统旧有的依赖键名 workspacePath
     await tauriSet('workspacePath', found.path)
+    
+    // 清除旧仓库的选中文件夹状态，避免在新仓库中使用无效路径
+    try {
+      const articleStore = useArticleStore()
+      articleStore.clearSelectedFolder()
+      console.log('[Workspace] 已清除旧仓库的选中文件夹状态')
+    } catch (e) {
+      console.warn('[Workspace] 清除选中文件夹状态失败:', e)
+    }
+    
+    // 断开旧的数据库连接，并重新初始化对应新仓库的各类数据表
+    try {
+      await closeDb()
+      await initAllDatabases()
+    } catch (e) {
+      console.warn('切换仓库时重置数据库失败', e)
+    }
   }
 
   // 仅从列表中移除

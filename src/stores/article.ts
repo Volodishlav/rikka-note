@@ -253,7 +253,11 @@ export const useArticleStore = defineStore('article', () => {
 
             const isWorkspaceExists = await exists(workspace.path)
             if (!isWorkspaceExists) {
-                await mkdir(workspace.path)
+                // 不得私自创建已被外部删除的目录
+                errorMsg.value = '仓库对应本地文件夹不存在或已被移出原位置。'
+                fileTree.value = []
+                fileTreeLoading.value = false
+                return
             }
 
             // 读取工作区文件

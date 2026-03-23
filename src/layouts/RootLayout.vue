@@ -21,8 +21,9 @@ import dayjs from 'dayjs'
 import zh from 'dayjs/locale/zh-cn'
 import en from 'dayjs/locale/en'
 import { initAllDatabases } from '@/db'
-import { useToast } from "@/composables/useToast";
+import { useToast } from "@/composables/useToast"
 import WelcomeGuide from '@/components/WelcomeGuide.vue'
+import { useWorkspaceStore } from '@/stores/workspace'
 
 const settingStore = useSettingStore()
 const vectorStore = useVectorStore()
@@ -42,21 +43,25 @@ onMounted(async () => {
     await (settingStore as any).initMainHosting()
   }
 
-  try {
-    // 直接调用初始化函数（内部已包含重试/检测逻辑）
-    await initAllDatabases();
-    
-    // 初始化向量数据库状态
-    await vectorStore.initVectorDb()
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error('应用数据库初始化失败:', errorMsg);
-    alert(`数据库初始化失败：\n${errorMsg}\n请检查配置后重启应用`);
-  }
-  
-  // 检查并提示工作区初始化
+  // 1. 检查并提示工作区初始化（内部会调用 initWorkspaceData）
   if (welcomeGuideRef.value) {
     await welcomeGuideRef.value.checkVisibility()
+  }
+
+  // 2. 仅当有激活的仓库时才加载对应的数据库
+  const workspaceStore = useWorkspaceStore()
+  if (workspaceStore.activeWorkspace) {
+    try {
+      // 内部已包含指向当前工作区 DB 的逻辑
+      await initAllDatabases();
+      
+      // 初始化向量数据库状态
+      await vectorStore.initVectorDb()
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error('应用数据库初始化失败:', errorMsg);
+      toast.show({ title: '数据库初始化失败', message: errorMsg, variant: 'error' })
+    }
   }
   
   console.log('TooltipProvider has been added to RootLayout')
