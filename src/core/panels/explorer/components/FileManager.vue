@@ -2,7 +2,6 @@
 <template>
   <div
       class="flex flex-col p-0 h-full"
-      :class="isDragging && 'outline-2 outline-black outline-dotted -outline-offset-4'"
       @drop="handleDrop"
       @dragover="handleDragOver"
       @dragleave="handleDragLeave"
@@ -20,7 +19,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { BaseDirectory, writeTextFile, writeFile } from '@tauri-apps/plugin-fs'
+import { writeTextFile, writeFile } from '@tauri-apps/plugin-fs'
 import { useArticleStore } from '@/stores/article'
 import { useToast } from '@/composables/useToast'
 import { getFilePathOptions } from '@/lib/workspace'
@@ -35,11 +34,20 @@ const fileTree = computed(() => articleStore.fileTree)
 // 处理拖拽上传
 const handleDrop = async (e: DragEvent) => {
   e.preventDefault()
+  e.stopPropagation()
 
-  // 处理路径拖拽（重新排列）
-  const pathData = e.dataTransfer?.getData('text')
-  if (pathData) {
-    // TODO: 实现拖拽重新排列逻辑
+  // 处理内部路径拖拽（移动到根目录）
+  const rikkaPath = e.dataTransfer?.getData('application/rikka-path')
+  if (rikkaPath) {
+    try {
+      // 移动到根目录，targetDirRelativePath 传空字符串
+      const result = await articleStore.moveItem(rikkaPath, '')
+      if (result && !result.isNoOp) {
+        show({ title: 'Moved to root', variant: 'success' })
+      }
+    } catch (err) {
+      show({ title: (err as Error).message || 'Move failed', variant: 'error' })
+    }
     isDragging.value = false
     return
   }

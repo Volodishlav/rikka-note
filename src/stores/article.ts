@@ -1,7 +1,7 @@
 //article.ts
 import {defineStore} from 'pinia'
 import {ref} from 'vue'
-import {BaseDirectory, DirEntry, exists, mkdir, readDir, readTextFile, stat, writeTextFile} from '@tauri-apps/plugin-fs'
+import {DirEntry, exists, mkdir, readDir, readTextFile, rename, stat, writeTextFile} from '@tauri-apps/plugin-fs'
 import {Store} from '@tauri-apps/plugin-store'
 import {cloneDeep, uniq} from 'lodash-es'
 import {join} from '@tauri-apps/api/path'
@@ -616,6 +616,62 @@ export const useArticleStore = defineStore('article', () => {
         selectedFolder.value = ''
     }
 
+    // 移动文件或文件夹
+    async function moveItem(sourceRelativePath: string, targetDirRelativePath: string) {
+        errorMsg.value = null
+        
+        try {
+            const workspace = await getWorkspacePath()
+            if (!workspace.isCustom) return { success: false }
+
+            // 1. 计算路径并进行规范化
+            const sourceAbsolutePath = await join(workspace.path, sourceRelativePath)
+            const itemName = sourceRelativePath.split(/[\\/]/).pop() || ''
+            const targetRelativePath = targetDirRelativePath 
+                ? `${targetDirRelativePath}/${itemName}` 
+                : itemName
+            
+            const normalize = (p: string) => p.replace(/\\/g, '/').replace(/\/+$/, '').replace(/^\/+/, '')
+            const normalizedSource = normalize(sourceRelativePath)
+            const normalizedTarget = normalize(targetRelativePath)
+            
+            const targetAbsolutePath = await join(workspace.path, targetRelativePath)
+
+            // 2. 原位移动检测 (No-Op)
+            if (normalizedSource === normalizedTarget) {
+                return { success: true, newPath: targetRelativePath, isNoOp: true }
+            }
+
+            // 3. 安全与冲突校验 (直接抛出，由 catch 统一处理 UI 提示)
+            if (targetRelativePath.startsWith(`${sourceRelativePath}/`)) {
+                throw new Error('Cannot move an item into its own subdirectories.')
+            }
+
+            if (await exists(targetAbsolutePath)) {
+                throw new Error(`An item with the name "${itemName}" already exists in the target folder.`)
+            }
+
+            // 4. 执行物理移动与状态更新
+            await rename(sourceAbsolutePath, targetAbsolutePath)
+
+            if (activeFilePath.value === sourceRelativePath) {
+                activeFilePath.value = targetRelativePath
+                const store = await Store.load('store.json')
+                await store.set('activeFilePath', targetRelativePath)
+                await store.save()
+            }
+            
+            await loadFileTree()
+            return { success: true, newPath: targetRelativePath }
+
+        } catch (error) {
+            const msg = (error as Error).message
+            errorMsg.value = `移动失败：${msg}`
+            console.error('[ArticleStore] moveItem error:', error)
+            throw error // 重新抛出以便组件捕获
+        }
+    }
+
     // -暴露状态和方法
     return {
         // 状态
@@ -660,7 +716,8 @@ export const useArticleStore = defineStore('article', () => {
         saveCurrentArticle,
         setEnableOutline,
         initEnableOutline,
-        loadAllArticle
+        loadAllArticle,
+        moveItem
     }
 })
 

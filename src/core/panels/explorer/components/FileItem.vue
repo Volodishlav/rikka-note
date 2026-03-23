@@ -1,14 +1,17 @@
 //FileItem.vue
 <template>
   <ContextMenu>
-    <ContextMenuTrigger>
+    <ContextMenuTrigger as-child>
       <div
           class="flex items-center gap-1 px-2 py-1 text-sm cursor-pointer rounded"
           :class="[
           path === activeFilePath ? 'bg-brand-purple/15 text-brand-purple font-medium' : 'hover:bg-accent text-foreground',
           !isRoot && 'translate-x-5'
         ]"
+          draggable="true"
+          style="-webkit-user-drag: element; user-select: none;"
           @click="(e) => handleSelectFile(e)"
+          @dragstart="handleDragStart"
       >
         <!-- 编辑模式 -->
         <div v-if="isEditing" class="flex gap-1 items-center w-full select-none">
@@ -35,8 +38,6 @@
             <Image class="size-4" />
             <span
                 class="text-xs flex-1 line-clamp-1"
-                draggable
-                @dragstart="handleDragStart"
             >
               {{ item.name }}
             </span>
@@ -48,8 +49,6 @@
             <FileIcon :item="item" />
             <span
                 class="text-xs flex-1 line-clamp-1"
-                draggable
-                @dragstart="handleDragStart"
             >
               {{ item.name }}
             </span>
@@ -107,7 +106,7 @@
 <script setup lang="ts">
 import {computed, nextTick, onMounted, ref} from 'vue'
 import {ask} from '@tauri-apps/plugin-dialog'
-import {BaseDirectory, exists, readTextFile, remove, rename, writeTextFile} from '@tauri-apps/plugin-fs'
+import {exists, readTextFile, remove, rename, writeTextFile} from '@tauri-apps/plugin-fs'
 import {openPath} from '@tauri-apps/plugin-opener'
 import {Image} from 'lucide-vue-next'
 import type {DirTree} from '@/stores/article'
@@ -296,7 +295,7 @@ const handleEditEnd = () => {
   isEditing.value = false
   // 如果是那种“新建后未命名就取消”的情况，才需要通知 store 清理
   if (!props.item.name) {
-    articleStore.fileTree = articleStore.fileTree.filter(f => f.name !== '')
+    articleStore.setFileTree(articleStore.fileTree.filter((f: DirTree) => f.name !== ''))
   }
 }
 
@@ -334,7 +333,10 @@ const handleShowFileManager = async () => {
 }
 
 const handleDragStart = (e: DragEvent) => {
-  e.dataTransfer!.setData('text', path.value)
+  if (e.dataTransfer) {
+    e.dataTransfer.setData('application/rikka-path', path.value)
+    e.dataTransfer.effectAllowed = 'move'
+  }
 }
 
 const handleCopyFile = () => {

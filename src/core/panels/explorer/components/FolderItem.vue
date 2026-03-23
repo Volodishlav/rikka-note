@@ -5,9 +5,15 @@
     <ContextMenu>
       <ContextMenuTrigger as-child>
         <div
-            class="flex items-center gap-1 px-2 py-1 text-sm cursor-pointer hover:bg-accent rounded w-full whitespace-nowrap box-border"
-            :class="{ 'bg-accent text-accent-foreground': isSelected }"
+            class="flex items-center gap-1 px-2 py-1 text-sm cursor-pointer hover:bg-accent rounded w-full whitespace-nowrap box-border transition-colors"
+            :class="{ 
+              'bg-accent text-accent-foreground': isSelected,
+              'outline-2 outline-brand-purple outline-dashed -outline-offset-2 bg-brand-purple/5': isDragging
+            }"
+            draggable="true"
+            style="-webkit-user-drag: element; user-select: none;"
             @click="handleFolderClick"
+            @dragstart="handleDragStart"
             @drop="handleDrop"
             @dragover="handleDragOver"
             @dragleave="handleDragLeave"
@@ -79,7 +85,7 @@ import {ChevronRight, Folder} from 'lucide-vue-next'
 import {ask} from '@tauri-apps/plugin-dialog'
 import {openPath} from '@tauri-apps/plugin-opener'
 import {join} from '@tauri-apps/api/path'
-import {exists, mkdir, readTextFile, remove, rename, writeTextFile} from '@tauri-apps/plugin-fs'
+import {exists, mkdir, remove, rename, writeTextFile} from '@tauri-apps/plugin-fs'
 import { getAbsoluteFilePath } from '@/lib/workspace'
 import type {DirTree} from '@/stores/article'
 import {useArticleStore} from '@/stores/article'
@@ -118,9 +124,7 @@ const isExpanded = computed({
     return articleStore.collapsibleList.includes(path.value)
   },
   set(value) {
-    articleStore.collapsibleList = value
-        ? [...new Set([...articleStore.collapsibleList, path.value])]
-        : articleStore.collapsibleList.filter(p => p !== path.value)
+    articleStore.setCollapsibleListItem(path.value, value)
   }
 })
 
@@ -240,9 +244,9 @@ const handleEditEnd = () => {
   if (!props.item.name) {
     // 逻辑：如果是根节点，从 store 移除；如果是子节点，从父节点移除
     if (props.item.parent) {
-      props.item.parent.children = props.item.parent.children?.filter(c => c !== props.item)
+      props.item.parent.children = props.item.parent.children?.filter((c: DirTree) => c !== props.item)
     } else {
-      articleStore.fileTree = articleStore.fileTree.filter(f => f.name !== '')
+      articleStore.setFileTree(articleStore.fileTree.filter((f: DirTree) => f.name !== ''))
     }
   }
 }
@@ -355,50 +359,45 @@ const handleDeleteFolder = async () => {
 
 // 拖拽相关
 const isDragging = ref(false)
+
+const handleDragStart = (e: DragEvent) => {
+  if (e.dataTransfer) {
+    e.dataTransfer.setData('application/rikka-path', path.value)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+}
+
 const handleDrop = async (e: DragEvent) => {
   e.preventDefault()
+  e.stopPropagation()
   isDragging.value = false
 
+  const sourcePath = e.dataTransfer?.getData('application/rikka-path')
+  if (!sourcePath) return
+
+  // 防止移入自身或父目录（moveItem 会处理，但前端提前拦截体验更好）
+  if (sourcePath === path.value) return
+
   try {
-    const pathData = e.dataTransfer?.getData('text')
-    if (!pathData) return
-
-    const clipboardItem = clipboardStore.clipboardItem
-    if (!clipboardItem) return
-
-    const targetFullPath = await getAbsoluteFilePath(path.value)
-
-    if (!clipboardItem.isDirectory) {
-      const sourcePath = await getAbsoluteFilePath(clipboardItem.path)
-      const targetFilePath = await join(targetFullPath, clipboardItem.name)
-
-      if (await exists(targetFilePath)) {
-        const confirmOverwrite = await ask(`"${clipboardItem.name}" already exists. Overwrite?`, {
-          title: 'Confirm',
-          kind: 'warning'
-        })
-        if (!confirmOverwrite) return
+    const result = await articleStore.moveItem(sourcePath, path.value)
+    if (result && !result.isNoOp) {
+      show({ title: 'Moved successfully', variant: 'success' })
+      // 如果目标文件夹未展开，建议展开它
+      if (!isExpanded.value) {
+        isExpanded.value = true
       }
-
-      const content = await readTextFile(sourcePath)
-      await writeTextFile(targetFilePath, content)
-
-      if (clipboardStore.clipboardOperation === 'cut') {
-        await remove(sourcePath)
-        clipboardStore.setClipboardItem(null, 'none')
-      }
-
-      await articleStore.loadFileTree()
-      show({ title: 'File moved', variant: 'success' })
     }
   } catch (err) {
-    console.error('Drop failed:', err)
-    show({ title: 'Drop failed', variant: 'error' })
+    // 错误已由 store 处理并显示，这里可以做额外 UI 反馈
+    show({ title: (err as Error).message || 'Move failed', variant: 'error' })
   }
 }
 
 const handleDragOver = (e: DragEvent) => {
   e.preventDefault()
+  if (e.dataTransfer) {
+    e.dataTransfer.dropEffect = 'move'
+  }
   isDragging.value = true
 }
 
