@@ -3,6 +3,7 @@ import {getCurrentWindow} from '@tauri-apps/api/window';
 import {onMounted, onUnmounted, ref} from 'vue';
 import ArtTitle from "@/shared/components/ArtTitle.vue";
 import { useLayoutStore } from '@/stores/layout';
+import {ScanText} from "lucide-vue-next";
 
 // 初始化布局状态
 const layoutStore = useLayoutStore();
@@ -113,10 +114,7 @@ onUnmounted(() => {
           class="panel-btn"
           :class="{ 'active-btn': layoutStore.isOcrVisible }"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 3.14V5h-2V3.14a2 2 0 0 1 2-2zm0 15.86v1.86a2 2 0 0 1-2 2H3.14M17 3.14V5h2V3.14a2 2 0 0 0-2-2zM17 19v1.86a2 2 0 0 0 2 2h1.86M2 7H5V5M2 17h3v2M19 7h3V5M19 17h3v2M7 7h10v10H7z"/>
-          <path d="M12 11v2a2 2 0 0 0 2 2h1"/>
-        </svg>
+        <ScanText :size="20" />
       </button>
       <!-- 搜索按钮 -->
       <button
