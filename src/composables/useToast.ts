@@ -69,7 +69,7 @@ export function useToast() {
       title: opts.title,
       description: opts.message,
       variant: variantMap[opts.variant || 'info'],
-      duration: opts.duration ?? 4000,
+      duration: opts.duration ?? 1500,
     });
 
     return toastInstance.id;
