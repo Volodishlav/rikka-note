@@ -1,5 +1,6 @@
 mod webdav;
 mod fuzzy_search;
+mod ocr;
 use webdav::{webdav_backup, webdav_create_dir, webdav_sync, webdav_test};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -19,6 +20,8 @@ pub fn run() {
             webdav_create_dir,
             fuzzy_search::fuzzy_search,
             fuzzy_search::fuzzy_search_parallel,
+            ocr::ocr_from_bytes,
+            ocr::ocr_from_screen,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

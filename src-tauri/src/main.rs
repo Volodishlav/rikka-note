@@ -10,6 +10,7 @@ mod window;
 mod app_setup;
 mod backup;
 mod model_manager;
+mod ocr;
 use tauri::{AppHandle, Manager, State, WindowEvent};
 use model_manager::LlamaServerState;
 use screenshot::{screenshot};
@@ -60,6 +61,9 @@ fn main() {
             model_manager::check_model_exists,
             model_manager::start_llama_server,
             model_manager::stop_llama_server,
+            ocr::ocr_from_bytes,
+            ocr::ocr_from_screen,
+            ocr::capture_main_screen,
         ])
 
         // 应用设置 - 在所有插件和命令注册后

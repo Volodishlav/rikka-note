@@ -10,6 +10,12 @@ export const useLayoutStore = defineStore('layout', () => {
     const isSearchPanelVisible = ref(false)
     // 控制是否显示设置页面（独占整个窗口）
     const isSettingPageVisible = ref(false)
+    // 控制是否显示 OCR 面板
+    const isOcrVisible = ref(false)
+    // 控制是否处于截屏选区状态
+    const isScreenSelecting = ref(false)
+    // 存储当前截屏的 Base64 数据
+    const screenImageData = ref('')
 
     // Action to toggle the visibility of the left sidebar
     function toggleLeftSidebar() {
@@ -36,16 +42,32 @@ export const useLayoutStore = defineStore('layout', () => {
         isSettingPageVisible.value = !isSettingPageVisible.value
     }
 
+    // Action to toggle the visibility of the OCR panel
+    function toggleOcr() {
+        isOcrVisible.value = !isOcrVisible.value
+    }
+
+    // 更新截屏选区状态
+    function setScreenSelecting(selecting: boolean, imageData: string = '') {
+        isScreenSelecting.value = selecting
+        screenImageData.value = imageData
+    }
+
     return {
         isLeftSidebarVisible,
         isEditorVisible,
         isRightSidebarVisible,
         isSearchPanelVisible,
         isSettingPageVisible,
+        isOcrVisible,
+        isScreenSelecting,
+        screenImageData,
         toggleLeftSidebar,
         toggleEditor,
         toggleRightSidebar,
         toggleSearchPanel,
-        toggleSettingPage
+        toggleSettingPage,
+        toggleOcr,
+        setScreenSelecting
     }
 })

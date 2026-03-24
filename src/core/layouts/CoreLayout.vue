@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import TitleBar from '@/core/layouts/TitleBar.vue'
 import {useLayoutStore} from '@/stores/layout'
 import {Splitpanes, Pane} from 'splitpanes'
@@ -12,7 +13,19 @@ import SearchPanel from '@/core/panels/explorer/SearchPanel.vue' // 搜索面板
 import SettingPage from '@/core/pages/setting/SettingPage.vue' // 设置页面（独占窗口）
 import Start from '@/shared/pages/start.vue'
 import ArtTitle from '@/shared/components/ArtTitle.vue'
+import { OcrCapture } from '@/components/Ocr'
+import OcrScreenSelector from '@/components/Ocr/OcrScreenSelector.vue'
 const layoutStore = useLayoutStore()
+const ocrCaptureRef = ref<any>(null)
+
+/**
+ * 当选区完成时，由 OcrScreenSelector 调用
+ */
+const handleSelectionDone = (bytes: number[]) => {
+  if (ocrCaptureRef.value) {
+    ocrCaptureRef.value.handleSelectedImage(bytes)
+  }
+}
 
 </script>
 
@@ -84,6 +97,23 @@ const layoutStore = useLayoutStore()
           </div>
         </pane>
       </splitpanes>
+
+      <!-- OCR 全局悬浮层 (主界面) -->
+      <div 
+        v-if="layoutStore.isOcrVisible" 
+        class="absolute inset-0 z-50 flex items-center justify-center p-4 bg-background/60 backdrop-blur-sm transition-all"
+        @click.self="layoutStore.toggleOcr"
+      >
+        <div class="w-full max-w-xl animate-in fade-in zoom-in duration-200">
+          <OcrCapture ref="ocrCaptureRef" />
+        </div>
+      </div>
+
+      <!-- 截屏选区交互层 (全局最顶层) -->
+      <OcrScreenSelector 
+        v-if="layoutStore.isScreenSelecting" 
+        @selected="handleSelectionDone"
+      />
     </div>
   </div>
 </template>
