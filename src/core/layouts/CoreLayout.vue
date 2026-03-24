@@ -38,7 +38,7 @@ const layoutStore = useLayoutStore()
 
         <!-- 中间编辑器面板 -->
         <pane v-if="layoutStore.isEditorVisible" size="50" min-size="30">
-          <div class="h-full w-full p-1 overflow-hidden flex flex-col">
+          <div class="h-full w-full overflow-hidden flex flex-col">
             <!-- w-full flex flex-col确保其子组件也能完美继承高度-->
             <MdEditor/>
           </div>

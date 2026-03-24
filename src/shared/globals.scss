@@ -182,3 +182,63 @@
     @apply list-decimal;
   }
 }
+
+/**
+ * ============================================
+ * Splitpanes 分割线样式自定义
+ * ============================================
+ * 覆盖默认的 splitpanes 分割线样式，实现：
+ * 1. 分割线宽度设置为 7px
+ * 2. 适配深色模式主题
+ * ============================================
+ */
+
+/* 垂直分割线（左右拖动） */
+.splitpanes--vertical > .splitpanes__splitter {
+  /* 设置分割线宽度为 7px */
+  min-width: 7px !important;
+  width: 7px !important;
+  
+  /* 浅色模式下的分割线背景色 - 使用主题边框色 */
+  background-color: hsl(var(--border)) !important;
+  
+  /* 移除默认的渐变背景 */
+  background-image: none !important;
+  
+  /* 添加过渡效果，使主题切换更平滑 */
+  transition: background-color 0.2s ease;
+  
+  /* 鼠标悬停时显示可拖动光标 */
+  cursor: col-resize;
+}
+
+/* 水平分割线（上下拖动） */
+.splitpanes--horizontal > .splitpanes__splitter {
+  /* 设置分割线高度为 7px */
+  min-height: 7px !important;
+  height: 7px !important;
+  
+  /* 浅色模式下的分割线背景色 - 使用主题边框色 */
+  background-color: hsl(var(--border)) !important;
+  
+  /* 移除默认的渐变背景 */
+  background-image: none !important;
+  
+  /* 添加过渡效果，使主题切换更平滑 */
+  transition: background-color 0.2s ease;
+  
+  /* 鼠标悬停时显示可拖动光标 */
+  cursor: row-resize;
+}
+
+/* 分割线悬停效果 - 使用主题强调色 */
+.splitpanes__splitter:hover {
+  /* 悬停时使用边框色的深色版本，增加视觉反馈 */
+  background-color: hsl(var(--muted-foreground) / 0.3) !important;
+}
+
+/* 分割线拖动时的效果 */
+.splitpanes__splitter:active {
+  /* 拖动时使用品牌紫色作为视觉反馈 */
+  background-color: hsl(var(--brand-purple) / 0.5) !important;
+}
