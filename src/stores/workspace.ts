@@ -5,6 +5,7 @@ import { exists, writeTextFile, mkdir } from '@tauri-apps/plugin-fs'
 import { useI18n } from '@/hooks/useI18n'
 import { closeDb, initAllDatabases } from '@/db'
 import { useArticleStore } from '@/stores/article'
+import { useEncryptionStore } from '@/stores/encryption'
 
 export interface WorkspaceItem {
   id: string
@@ -106,7 +107,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   async function switchWorkspace(workspaceId: string): Promise<void> {
     const found = workspaces.value.find(w => w.id === workspaceId)
     if (!found) throw new Error(t('workspace.toast.workspaceNotFound'))
-      
+
     // 拦截：验证试图切换的仓库物理文件夹是否仍然存在
     let isFolderValid = false
     try {
@@ -117,6 +118,17 @@ export const useWorkspaceStore = defineStore('workspace', () => {
 
     if (!isFolderValid) {
       throw new Error(`无法切换：仓库本地文件夹已失效或被删除 (${found.path})`)
+    }
+
+    // 切换工作区前，如果加密功能已解锁，则先锁定
+    try {
+      const encryptionStore = useEncryptionStore()
+      if (encryptionStore.isUnlocked) {
+        await encryptionStore.lock()
+        console.log('[Workspace] 切换工作区前已自动锁定加密文件')
+      }
+    } catch (e) {
+      console.warn('[Workspace] 切换工作区时锁定加密失败:', e)
     }
 
     activeWorkspace.value = found

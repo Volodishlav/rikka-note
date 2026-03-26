@@ -17,7 +17,6 @@
             <input
               ref="passwordInputRef"
               v-model="password"
-              :type="showPassword ? 'text' : 'password'"
               :placeholder="passwordPlaceholder"
               class="w-full h-9 px-3 rounded-md border bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple"
               @keydown.enter="handleSubmit"
