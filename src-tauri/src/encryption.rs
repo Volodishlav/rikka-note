@@ -3,69 +3,134 @@ use chacha20poly1305::{
     XChaCha20Poly1305, XNonce,
 };
 use argon2::Argon2;
+use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use rand::RngCore;
 use std::fs;
 use std::sync::Mutex;
+use zeroize::{Zeroize, Zeroizing};
 
 // ======== 常量 ========
 
-// 加密笔记文件格式
-const MAGIC: &[u8; 8] = b"RIKKAENC";
-const VERSION: u8 = 0x03; // v3: 信封加密，笔记使用 DEK 直接加密
-const NONCE_LEN: usize = 24;
-const NOTE_HEADER_LEN: usize = 8 + 1 + NONCE_LEN; // 33 bytes: magic + version + nonce
+// YAML Frontmatter 标记
+const FRONTMATTER_MARKER: &str = "---";
+const ENCRYPTED_FLAG: &str = "rikka_encrypted: true";
+const VERSION_TAG: &str = "version: 3";
 
-// DEK 密钥文件格式（存储被 KEK 加密的全局 DEK）
+// DEK 密钥文件格式（二进制，存储被 KEK 加密的全局 DEK）
 const KEY_FILE_SALT_LEN: usize = 32;
 const KEY_FILE_NONCE_LEN: usize = 24;
 const DEK_LEN: usize = 32;
 // 密钥文件 = salt(32) + nonce(24) + encrypted_dek(32 + 16 tag = 48) = 104 bytes
+
+// XChaCha20 nonce 长度
+const NONCE_LEN: usize = 24;
 
 // Argon2id 参数（仅在密码操作时使用，日常笔记加解密不涉及）
 const ARGON2_M_COST: u32 = 32_768; // 32 MB 内存
 const ARGON2_T_COST: u32 = 2;      // 2 次迭代
 const ARGON2_P_COST: u32 = 4;      // 4 线程并行
 
-// ======== 后端密钥托管状态 ========
+// ======== 后端密钥托管状态（zeroize 保护） ========
 
-/// 全局 DEK 托管：解锁后在内存中持有 DEK，锁定时清除
-static GLOBAL_DEK: Mutex<Option<[u8; DEK_LEN]>> = Mutex::new(None);
+/// 全局 DEK 托管：解锁后在内存中持有 DEK，锁定时自动安全清零
+static GLOBAL_DEK: Mutex<Option<Zeroizing<[u8; DEK_LEN]>>> = Mutex::new(None);
 
 // ======== 内部工具函数 ========
 
-/// 使用 Argon2id 从密码 + salt 派生 KEK
-fn derive_kek(password: &str, salt: &[u8]) -> Result<[u8; 32], String> {
+/// 使用 Argon2id 从密码 + salt 派生 KEK（返回自动清零的密钥）
+fn derive_kek(password: &str, salt: &[u8]) -> Result<Zeroizing<[u8; 32]>, String> {
     let argon2 = Argon2::new(
         argon2::Algorithm::Argon2id,
         argon2::Version::V0x13,
         argon2::Params::new(ARGON2_M_COST, ARGON2_T_COST, ARGON2_P_COST, Some(32))
             .map_err(|e| format!("Argon2 参数错误: {}", e))?,
     );
-    let mut kek = [0u8; 32];
+    let mut kek = Zeroizing::new([0u8; 32]);
     argon2
-        .hash_password_into(password.as_bytes(), salt, &mut kek)
+        .hash_password_into(password.as_bytes(), salt, kek.as_mut())
         .map_err(|e| format!("Argon2 密钥派生失败: {}", e))?;
     Ok(kek)
 }
 
-/// 获取当前托管的 DEK，未解锁时返回错误
-fn get_dek() -> Result<[u8; DEK_LEN], String> {
+/// 获取当前托管的 DEK 明文副本（用于加解密操作，离开作用域自动清零）
+fn get_dek() -> Result<Zeroizing<[u8; DEK_LEN]>, String> {
     let guard = GLOBAL_DEK.lock().unwrap();
-    guard.ok_or_else(|| "加密未解锁，请先输入密码".to_string())
+    match guard.as_ref() {
+        Some(dek) => Ok(Zeroizing::new(**dek)),
+        None => Err("加密未解锁，请先输入密码".to_string()),
+    }
+}
+
+/// 将笔记内容序列化为 YAML Frontmatter + Base64 格式
+fn serialize_encrypted_note(nonce: &[u8], ciphertext: &[u8]) -> String {
+    let nonce_b64 = BASE64.encode(nonce);
+    let cipher_b64 = BASE64.encode(ciphertext);
+    format!(
+        "{fm}\n{flag}\n{ver}\nnonce: \"{nonce}\"\n{fm}\n{body}",
+        fm = FRONTMATTER_MARKER,
+        flag = ENCRYPTED_FLAG,
+        ver = VERSION_TAG,
+        nonce = nonce_b64,
+        body = cipher_b64,
+    )
+}
+
+/// 从 YAML Frontmatter + Base64 格式解析加密笔记
+fn deserialize_encrypted_note(content: &str) -> Result<(Vec<u8>, Vec<u8>), String> {
+    let content = content.trim();
+
+    // 检查以 --- 开头
+    if !content.starts_with(FRONTMATTER_MARKER) {
+        return Err("文件未加密或格式无效".into());
+    }
+
+    // 跳过第一个 --- 和紧跟的换行符，找到 frontmatter 内容
+    let after_first = content[3..].trim_start_matches(['\n', '\r']);
+
+    // 找到结束标记 \n---（第二个 ---）
+    let end_idx = after_first.find("\n---")
+        .or_else(|| after_first.find("\r\n---"))
+        .ok_or("加密文件格式无效：缺少 frontmatter 结束标记")?;
+
+    let frontmatter = &after_first[..end_idx];
+
+    // 跳过 \n---\n 或 \r\n---\r\n 获取 body
+    let after_closing = &after_first[end_idx..];
+    // 跳过 "\n---" (4字节) 或 "\r\n---" (5字节)
+    let skip_len = if after_closing.starts_with("\r\n---") { 5 } else { 4 };
+    let body = after_closing[skip_len..].trim();
+
+    // 检查 rikka_encrypted 标记
+    if !frontmatter.contains(ENCRYPTED_FLAG) {
+        return Err("文件不是 Rikka 加密文件".into());
+    }
+
+    // 提取 nonce
+    let nonce_line = frontmatter.lines()
+        .find(|l| l.trim().starts_with("nonce:"))
+        .ok_or("加密文件格式无效：缺少 nonce")?;
+    let nonce_b64 = nonce_line.trim()
+        .trim_start_matches("nonce:")
+        .trim()
+        .trim_matches('"');
+    let nonce = BASE64.decode(nonce_b64)
+        .map_err(|e| format!("nonce Base64 解码失败: {}", e))?;
+
+    // 解码密文
+    let ciphertext = BASE64.decode(body)
+        .map_err(|e| format!("密文 Base64 解码失败: {}", e))?;
+
+    Ok((nonce, ciphertext))
 }
 
 // ======== Tauri 命令：密钥管理 ========
 
 /// 首次设置加密密码
-/// - 生成随机 DEK
-/// - 用密码派生 KEK 加密 DEK
-/// - 存储加密后的 DEK 到密钥文件
-/// - 将 DEK 保持在内存中（自动解锁）
 #[tauri::command]
 pub fn setup_encryption(password: String, key_file_path: String) -> Result<(), String> {
-    // 生成随机 DEK
-    let mut dek = [0u8; DEK_LEN];
-    OsRng.fill_bytes(&mut dek);
+    // 生成随机 DEK（Zeroizing 保护）
+    let mut dek = Zeroizing::new([0u8; DEK_LEN]);
+    OsRng.fill_bytes(dek.as_mut());
 
     // 生成 salt 并派生 KEK
     let mut salt = [0u8; KEY_FILE_SALT_LEN];
@@ -75,10 +140,10 @@ pub fn setup_encryption(password: String, key_file_path: String) -> Result<(), S
     // 用 KEK 加密 DEK
     let mut nonce_bytes = [0u8; KEY_FILE_NONCE_LEN];
     OsRng.fill_bytes(&mut nonce_bytes);
-    let cipher = XChaCha20Poly1305::new_from_slice(&kek)
+    let cipher = XChaCha20Poly1305::new_from_slice(kek.as_ref())
         .map_err(|e| format!("创建密码器失败: {}", e))?;
     let nonce = XNonce::from_slice(&nonce_bytes);
-    let encrypted_dek = cipher.encrypt(nonce, dek.as_ref())
+    let encrypted_dek = cipher.encrypt(nonce, dek.as_ref() as &[u8])
         .map_err(|e| format!("加密 DEK 失败: {}", e))?;
 
     // 写入密钥文件：salt + nonce + encrypted_dek
@@ -102,7 +167,7 @@ pub fn setup_encryption(password: String, key_file_path: String) -> Result<(), S
 
     // 自动解锁：将 DEK 保持在内存中
     let mut guard = GLOBAL_DEK.lock().unwrap();
-    *guard = Some(dek);
+    *guard = Some(Zeroizing::new(*dek));
 
     Ok(())
 }
@@ -110,44 +175,43 @@ pub fn setup_encryption(password: String, key_file_path: String) -> Result<(), S
 /// 解锁加密：验证密码并将 DEK 加载到内存
 #[tauri::command]
 pub fn unlock_encryption(password: String, key_file_path: String) -> Result<(), String> {
-    // 读取密钥文件
     let key_data = fs::read(&key_file_path).map_err(|e| format!("读取密钥文件失败: {}", e))?;
 
-    let expected_len = KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN + DEK_LEN + 16; // 16 = Poly1305 tag
+    let expected_len = KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN + DEK_LEN + 16;
     if key_data.len() != expected_len {
         return Err(format!("密钥文件格式无效（长度 {} != {}）", key_data.len(), expected_len));
     }
 
-    // 解析各段
     let salt = &key_data[..KEY_FILE_SALT_LEN];
     let nonce_bytes = &key_data[KEY_FILE_SALT_LEN..KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN];
     let encrypted_dek = &key_data[KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN..];
 
-    // 派生 KEK 并解密 DEK
+    // 派生 KEK 并解密 DEK（KEK 离开作用域自动清零）
     let kek = derive_kek(&password, salt)?;
-    let cipher = XChaCha20Poly1305::new_from_slice(&kek)
+    let cipher = XChaCha20Poly1305::new_from_slice(kek.as_ref())
         .map_err(|e| format!("创建密码器失败: {}", e))?;
     let nonce = XNonce::from_slice(nonce_bytes);
-    let dek_bytes = cipher.decrypt(nonce, encrypted_dek)
-        .map_err(|_| "密码错误".to_string())?;
+    let mut dek_bytes = Zeroizing::new(
+        cipher.decrypt(nonce, encrypted_dek)
+            .map_err(|_| "密码错误".to_string())?
+    );
 
     // 将 DEK 保持在内存中
-    let mut dek = [0u8; DEK_LEN];
+    let mut dek = Zeroizing::new([0u8; DEK_LEN]);
     dek.copy_from_slice(&dek_bytes);
+    dek_bytes.zeroize();
+
     let mut guard = GLOBAL_DEK.lock().unwrap();
     *guard = Some(dek);
 
     Ok(())
 }
 
-/// 锁定加密：清除内存中的 DEK
+/// 锁定加密：释放 DEK，Zeroizing 自动安全清零
 #[tauri::command]
 pub fn lock_encryption() -> Result<(), String> {
     let mut guard = GLOBAL_DEK.lock().unwrap();
-    // 安全清零
-    if let Some(ref mut dek) = *guard {
-        dek.fill(0);
-    }
+    // 设置为 None 时，Zeroizing 包装器自动将内存清零
     *guard = None;
     Ok(())
 }
@@ -159,14 +223,13 @@ pub fn is_encryption_unlocked() -> bool {
     guard.is_some()
 }
 
-/// 修改密码：O(1) 操作，只重新加密 DEK，不触碰笔记文件
+/// 修改密码：O(1) 操作，只重新加密 DEK
 #[tauri::command]
 pub fn change_encryption_password(
     old_password: String,
     new_password: String,
     key_file_path: String,
 ) -> Result<(), String> {
-    // 先用旧密码解锁获取 DEK
     let key_data = fs::read(&key_file_path).map_err(|e| format!("读取密钥文件失败: {}", e))?;
 
     let expected_len = KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN + DEK_LEN + 16;
@@ -178,12 +241,14 @@ pub fn change_encryption_password(
     let old_nonce = &key_data[KEY_FILE_SALT_LEN..KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN];
     let encrypted_dek = &key_data[KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN..];
 
-    // 用旧密码解密 DEK
+    // 用旧密码解密 DEK（KEK/DEK 都用 Zeroizing 保护）
     let old_kek = derive_kek(&old_password, old_salt)?;
-    let old_cipher = XChaCha20Poly1305::new_from_slice(&old_kek)
+    let old_cipher = XChaCha20Poly1305::new_from_slice(old_kek.as_ref())
         .map_err(|e| format!("创建密码器失败: {}", e))?;
-    let dek_bytes = old_cipher.decrypt(XNonce::from_slice(old_nonce), encrypted_dek)
-        .map_err(|_| "原密码错误".to_string())?;
+    let dek_bytes = Zeroizing::new(
+        old_cipher.decrypt(XNonce::from_slice(old_nonce), encrypted_dek)
+            .map_err(|_| "原密码错误".to_string())?
+    );
 
     // 用新密码重新加密 DEK
     let mut new_salt = [0u8; KEY_FILE_SALT_LEN];
@@ -192,10 +257,12 @@ pub fn change_encryption_password(
 
     let mut new_nonce_bytes = [0u8; KEY_FILE_NONCE_LEN];
     OsRng.fill_bytes(&mut new_nonce_bytes);
-    let new_cipher = XChaCha20Poly1305::new_from_slice(&new_kek)
+    let new_cipher = XChaCha20Poly1305::new_from_slice(new_kek.as_ref())
         .map_err(|e| format!("创建密码器失败: {}", e))?;
-    let new_encrypted_dek = new_cipher.encrypt(XNonce::from_slice(&new_nonce_bytes), dek_bytes.as_ref())
-        .map_err(|e| format!("加密 DEK 失败: {}", e))?;
+    let new_encrypted_dek = new_cipher.encrypt(
+        XNonce::from_slice(&new_nonce_bytes),
+        dek_bytes.as_ref() as &[u8],
+    ).map_err(|e| format!("加密 DEK 失败: {}", e))?;
 
     // 写回密钥文件
     let mut new_key_data = Vec::with_capacity(KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN + new_encrypted_dek.len());
@@ -207,74 +274,59 @@ pub fn change_encryption_password(
     Ok(())
 }
 
-// ======== Tauri 命令：笔记加解密 ========
+// ======== Tauri 命令：笔记加解密（YAML Frontmatter 格式） ========
 
-/// 加密笔记文件（使用内存中的 DEK，无需传递密码）
+/// 加密笔记文件（YAML Frontmatter + Base64 格式）
 #[tauri::command]
 pub fn encrypt_file(path: String) -> Result<(), String> {
     let dek = get_dek()?;
 
-    // 读取明文
     let plaintext = fs::read_to_string(&path).map_err(|e| format!("读取文件失败: {}", e))?;
 
     // 每次加密使用新的 24 字节随机 nonce
     let mut nonce_bytes = [0u8; NONCE_LEN];
     OsRng.fill_bytes(&mut nonce_bytes);
 
-    // 用 DEK 直接加密（无需密钥派生，瞬间完成）
-    let cipher = XChaCha20Poly1305::new_from_slice(&dek)
+    // 用 DEK 直接加密
+    let cipher = XChaCha20Poly1305::new_from_slice(dek.as_ref())
         .map_err(|e| format!("创建密码器失败: {}", e))?;
     let nonce = XNonce::from_slice(&nonce_bytes);
     let ciphertext = cipher.encrypt(nonce, plaintext.as_bytes())
         .map_err(|e| format!("加密失败: {}", e))?;
 
-    // 写入加密文件：Magic + Version + Nonce + Ciphertext
-    let mut output = Vec::with_capacity(NOTE_HEADER_LEN + ciphertext.len());
-    output.extend_from_slice(MAGIC);
-    output.push(VERSION);
-    output.extend_from_slice(&nonce_bytes);
-    output.extend_from_slice(&ciphertext);
-
-    fs::write(&path, &output).map_err(|e| format!("写入加密文件失败: {}", e))?;
+    // 序列化为 YAML Frontmatter + Base64 格式
+    let output = serialize_encrypted_note(&nonce_bytes, &ciphertext);
+    fs::write(&path, output.as_bytes()).map_err(|e| format!("写入加密文件失败: {}", e))?;
 
     Ok(())
 }
 
-/// 解密笔记文件（使用内存中的 DEK，无需传递密码）
+/// 解密笔记文件
 #[tauri::command]
 pub fn decrypt_file(path: String) -> Result<String, String> {
     let dek = get_dek()?;
 
-    let data = fs::read(&path).map_err(|e| format!("读取文件失败: {}", e))?;
+    let content = fs::read_to_string(&path).map_err(|e| format!("读取文件失败: {}", e))?;
+    let (nonce_bytes, ciphertext) = deserialize_encrypted_note(&content)?;
 
-    // 验证文件头
-    if data.len() < NOTE_HEADER_LEN {
-        return Err("文件太小，不是有效的加密文件".into());
-    }
-    if &data[0..8] != MAGIC {
-        return Err("文件未加密或格式无效".into());
-    }
-    if data[8] != VERSION {
-        return Err(format!("不支持的加密版本: {}", data[8]));
+    if nonce_bytes.len() != NONCE_LEN {
+        return Err(format!("nonce 长度无效: {} != {}", nonce_bytes.len(), NONCE_LEN));
     }
 
-    // 解析 nonce 和密文
-    let nonce_bytes = &data[9..9 + NONCE_LEN];
-    let ciphertext = &data[NOTE_HEADER_LEN..];
-
-    // 用 DEK 直接解密
-    let cipher = XChaCha20Poly1305::new_from_slice(&dek)
+    let cipher = XChaCha20Poly1305::new_from_slice(dek.as_ref())
         .map_err(|e| format!("创建密码器失败: {}", e))?;
-    let nonce = XNonce::from_slice(nonce_bytes);
-    let plaintext_bytes = cipher.decrypt(nonce, ciphertext)
+    let nonce = XNonce::from_slice(&nonce_bytes);
+    let plaintext_bytes = cipher.decrypt(nonce, ciphertext.as_ref())
         .map_err(|_| "解密失败：密钥不匹配或文件已损坏".to_string())?;
 
     String::from_utf8(plaintext_bytes).map_err(|e| format!("解码明文失败: {}", e))
 }
 
-/// 检查文件是否已加密
+/// 检查文件是否已加密（检测 YAML Frontmatter 标记）
 #[tauri::command]
 pub fn check_file_encrypted(path: String) -> Result<bool, String> {
-    let data = fs::read(&path).map_err(|e| format!("读取文件失败: {}", e))?;
-    Ok(data.len() >= 8 && &data[0..8] == MAGIC)
+    let content = fs::read_to_string(&path).map_err(|e| format!("读取文件失败: {}", e))?;
+    let trimmed = content.trim();
+    // 检查是否以 --- 开头且包含 rikka_encrypted: true
+    Ok(trimmed.starts_with(FRONTMATTER_MARKER) && trimmed.contains(ENCRYPTED_FLAG))
 }
