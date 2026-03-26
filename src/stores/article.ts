@@ -464,16 +464,16 @@ export const useArticleStore = defineStore('article', () => {
                     const isEncrypted = await encryptionStore.checkFileEncrypted(path)
 
                     if (isEncrypted) {
-                        // 加密文件：需要密码解密
-                        if (!encryptionStore.hasSessionPassword()) {
-                            // 没有缓存密码，设置特殊标记让 UI 层弹出密码框
+                        // 加密文件：需要后端解锁
+                        if (!encryptionStore.isUnlocked) {
+                            // 后端未解锁，设置特殊标记让 UI 层弹出密码框
                             currentArticle.value = ''
                             errorMsg.value = '__ENCRYPTED_NEED_PASSWORD__'
                             return
                         }
-                        // 用缓存密码解密
+                        // 后端已解锁，直接解密（无需传递密码）
                         try {
-                            content = await encryptionStore.readEncryptedNote(path, encryptionStore.sessionPassword!)
+                            content = await encryptionStore.readEncryptedNote(path)
                             currentArticle.value = content
                         } catch (e) {
                             currentArticle.value = ''
@@ -538,8 +538,8 @@ export const useArticleStore = defineStore('article', () => {
             await writeTextFile(pathOptions.path, content)
 
             // 5. 如果是加密文件，保存后自动重新加密
-            if (isEncrypted && encryptionStore.hasSessionPassword()) {
-                await encryptionStore.encryptNote(path, encryptionStore.sessionPassword!)
+            if (isEncrypted && encryptionStore.isUnlocked) {
+                await encryptionStore.encryptNote(path)
             }
 
             // 6. 更新内部状态

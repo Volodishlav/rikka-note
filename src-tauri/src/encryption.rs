@@ -7,137 +7,248 @@ use rand::RngCore;
 use std::fs;
 use std::sync::Mutex;
 
-// 加密文件格式常量
-const MAGIC: &[u8; 8] = b"RIKKAENC";
-const VERSION: u8 = 0x02; // v2: XChaCha20-Poly1305 + Argon2id
-const SALT_LEN: usize = 32;
-const NONCE_LEN: usize = 24; // XChaCha20 使用 24 字节 nonce
-const HEADER_LEN: usize = 8 + 1 + SALT_LEN + NONCE_LEN; // 65 bytes
+// ======== 常量 ========
 
-// Argon2id 参数（平衡安全性和性能）
+// 加密笔记文件格式
+const MAGIC: &[u8; 8] = b"RIKKAENC";
+const VERSION: u8 = 0x03; // v3: 信封加密，笔记使用 DEK 直接加密
+const NONCE_LEN: usize = 24;
+const NOTE_HEADER_LEN: usize = 8 + 1 + NONCE_LEN; // 33 bytes: magic + version + nonce
+
+// DEK 密钥文件格式（存储被 KEK 加密的全局 DEK）
+const KEY_FILE_SALT_LEN: usize = 32;
+const KEY_FILE_NONCE_LEN: usize = 24;
+const DEK_LEN: usize = 32;
+// 密钥文件 = salt(32) + nonce(24) + encrypted_dek(32 + 16 tag = 48) = 104 bytes
+
+// Argon2id 参数（仅在密码操作时使用，日常笔记加解密不涉及）
 const ARGON2_M_COST: u32 = 32_768; // 32 MB 内存
 const ARGON2_T_COST: u32 = 2;      // 2 次迭代
 const ARGON2_P_COST: u32 = 4;      // 4 线程并行
 
-/// 缓存的密钥信息
-struct CachedKey {
-    /// 密码原始字节的简单哈希，用于快速比较是否同一密码
-    password_tag: [u8; 32],
-    salt: [u8; SALT_LEN],
-    key: [u8; 32],
-}
+// ======== 后端密钥托管状态 ========
 
-/// 全局密钥缓存：相同密码 + salt 只派生一次密钥
-static KEY_CACHE: Mutex<Option<CachedKey>> = Mutex::new(None);
+/// 全局 DEK 托管：解锁后在内存中持有 DEK，锁定时清除
+static GLOBAL_DEK: Mutex<Option<[u8; DEK_LEN]>> = Mutex::new(None);
 
-/// 简单的密码标签（用于缓存比较，非安全用途）
-fn password_tag(password: &str) -> [u8; 32] {
-    // 用简单的填充/截断方式生成固定长度标签，仅用于缓存键比较
-    let bytes = password.as_bytes();
-    let mut tag = [0u8; 32];
-    for (i, &b) in bytes.iter().enumerate() {
-        tag[i % 32] ^= b;
-        tag[(i + 7) % 32] = tag[(i + 7) % 32].wrapping_add(b);
-    }
-    tag
-}
+// ======== 内部工具函数 ========
 
-/// 使用 Argon2id 从密码和 salt 派生 256-bit 密钥
-fn derive_key(password: &str, salt: &[u8]) -> Result<[u8; 32], String> {
+/// 使用 Argon2id 从密码 + salt 派生 KEK
+fn derive_kek(password: &str, salt: &[u8]) -> Result<[u8; 32], String> {
     let argon2 = Argon2::new(
         argon2::Algorithm::Argon2id,
         argon2::Version::V0x13,
         argon2::Params::new(ARGON2_M_COST, ARGON2_T_COST, ARGON2_P_COST, Some(32))
             .map_err(|e| format!("Argon2 参数错误: {}", e))?,
     );
-    let mut key = [0u8; 32];
+    let mut kek = [0u8; 32];
     argon2
-        .hash_password_into(password.as_bytes(), salt, &mut key)
+        .hash_password_into(password.as_bytes(), salt, &mut kek)
         .map_err(|e| format!("Argon2 密钥派生失败: {}", e))?;
-    Ok(key)
+    Ok(kek)
 }
 
-/// 获取或派生密钥（使用缓存加速）
-fn get_or_derive_key(password: &str, salt: &[u8; SALT_LEN]) -> Result<[u8; 32], String> {
-    let tag = password_tag(password);
-    let mut cache = KEY_CACHE.lock().unwrap();
+/// 获取当前托管的 DEK，未解锁时返回错误
+fn get_dek() -> Result<[u8; DEK_LEN], String> {
+    let guard = GLOBAL_DEK.lock().unwrap();
+    guard.ok_or_else(|| "加密未解锁，请先输入密码".to_string())
+}
 
-    // 缓存命中：密码和 salt 都匹配
-    if let Some(ref cached) = *cache {
-        if cached.password_tag == tag && cached.salt == *salt {
-            return Ok(cached.key);
+// ======== Tauri 命令：密钥管理 ========
+
+/// 首次设置加密密码
+/// - 生成随机 DEK
+/// - 用密码派生 KEK 加密 DEK
+/// - 存储加密后的 DEK 到密钥文件
+/// - 将 DEK 保持在内存中（自动解锁）
+#[tauri::command]
+pub fn setup_encryption(password: String, key_file_path: String) -> Result<(), String> {
+    // 生成随机 DEK
+    let mut dek = [0u8; DEK_LEN];
+    OsRng.fill_bytes(&mut dek);
+
+    // 生成 salt 并派生 KEK
+    let mut salt = [0u8; KEY_FILE_SALT_LEN];
+    OsRng.fill_bytes(&mut salt);
+    let kek = derive_kek(&password, &salt)?;
+
+    // 用 KEK 加密 DEK
+    let mut nonce_bytes = [0u8; KEY_FILE_NONCE_LEN];
+    OsRng.fill_bytes(&mut nonce_bytes);
+    let cipher = XChaCha20Poly1305::new_from_slice(&kek)
+        .map_err(|e| format!("创建密码器失败: {}", e))?;
+    let nonce = XNonce::from_slice(&nonce_bytes);
+    let encrypted_dek = cipher.encrypt(nonce, dek.as_ref())
+        .map_err(|e| format!("加密 DEK 失败: {}", e))?;
+
+    // 写入密钥文件：salt + nonce + encrypted_dek
+    let mut key_data = Vec::with_capacity(KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN + encrypted_dek.len());
+    key_data.extend_from_slice(&salt);
+    key_data.extend_from_slice(&nonce_bytes);
+    key_data.extend_from_slice(&encrypted_dek);
+
+    // 确保密钥文件的父目录存在
+    let key_path = std::path::Path::new(&key_file_path);
+    if let Some(parent) = key_path.parent() {
+        if !parent.exists() {
+            fs::create_dir_all(parent).map_err(|e| {
+                format!("创建目录失败 (路径: {}): {}", parent.display(), e)
+            })?;
         }
     }
+    fs::write(&key_file_path, &key_data).map_err(|e| {
+        format!("写入密钥文件失败 (路径: {}): {}", key_file_path, e)
+    })?;
 
-    // 缓存未命中：派生新密钥并缓存
-    let key = derive_key(password, salt)?;
-    *cache = Some(CachedKey {
-        password_tag: tag,
-        salt: *salt,
-        key,
-    });
-    Ok(key)
+    // 自动解锁：将 DEK 保持在内存中
+    let mut guard = GLOBAL_DEK.lock().unwrap();
+    *guard = Some(dek);
+
+    Ok(())
 }
 
-/// 加密文件：明文 → 密文覆盖写入
+/// 解锁加密：验证密码并将 DEK 加载到内存
 #[tauri::command]
-pub fn encrypt_file(path: String, password: String) -> Result<(), String> {
-    // 读取原始明文
+pub fn unlock_encryption(password: String, key_file_path: String) -> Result<(), String> {
+    // 读取密钥文件
+    let key_data = fs::read(&key_file_path).map_err(|e| format!("读取密钥文件失败: {}", e))?;
+
+    let expected_len = KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN + DEK_LEN + 16; // 16 = Poly1305 tag
+    if key_data.len() != expected_len {
+        return Err(format!("密钥文件格式无效（长度 {} != {}）", key_data.len(), expected_len));
+    }
+
+    // 解析各段
+    let salt = &key_data[..KEY_FILE_SALT_LEN];
+    let nonce_bytes = &key_data[KEY_FILE_SALT_LEN..KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN];
+    let encrypted_dek = &key_data[KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN..];
+
+    // 派生 KEK 并解密 DEK
+    let kek = derive_kek(&password, salt)?;
+    let cipher = XChaCha20Poly1305::new_from_slice(&kek)
+        .map_err(|e| format!("创建密码器失败: {}", e))?;
+    let nonce = XNonce::from_slice(nonce_bytes);
+    let dek_bytes = cipher.decrypt(nonce, encrypted_dek)
+        .map_err(|_| "密码错误".to_string())?;
+
+    // 将 DEK 保持在内存中
+    let mut dek = [0u8; DEK_LEN];
+    dek.copy_from_slice(&dek_bytes);
+    let mut guard = GLOBAL_DEK.lock().unwrap();
+    *guard = Some(dek);
+
+    Ok(())
+}
+
+/// 锁定加密：清除内存中的 DEK
+#[tauri::command]
+pub fn lock_encryption() -> Result<(), String> {
+    let mut guard = GLOBAL_DEK.lock().unwrap();
+    // 安全清零
+    if let Some(ref mut dek) = *guard {
+        dek.fill(0);
+    }
+    *guard = None;
+    Ok(())
+}
+
+/// 检查是否已解锁
+#[tauri::command]
+pub fn is_encryption_unlocked() -> bool {
+    let guard = GLOBAL_DEK.lock().unwrap();
+    guard.is_some()
+}
+
+/// 修改密码：O(1) 操作，只重新加密 DEK，不触碰笔记文件
+#[tauri::command]
+pub fn change_encryption_password(
+    old_password: String,
+    new_password: String,
+    key_file_path: String,
+) -> Result<(), String> {
+    // 先用旧密码解锁获取 DEK
+    let key_data = fs::read(&key_file_path).map_err(|e| format!("读取密钥文件失败: {}", e))?;
+
+    let expected_len = KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN + DEK_LEN + 16;
+    if key_data.len() != expected_len {
+        return Err("密钥文件格式无效".into());
+    }
+
+    let old_salt = &key_data[..KEY_FILE_SALT_LEN];
+    let old_nonce = &key_data[KEY_FILE_SALT_LEN..KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN];
+    let encrypted_dek = &key_data[KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN..];
+
+    // 用旧密码解密 DEK
+    let old_kek = derive_kek(&old_password, old_salt)?;
+    let old_cipher = XChaCha20Poly1305::new_from_slice(&old_kek)
+        .map_err(|e| format!("创建密码器失败: {}", e))?;
+    let dek_bytes = old_cipher.decrypt(XNonce::from_slice(old_nonce), encrypted_dek)
+        .map_err(|_| "原密码错误".to_string())?;
+
+    // 用新密码重新加密 DEK
+    let mut new_salt = [0u8; KEY_FILE_SALT_LEN];
+    OsRng.fill_bytes(&mut new_salt);
+    let new_kek = derive_kek(&new_password, &new_salt)?;
+
+    let mut new_nonce_bytes = [0u8; KEY_FILE_NONCE_LEN];
+    OsRng.fill_bytes(&mut new_nonce_bytes);
+    let new_cipher = XChaCha20Poly1305::new_from_slice(&new_kek)
+        .map_err(|e| format!("创建密码器失败: {}", e))?;
+    let new_encrypted_dek = new_cipher.encrypt(XNonce::from_slice(&new_nonce_bytes), dek_bytes.as_ref())
+        .map_err(|e| format!("加密 DEK 失败: {}", e))?;
+
+    // 写回密钥文件
+    let mut new_key_data = Vec::with_capacity(KEY_FILE_SALT_LEN + KEY_FILE_NONCE_LEN + new_encrypted_dek.len());
+    new_key_data.extend_from_slice(&new_salt);
+    new_key_data.extend_from_slice(&new_nonce_bytes);
+    new_key_data.extend_from_slice(&new_encrypted_dek);
+    fs::write(&key_file_path, &new_key_data).map_err(|e| format!("写入密钥文件失败: {}", e))?;
+
+    Ok(())
+}
+
+// ======== Tauri 命令：笔记加解密 ========
+
+/// 加密笔记文件（使用内存中的 DEK，无需传递密码）
+#[tauri::command]
+pub fn encrypt_file(path: String) -> Result<(), String> {
+    let dek = get_dek()?;
+
+    // 读取明文
     let plaintext = fs::read_to_string(&path).map_err(|e| format!("读取文件失败: {}", e))?;
 
-    // 尝试复用已缓存的 salt（同一密码复用，避免重新派生）
-    let tag = password_tag(&password);
-    let salt = {
-        let cache = KEY_CACHE.lock().unwrap();
-        if let Some(ref cached) = *cache {
-            if cached.password_tag == tag {
-                cached.salt // 复用缓存的 salt
-            } else {
-                let mut s = [0u8; SALT_LEN];
-                OsRng.fill_bytes(&mut s);
-                s
-            }
-        } else {
-            let mut s = [0u8; SALT_LEN];
-            OsRng.fill_bytes(&mut s);
-            s
-        }
-    };
-
-    // 每次加密都生成新的 24 字节 nonce（XChaCha20 的扩展 nonce 极大降低碰撞概率）
+    // 每次加密使用新的 24 字节随机 nonce
     let mut nonce_bytes = [0u8; NONCE_LEN];
     OsRng.fill_bytes(&mut nonce_bytes);
 
-    // 获取密钥（缓存命中时零开销）
-    let key = get_or_derive_key(&password, &salt)?;
-    let cipher = XChaCha20Poly1305::new_from_slice(&key)
+    // 用 DEK 直接加密（无需密钥派生，瞬间完成）
+    let cipher = XChaCha20Poly1305::new_from_slice(&dek)
         .map_err(|e| format!("创建密码器失败: {}", e))?;
     let nonce = XNonce::from_slice(&nonce_bytes);
-    let ciphertext = cipher
-        .encrypt(nonce, plaintext.as_bytes())
+    let ciphertext = cipher.encrypt(nonce, plaintext.as_bytes())
         .map_err(|e| format!("加密失败: {}", e))?;
 
-    // 组装加密文件：Magic + Version + Salt + Nonce + Ciphertext
-    let mut output = Vec::with_capacity(HEADER_LEN + ciphertext.len());
+    // 写入加密文件：Magic + Version + Nonce + Ciphertext
+    let mut output = Vec::with_capacity(NOTE_HEADER_LEN + ciphertext.len());
     output.extend_from_slice(MAGIC);
     output.push(VERSION);
-    output.extend_from_slice(&salt);
     output.extend_from_slice(&nonce_bytes);
     output.extend_from_slice(&ciphertext);
 
-    // 覆盖写入
     fs::write(&path, &output).map_err(|e| format!("写入加密文件失败: {}", e))?;
 
     Ok(())
 }
 
-/// 解密文件：读取密文 → 返回明文字符串
+/// 解密笔记文件（使用内存中的 DEK，无需传递密码）
 #[tauri::command]
-pub fn decrypt_file(path: String, password: String) -> Result<String, String> {
+pub fn decrypt_file(path: String) -> Result<String, String> {
+    let dek = get_dek()?;
+
     let data = fs::read(&path).map_err(|e| format!("读取文件失败: {}", e))?;
 
     // 验证文件头
-    if data.len() < HEADER_LEN {
+    if data.len() < NOTE_HEADER_LEN {
         return Err("文件太小，不是有效的加密文件".into());
     }
     if &data[0..8] != MAGIC {
@@ -147,60 +258,23 @@ pub fn decrypt_file(path: String, password: String) -> Result<String, String> {
         return Err(format!("不支持的加密版本: {}", data[8]));
     }
 
-    // 解析各段
-    let mut salt = [0u8; SALT_LEN];
-    salt.copy_from_slice(&data[9..9 + SALT_LEN]);
-    let nonce_bytes = &data[9 + SALT_LEN..9 + SALT_LEN + NONCE_LEN];
-    let ciphertext = &data[HEADER_LEN..];
+    // 解析 nonce 和密文
+    let nonce_bytes = &data[9..9 + NONCE_LEN];
+    let ciphertext = &data[NOTE_HEADER_LEN..];
 
-    // 获取密钥（缓存命中时零开销）
-    let key = get_or_derive_key(&password, &salt)?;
-    let cipher = XChaCha20Poly1305::new_from_slice(&key)
+    // 用 DEK 直接解密
+    let cipher = XChaCha20Poly1305::new_from_slice(&dek)
         .map_err(|e| format!("创建密码器失败: {}", e))?;
     let nonce = XNonce::from_slice(nonce_bytes);
-    let plaintext_bytes = cipher
-        .decrypt(nonce, ciphertext)
-        .map_err(|_| "解密失败：密码错误或文件已损坏".to_string())?;
+    let plaintext_bytes = cipher.decrypt(nonce, ciphertext)
+        .map_err(|_| "解密失败：密钥不匹配或文件已损坏".to_string())?;
 
     String::from_utf8(plaintext_bytes).map_err(|e| format!("解码明文失败: {}", e))
 }
 
-/// 检查文件是否已加密（读取 magic bytes）
+/// 检查文件是否已加密
 #[tauri::command]
 pub fn check_file_encrypted(path: String) -> Result<bool, String> {
     let data = fs::read(&path).map_err(|e| format!("读取文件失败: {}", e))?;
     Ok(data.len() >= 8 && &data[0..8] == MAGIC)
-}
-
-/// 验证密码是否正确（尝试解密）
-#[tauri::command]
-pub fn verify_password(path: String, password: String) -> Result<bool, String> {
-    match decrypt_file(path, password) {
-        Ok(_) => Ok(true),
-        Err(e) if e.contains("密码错误") => Ok(false),
-        Err(e) => Err(e),
-    }
-}
-
-/// 用新密码重新加密文件
-#[tauri::command]
-pub fn re_encrypt_file(
-    path: String,
-    old_password: String,
-    new_password: String,
-) -> Result<(), String> {
-    // 先用旧密码解密得到明文
-    let plaintext = decrypt_file(path.clone(), old_password)?;
-
-    // 清除旧的密钥缓存（密码变更）
-    {
-        let mut cache = KEY_CACHE.lock().unwrap();
-        *cache = None;
-    }
-
-    // 将明文写回文件（临时恢复为明文）
-    fs::write(&path, &plaintext).map_err(|e| format!("写入临时明文失败: {}", e))?;
-
-    // 用新密码重新加密
-    encrypt_file(path, new_password)
 }

@@ -65,11 +65,14 @@ fn main() {
             ocr::ocr_from_bytes,
             ocr::ocr_from_screen,
             ocr::capture_main_screen,
+            encryption::setup_encryption,
+            encryption::unlock_encryption,
+            encryption::lock_encryption,
+            encryption::is_encryption_unlocked,
+            encryption::change_encryption_password,
             encryption::encrypt_file,
             encryption::decrypt_file,
             encryption::check_file_encrypted,
-            encryption::verify_password,
-            encryption::re_encrypt_file,
         ])
 
         // 应用设置 - 在所有插件和命令注册后

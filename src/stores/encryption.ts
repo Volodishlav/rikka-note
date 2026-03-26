@@ -1,65 +1,91 @@
-// encryption.ts - 加密功能状态管理
+// encryption.ts - 加密功能状态管理（后端密钥托管模式）
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
-import { tauriGet, tauriSet } from '@/utils/tauriStore'
-import { getAbsoluteFilePath } from '@/lib/workspace'
+import { getAbsoluteFilePath, getWorkspacePath } from '@/lib/workspace'
+import { join } from '@tauri-apps/api/path'
+import { exists } from '@tauri-apps/plugin-fs'
 
 export const useEncryptionStore = defineStore('encryption', () => {
     // -------- 状态 --------
-    // 会话级密码缓存（仅在内存中，不持久化）
-    const sessionPassword = ref<string | null>(null)
     // 当前已知的加密文件相对路径集合
     const encryptedFiles = ref<Set<string>>(new Set())
-    // 是否已设置过加密密码
+    // 后端是否已解锁（DEK 是否在内存中）
+    const isUnlocked = ref(false)
+    // 是否已初始化过加密（密钥文件是否存在）
     const isPasswordSet = ref(false)
 
+    // -------- 密钥文件路径 --------
+
+    /** 获取当前工作区的密钥文件路径 */
+    async function getKeyFilePath(): Promise<string> {
+        const workspace = await getWorkspacePath()
+        return await join(workspace.path, '.encryption.key')
+    }
+
     // -------- 初始化 --------
+
+    /** 检查密钥文件是否存在，同步后端解锁状态 */
     async function initEncryption() {
-        const saved = await tauriGet<boolean>('encryptionPasswordSet')
-        isPasswordSet.value = saved ?? false
+        try {
+            const keyPath = await getKeyFilePath()
+            isPasswordSet.value = await exists(keyPath)
+            // 同步后端解锁状态
+            isUnlocked.value = await invoke<boolean>('is_encryption_unlocked')
+        } catch {
+            isPasswordSet.value = false
+            isUnlocked.value = false
+        }
     }
 
-    // -------- 密码管理 --------
-    function setSessionPassword(password: string) {
-        sessionPassword.value = password
-    }
+    // -------- 密码 / 密钥管理（全部在后端执行） --------
 
-    function clearSessionPassword() {
-        sessionPassword.value = null
-    }
-
-    function hasSessionPassword(): boolean {
-        return sessionPassword.value !== null
-    }
-
-    /** 首次设置加密密码（标记已设置） */
-    async function markPasswordSet() {
+    /** 首次设置加密密码 */
+    async function setupEncryption(password: string): Promise<void> {
+        const keyPath = await getKeyFilePath()
+        await invoke('setup_encryption', { password, keyFilePath: keyPath })
         isPasswordSet.value = true
-        await tauriSet('encryptionPasswordSet', true)
+        isUnlocked.value = true
     }
 
-    // -------- 加密操作 --------
+    /** 解锁：验证密码并加载 DEK 到后端内存 */
+    async function unlock(password: string): Promise<void> {
+        const keyPath = await getKeyFilePath()
+        await invoke('unlock_encryption', { password, keyFilePath: keyPath })
+        isUnlocked.value = true
+    }
+
+    /** 锁定：清除后端内存中的 DEK */
+    async function lock(): Promise<void> {
+        await invoke('lock_encryption')
+        isUnlocked.value = false
+    }
+
+    /** 修改密码：O(1) 操作，只重新加密 DEK */
+    async function changePassword(oldPassword: string, newPassword: string): Promise<void> {
+        const keyPath = await getKeyFilePath()
+        await invoke('change_encryption_password', {
+            oldPassword,
+            newPassword,
+            keyFilePath: keyPath
+        })
+    }
+
+    // -------- 笔记加解密（不传递密码） --------
 
     /** 加密指定笔记 */
-    async function encryptNote(relativePath: string, password: string): Promise<void> {
+    async function encryptNote(relativePath: string): Promise<void> {
         const absPath = await getAbsoluteFilePath(relativePath)
-        await invoke('encrypt_file', { path: absPath, password })
+        await invoke('encrypt_file', { path: absPath })
         encryptedFiles.value.add(relativePath)
-        // 标记已设置密码
-        if (!isPasswordSet.value) {
-            await markPasswordSet()
-        }
-        // 缓存密码到会话
-        sessionPassword.value = password
     }
 
     /** 永久解除加密（恢复为明文文件） */
-    async function removeEncryption(relativePath: string, password: string): Promise<string> {
+    async function removeEncryption(relativePath: string): Promise<string> {
         const absPath = await getAbsoluteFilePath(relativePath)
         // 解密获取明文
-        const plaintext: string = await invoke('decrypt_file', { path: absPath, password })
-        // 用明文覆盖写回文件（通过 Tauri fs plugin）
+        const plaintext: string = await invoke('decrypt_file', { path: absPath })
+        // 用明文覆盖写回文件
         const { writeTextFile } = await import('@tauri-apps/plugin-fs')
         await writeTextFile(absPath, plaintext)
         encryptedFiles.value.delete(relativePath)
@@ -67,9 +93,9 @@ export const useEncryptionStore = defineStore('encryption', () => {
     }
 
     /** 读取加密笔记内容（不改变文件状态） */
-    async function readEncryptedNote(relativePath: string, password: string): Promise<string> {
+    async function readEncryptedNote(relativePath: string): Promise<string> {
         const absPath = await getAbsoluteFilePath(relativePath)
-        return await invoke('decrypt_file', { path: absPath, password })
+        return await invoke('decrypt_file', { path: absPath })
     }
 
     /** 检查文件是否已加密 */
@@ -84,35 +110,6 @@ export const useEncryptionStore = defineStore('encryption', () => {
         return result
     }
 
-    /** 验证密码是否正确 */
-    async function verifyPassword(relativePath: string, password: string): Promise<boolean> {
-        const absPath = await getAbsoluteFilePath(relativePath)
-        return await invoke('verify_password', { path: absPath, password })
-    }
-
-    /** 修改密码：对所有已知加密文件重新加密 */
-    async function changePassword(oldPassword: string, newPassword: string): Promise<{ success: number; failed: string[] }> {
-        const failed: string[] = []
-        let success = 0
-        for (const filePath of encryptedFiles.value) {
-            try {
-                const absPath = await getAbsoluteFilePath(filePath)
-                await invoke('re_encrypt_file', {
-                    path: absPath,
-                    oldPassword,
-                    newPassword
-                })
-                success++
-            } catch (e) {
-                failed.push(filePath)
-                console.error(`重新加密 ${filePath} 失败:`, e)
-            }
-        }
-        // 更新会话密码
-        sessionPassword.value = newPassword
-        return { success, failed }
-    }
-
     /** 快速判断（基于缓存，不读磁盘） */
     function isEncrypted(relativePath: string): boolean {
         return encryptedFiles.value.has(relativePath)
@@ -120,21 +117,20 @@ export const useEncryptionStore = defineStore('encryption', () => {
 
     return {
         // 状态
-        sessionPassword,
         encryptedFiles,
+        isUnlocked,
         isPasswordSet,
         // 方法
+        getKeyFilePath,
         initEncryption,
-        setSessionPassword,
-        clearSessionPassword,
-        hasSessionPassword,
-        markPasswordSet,
+        setupEncryption,
+        unlock,
+        lock,
+        changePassword,
         encryptNote,
         removeEncryption,
         readEncryptedNote,
         checkFileEncrypted,
-        verifyPassword,
-        changePassword,
-        isEncrypted
+        isEncrypted,
     }
 })

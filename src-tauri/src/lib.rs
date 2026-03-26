@@ -23,11 +23,14 @@ pub fn run() {
             fuzzy_search::fuzzy_search_parallel,
             ocr::ocr_from_bytes,
             ocr::ocr_from_screen,
+            encryption::setup_encryption,
+            encryption::unlock_encryption,
+            encryption::lock_encryption,
+            encryption::is_encryption_unlocked,
+            encryption::change_encryption_password,
             encryption::encrypt_file,
             encryption::decrypt_file,
             encryption::check_file_encrypted,
-            encryption::verify_password,
-            encryption::re_encrypt_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

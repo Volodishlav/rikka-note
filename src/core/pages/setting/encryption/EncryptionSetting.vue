@@ -16,7 +16,7 @@
             : t('settings.encryption.passwordNotSet')
           }}
         </span>
-        <span v-if="encryptionStore.hasSessionPassword()" class="ml-auto text-xs text-brand-purple">
+        <span v-if="encryptionStore.isUnlocked" class="ml-auto text-xs text-brand-purple">
           🔓 {{ t('settings.encryption.unlocked') }}
         </span>
         <span v-else-if="encryptionStore.isPasswordSet" class="ml-auto text-xs text-muted-foreground">
@@ -40,7 +40,7 @@
           {{ t('settings.encryption.changePassword') }}
         </Button>
         <Button
-          v-if="encryptionStore.hasSessionPassword()"
+          v-if="encryptionStore.isUnlocked"
           variant="outline"
           @click="handleLock"
         >
@@ -157,11 +157,10 @@ const newPasswordConfirm = ref('')
 const changeError = ref('')
 const changing = ref(false)
 
-// 首次设置密码
+// 首次设置密码（调用后端 setup_encryption）
 async function handleSetPassword(password: string) {
   try {
-    encryptionStore.setSessionPassword(password)
-    await encryptionStore.markPasswordSet()
+    await encryptionStore.setupEncryption(password)
     showSetPasswordDialog.value = false
     show({ title: t('settings.encryption.setPasswordSuccess'), variant: 'success' })
   } catch (e) {
@@ -170,20 +169,16 @@ async function handleSetPassword(password: string) {
   }
 }
 
-// 修改密码
+// 修改密码（O(1) 操作，只重新加密 DEK）
 async function handleChangePassword() {
   if (newPassword.value !== newPasswordConfirm.value) return
   changeError.value = ''
   changing.value = true
 
   try {
-    const result = await encryptionStore.changePassword(oldPassword.value, newPassword.value)
-    if (result.failed.length > 0) {
-      changeError.value = t('settings.encryption.changePartialFailed', { count: result.failed.length })
-    } else {
-      showChangePasswordDialog.value = false
-      show({ title: t('settings.encryption.changePasswordSuccess'), variant: 'success' })
-    }
+    await encryptionStore.changePassword(oldPassword.value, newPassword.value)
+    showChangePasswordDialog.value = false
+    show({ title: t('settings.encryption.changePasswordSuccess'), variant: 'success' })
     // 清空
     oldPassword.value = ''
     newPassword.value = ''
@@ -196,9 +191,9 @@ async function handleChangePassword() {
   }
 }
 
-// 锁定
-function handleLock() {
-  encryptionStore.clearSessionPassword()
+// 锁定（清除后端内存中的 DEK）
+async function handleLock() {
+  await encryptionStore.lock()
   show({ title: t('settings.encryption.lockedSuccess'), variant: 'success' })
 }
 </script>

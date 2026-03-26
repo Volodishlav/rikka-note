@@ -273,21 +273,20 @@ const handleSelectFile = async (e: Event) => {
     // 设置活动文件
     await articleStore.setActiveFilePath(path.value)
 
-    // 如果是加密文件且未缓存密码，弹出密码框
-    if (fileIsEncrypted.value && !encryptionStore.hasSessionPassword()) {
+    // 如果是加密文件且后端未解锁，弹出密码框
+    if (fileIsEncrypted.value && !encryptionStore.isUnlocked) {
       passwordDialogTitle.value = t('encryption.dialog.unlockTitle')
       passwordDialogDesc.value = t('encryption.dialog.unlockDesc')
       passwordDialogConfirmMode.value = false
       pendingPasswordAction = async (password: string) => {
-        const valid = await encryptionStore.verifyPassword(path.value, password)
-        if (!valid) {
+        try {
+          await encryptionStore.unlock(password)
+          showPasswordDialog.value = false
+          // 解锁成功，重新读取文章
+          await articleStore.readArticle(path.value)
+        } catch {
           passwordDialogRef.value?.setError(t('encryption.dialog.wrongPassword'))
-          return
         }
-        encryptionStore.setSessionPassword(password)
-        showPasswordDialog.value = false
-        // 重新读取文章
-        await articleStore.readArticle(path.value)
       }
       showPasswordDialog.value = true
     }
@@ -493,38 +492,48 @@ onMounted(() => {
 
 // 加密操作
 const handleEncryptFile = async () => {
-  if (encryptionStore.hasSessionPassword()) {
-    // 已有缓存密码，直接加密
+  if (encryptionStore.isUnlocked) {
+    // 后端已解锁，直接加密
     try {
-      await encryptionStore.encryptNote(path.value, encryptionStore.sessionPassword!)
+      await encryptionStore.encryptNote(path.value)
       fileIsEncrypted.value = true
       show({ title: t('article.contextMenu.encryptSuccess'), variant: 'success' })
     } catch (e) {
       show({ title: t('article.contextMenu.encryptFailed'), variant: 'error' })
       console.error('Encrypt failed:', e)
     }
-  } else {
-    // 没有缓存密码，弹出设置密码对话框
-    passwordDialogTitle.value = encryptionStore.isPasswordSet
-      ? t('encryption.dialog.unlockTitle')
-      : t('encryption.dialog.setPasswordTitle')
-    passwordDialogDesc.value = encryptionStore.isPasswordSet
-      ? t('encryption.dialog.unlockDesc')
-      : t('encryption.dialog.setPasswordDesc')
-    passwordDialogConfirmMode.value = !encryptionStore.isPasswordSet
+  } else if (encryptionStore.isPasswordSet) {
+    // 已设置密码但未解锁，弹出解锁对话框
+    passwordDialogTitle.value = t('encryption.dialog.unlockTitle')
+    passwordDialogDesc.value = t('encryption.dialog.unlockDesc')
+    passwordDialogConfirmMode.value = false
     pendingPasswordAction = async (password: string) => {
       try {
-        encryptionStore.setSessionPassword(password)
-        await encryptionStore.encryptNote(path.value, password)
-        if (!encryptionStore.isPasswordSet) {
-          await encryptionStore.markPasswordSet()
-        }
+        await encryptionStore.unlock(password)
+        await encryptionStore.encryptNote(path.value)
+        fileIsEncrypted.value = true
+        showPasswordDialog.value = false
+        show({ title: t('article.contextMenu.encryptSuccess'), variant: 'success' })
+      } catch {
+        passwordDialogRef.value?.setError(t('encryption.dialog.wrongPassword'))
+      }
+    }
+    showPasswordDialog.value = true
+  } else {
+    // 首次设置密码
+    passwordDialogTitle.value = t('encryption.dialog.setPasswordTitle')
+    passwordDialogDesc.value = t('encryption.dialog.setPasswordDesc')
+    passwordDialogConfirmMode.value = true
+    pendingPasswordAction = async (password: string) => {
+      try {
+        await encryptionStore.setupEncryption(password)
+        await encryptionStore.encryptNote(path.value)
         fileIsEncrypted.value = true
         showPasswordDialog.value = false
         show({ title: t('article.contextMenu.encryptSuccess'), variant: 'success' })
       } catch (e) {
         passwordDialogRef.value?.setError(t('article.contextMenu.encryptFailed'))
-        console.error('Encrypt failed:', e)
+        console.error('Setup encryption failed:', e)
       }
     }
     showPasswordDialog.value = true
@@ -532,11 +541,10 @@ const handleEncryptFile = async () => {
 }
 
 const handleDecryptFile = async () => {
-  if (encryptionStore.hasSessionPassword()) {
+  if (encryptionStore.isUnlocked) {
     try {
-      await encryptionStore.removeEncryption(path.value, encryptionStore.sessionPassword!)
+      await encryptionStore.removeEncryption(path.value)
       fileIsEncrypted.value = false
-      // 刷新文章内容
       if (path.value === activeFilePath.value) {
         await articleStore.readArticle(path.value)
       }
@@ -546,23 +554,22 @@ const handleDecryptFile = async () => {
       console.error('Decrypt failed:', e)
     }
   } else {
-    // 需要输入密码
+    // 需要先解锁
     passwordDialogTitle.value = t('encryption.dialog.unlockTitle')
     passwordDialogDesc.value = t('encryption.dialog.unlockDesc')
     passwordDialogConfirmMode.value = false
     pendingPasswordAction = async (password: string) => {
       try {
-        await encryptionStore.removeEncryption(path.value, password)
-        encryptionStore.setSessionPassword(password)
+        await encryptionStore.unlock(password)
+        await encryptionStore.removeEncryption(path.value)
         fileIsEncrypted.value = false
         showPasswordDialog.value = false
         if (path.value === activeFilePath.value) {
           await articleStore.readArticle(path.value)
         }
         show({ title: t('article.contextMenu.decryptSuccess'), variant: 'success' })
-      } catch (e) {
+      } catch {
         passwordDialogRef.value?.setError(t('encryption.dialog.wrongPassword'))
-        console.error('Decrypt failed:', e)
       }
     }
     showPasswordDialog.value = true
