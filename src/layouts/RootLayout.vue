@@ -16,6 +16,7 @@ import { Toaster } from '@/components/ui/toast'
 import { TooltipProvider } from 'reka-ui'
 import { useSettingStore } from '@/stores/setting'
 import { useVectorStore } from '@/stores/vector'
+import { useEncryptionStore } from '@/stores/encryption'
 import { useI18n } from '@/hooks/useI18n'
 import dayjs from 'dayjs'
 import zh from 'dayjs/locale/zh-cn'
@@ -27,6 +28,7 @@ import { useWorkspaceStore } from '@/stores/workspace'
 
 const settingStore = useSettingStore()
 const vectorStore = useVectorStore()
+const encryptionStore = useEncryptionStore()
 const { locale } = useI18n()
 const toast = useToast()
 const dbInitialized = ref(false)
@@ -37,6 +39,9 @@ onMounted(async () => {
   if (typeof settingStore.initSettingData === 'function') {
     await settingStore.initSettingData()
   }
+
+  // 初始化加密模块
+  await encryptionStore.initEncryption()
   
   // 初始化图床（如果有）
   if (typeof (settingStore as any).initMainHosting === 'function') {

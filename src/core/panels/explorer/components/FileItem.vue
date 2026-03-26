@@ -52,6 +52,8 @@
             >
               {{ item.name }}
             </span>
+            <!-- 加密文件锁图标 -->
+            <LockKeyhole v-if="fileIsEncrypted" class="size-3 text-brand-purple flex-shrink-0" />
           </div>
         </template>
       </div>
@@ -99,8 +101,38 @@
       >
         {{ t('article.contextMenu.delete') }}
       </ContextMenuItem>
+      <ContextMenuSeparator />
+      <!-- 加密/解密操作 -->
+      <ContextMenuItem
+          v-if="!isImageFile && item.name.endsWith('.md') && !fileIsEncrypted"
+          :disabled="!item.isLocale"
+          @click="handleEncryptFile"
+      >
+        🔒 {{ t('article.contextMenu.encrypt') }}
+      </ContextMenuItem>
+      <ContextMenuItem
+          v-if="fileIsEncrypted"
+          @click="handleDecryptFile"
+      >
+        🔓 {{ t('article.contextMenu.decrypt') }}
+      </ContextMenuItem>
     </ContextMenuContent>
   </ContextMenu>
+
+  <!-- 密码输入对话框 -->
+  <PasswordDialog
+    :visible="showPasswordDialog"
+    :title="passwordDialogTitle"
+    :description="passwordDialogDesc"
+    :password-label="t('encryption.dialog.password')"
+    :password-placeholder="t('encryption.dialog.passwordPlaceholder')"
+    :submit-label="t('common.confirm')"
+    :confirm-mode="passwordDialogConfirmMode"
+    :show-warning="passwordDialogConfirmMode"
+    ref="passwordDialogRef"
+    @submit="handlePasswordSubmit"
+    @cancel="showPasswordDialog = false"
+  />
 </template>
 
 <script setup lang="ts">
@@ -108,12 +140,14 @@ import {computed, nextTick, onMounted, ref} from 'vue'
 import {ask} from '@tauri-apps/plugin-dialog'
 import {exists, readTextFile, remove, rename, writeTextFile} from '@tauri-apps/plugin-fs'
 import {openPath} from '@tauri-apps/plugin-opener'
-import {Image} from 'lucide-vue-next'
+import {Image, LockKeyhole} from 'lucide-vue-next'
 import type {DirTree} from '@/stores/article'
 import {useArticleStore} from '@/stores/article'
+import {useEncryptionStore} from '@/stores/encryption'
 import { getAbsoluteFilePath, getFilePathOptions } from '@/lib/workspace'
 import {useToast} from '@/composables/useToast'
 import FileIcon from './FileIcon.vue'
+import PasswordDialog from '@/components/PasswordDialog.vue'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -151,6 +185,28 @@ const isRoot = computed(() => path.value.split('/').length === 1)
 const isImageFile = computed(() =>
     props.item.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i)
 )
+
+// 加密相关
+const encryptionStore = useEncryptionStore()
+const fileIsEncrypted = ref(false)
+const showPasswordDialog = ref(false)
+const passwordDialogTitle = ref('')
+const passwordDialogDesc = ref('')
+const passwordDialogConfirmMode = ref(false)
+const passwordDialogRef = ref<InstanceType<typeof PasswordDialog> | null>(null)
+// 密码对话框提交后的回调
+let pendingPasswordAction: ((password: string) => Promise<void>) | null = null
+
+// 检查文件加密状态
+async function checkEncryptionStatus() {
+  if (props.item.isFile && props.item.name.endsWith('.md') && props.item.isLocale) {
+    try {
+      fileIsEncrypted.value = await encryptionStore.checkFileEncrypted(path.value)
+    } catch {
+      fileIsEncrypted.value = false
+    }
+  }
+}
 
 // 路径计算工具函数
 function computePath(item: DirTree): string {
@@ -208,15 +264,33 @@ const handleSelectFile = async (e: Event) => {
   if (isImageFile.value) {
     try {
       const imgUrl = await convertImageByWorkspace(path.value)
-      // 简单方案：在新窗口打开图片（若项目已有图片预览组件，可改为触发 modal）
       window.open(imgUrl, '_blank')
     } catch (err) {
       console.error('Show image failed:', err)
       show({ title: 'Show image failed', variant: 'error' })
     }
   } else {
-    // 文件：设置为活动文件
+    // 设置活动文件
     await articleStore.setActiveFilePath(path.value)
+
+    // 如果是加密文件且未缓存密码，弹出密码框
+    if (fileIsEncrypted.value && !encryptionStore.hasSessionPassword()) {
+      passwordDialogTitle.value = t('encryption.dialog.unlockTitle')
+      passwordDialogDesc.value = t('encryption.dialog.unlockDesc')
+      passwordDialogConfirmMode.value = false
+      pendingPasswordAction = async (password: string) => {
+        const valid = await encryptionStore.verifyPassword(path.value, password)
+        if (!valid) {
+          passwordDialogRef.value?.setError(t('encryption.dialog.wrongPassword'))
+          return
+        }
+        encryptionStore.setSessionPassword(password)
+        showPasswordDialog.value = false
+        // 重新读取文章
+        await articleStore.readArticle(path.value)
+      }
+      showPasswordDialog.value = true
+    }
   }
 }
 
@@ -413,6 +487,93 @@ onMounted(() => {
       inputRef.value?.focus()
     })
   }
+  // 初始化加密状态检查
+  checkEncryptionStatus()
 })
+
+// 加密操作
+const handleEncryptFile = async () => {
+  if (encryptionStore.hasSessionPassword()) {
+    // 已有缓存密码，直接加密
+    try {
+      await encryptionStore.encryptNote(path.value, encryptionStore.sessionPassword!)
+      fileIsEncrypted.value = true
+      show({ title: t('article.contextMenu.encryptSuccess'), variant: 'success' })
+    } catch (e) {
+      show({ title: t('article.contextMenu.encryptFailed'), variant: 'error' })
+      console.error('Encrypt failed:', e)
+    }
+  } else {
+    // 没有缓存密码，弹出设置密码对话框
+    passwordDialogTitle.value = encryptionStore.isPasswordSet
+      ? t('encryption.dialog.unlockTitle')
+      : t('encryption.dialog.setPasswordTitle')
+    passwordDialogDesc.value = encryptionStore.isPasswordSet
+      ? t('encryption.dialog.unlockDesc')
+      : t('encryption.dialog.setPasswordDesc')
+    passwordDialogConfirmMode.value = !encryptionStore.isPasswordSet
+    pendingPasswordAction = async (password: string) => {
+      try {
+        encryptionStore.setSessionPassword(password)
+        await encryptionStore.encryptNote(path.value, password)
+        if (!encryptionStore.isPasswordSet) {
+          await encryptionStore.markPasswordSet()
+        }
+        fileIsEncrypted.value = true
+        showPasswordDialog.value = false
+        show({ title: t('article.contextMenu.encryptSuccess'), variant: 'success' })
+      } catch (e) {
+        passwordDialogRef.value?.setError(t('article.contextMenu.encryptFailed'))
+        console.error('Encrypt failed:', e)
+      }
+    }
+    showPasswordDialog.value = true
+  }
+}
+
+const handleDecryptFile = async () => {
+  if (encryptionStore.hasSessionPassword()) {
+    try {
+      await encryptionStore.removeEncryption(path.value, encryptionStore.sessionPassword!)
+      fileIsEncrypted.value = false
+      // 刷新文章内容
+      if (path.value === activeFilePath.value) {
+        await articleStore.readArticle(path.value)
+      }
+      show({ title: t('article.contextMenu.decryptSuccess'), variant: 'success' })
+    } catch (e) {
+      show({ title: t('article.contextMenu.decryptFailed'), variant: 'error' })
+      console.error('Decrypt failed:', e)
+    }
+  } else {
+    // 需要输入密码
+    passwordDialogTitle.value = t('encryption.dialog.unlockTitle')
+    passwordDialogDesc.value = t('encryption.dialog.unlockDesc')
+    passwordDialogConfirmMode.value = false
+    pendingPasswordAction = async (password: string) => {
+      try {
+        await encryptionStore.removeEncryption(path.value, password)
+        encryptionStore.setSessionPassword(password)
+        fileIsEncrypted.value = false
+        showPasswordDialog.value = false
+        if (path.value === activeFilePath.value) {
+          await articleStore.readArticle(path.value)
+        }
+        show({ title: t('article.contextMenu.decryptSuccess'), variant: 'success' })
+      } catch (e) {
+        passwordDialogRef.value?.setError(t('encryption.dialog.wrongPassword'))
+        console.error('Decrypt failed:', e)
+      }
+    }
+    showPasswordDialog.value = true
+  }
+}
+
+// 密码对话框提交处理
+const handlePasswordSubmit = async (password: string) => {
+  if (pendingPasswordAction) {
+    await pendingPasswordAction(password)
+  }
+}
 </script>
 

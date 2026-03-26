@@ -11,6 +11,7 @@ mod app_setup;
 mod backup;
 mod model_manager;
 mod ocr;
+mod encryption;
 use tauri::{AppHandle, Manager, State, WindowEvent};
 use model_manager::LlamaServerState;
 use screenshot::{screenshot};
@@ -64,6 +65,11 @@ fn main() {
             ocr::ocr_from_bytes,
             ocr::ocr_from_screen,
             ocr::capture_main_screen,
+            encryption::encrypt_file,
+            encryption::decrypt_file,
+            encryption::check_file_encrypted,
+            encryption::verify_password,
+            encryption::re_encrypt_file,
         ])
 
         // 应用设置 - 在所有插件和命令注册后

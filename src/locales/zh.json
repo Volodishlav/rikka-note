@@ -75,7 +75,13 @@
       "confirmOverwrite": "\"{name}\" 已存在。是否覆盖?",
       "confirmOverwriteTitle": "确认",
       "pasted": "已粘贴",
-      "pasteFailed": "粘贴失败"
+      "pasteFailed": "粘贴失败",
+      "encrypt": "加密笔记",
+      "decrypt": "解除加密",
+      "encryptSuccess": "加密成功",
+      "encryptFailed": "加密失败",
+      "decryptSuccess": "已解除加密",
+      "decryptFailed": "解除加密失败"
     }
   },
   "workspace": {
@@ -303,7 +309,7 @@
       "test": "测试",
       "testSuccess": "测试通过！",
       "testFailed": "测试失败，请检查模型配置。",
-      "localModelTitle": "本地 Embedding 模型 (半本地化)",
+      "localModelTitle": "本地 Embedding 模型",
       "localModelDesc": "使用本地 llama.cpp 运行 embedding 模型，节省 API 费用并提高隐私性。",
       "localModelEnabled": "启用",
       "presetModel": "预设推荐模型 (GGUF)",
@@ -325,6 +331,33 @@
       "downloadSuccess": "已成功下载",
       "serverStarted": "服务已成功启动",
       "serverStopped": "服务已停止"
+    },
+    "encryption": {
+      "title": "加密保护",
+      "description": "对笔记进行加密保护，确保隐私安全。加密后的笔记在磁盘上为不可读的密文。",
+      "passwordSet": "已设置加密密码",
+      "passwordNotSet": "未设置加密密码",
+      "unlocked": "已解锁",
+      "locked": "已锁定",
+      "passwordManagement": "密码管理",
+      "setPassword": "设置加密密码",
+      "setPasswordDesc": "设置一个加密密码，用于保护您的笔记。",
+      "setPasswordSuccess": "加密密码设置成功",
+      "setPasswordFailed": "设置密码失败",
+      "changePassword": "修改密码",
+      "oldPassword": "原密码",
+      "oldPasswordPlaceholder": "请输入原密码",
+      "newPassword": "新密码",
+      "newPasswordPlaceholder": "请输入新密码",
+      "changing": "修改中...",
+      "changePasswordSuccess": "密码修改成功",
+      "changePasswordFailed": "密码修改失败",
+      "changePartialFailed": "{count} 个文件重新加密失败",
+      "lockNow": "立即锁定",
+      "lockedSuccess": "已锁定，需重新输入密码",
+      "stats": "加密统计",
+      "encryptedCount": "当前有 {count} 个笔记已加密",
+      "securityWarning": "重要提示：密码不会存储在任何位置，忘记密码将无法恢复加密内容。请务必妥善保管密码。"
     },
     "developer": {
       "title": "开发者",
@@ -356,6 +389,21 @@
         "pinkShadow": "粉丝阴影",
         "orangeShadow": "橙色阴影"
       }
+    }
+  },
+  "encryption": {
+    "dialog": {
+      "password": "密码",
+      "passwordPlaceholder": "请输入加密密码",
+      "confirmPassword": "确认密码",
+      "confirmPasswordPlaceholder": "请再次输入密码",
+      "passwordMismatch": "两次输入的密码不一致",
+      "warning": "密码一旦忘记将无法恢复，请务必妥善保管。",
+      "unlockTitle": "解锁笔记",
+      "unlockDesc": "此笔记已加密，请输入密码以解锁。",
+      "setPasswordTitle": "设置加密密码",
+      "setPasswordDesc": "请设置一个加密密码，用于保护笔记内容。",
+      "wrongPassword": "密码错误，请重试"
     }
   }
 }

@@ -75,7 +75,13 @@
       "confirmOverwrite": "\"{name}\" already exists. Overwrite?",
       "confirmOverwriteTitle": "Confirm",
       "pasted": "Pasted",
-      "pasteFailed": "Paste failed"
+      "pasteFailed": "Paste failed",
+      "encrypt": "Encrypt Note",
+      "decrypt": "Remove Encryption",
+      "encryptSuccess": "Encrypted successfully",
+      "encryptFailed": "Encryption failed",
+      "decryptSuccess": "Encryption removed",
+      "decryptFailed": "Failed to remove encryption"
     }
   },
   "workspace": {
@@ -303,7 +309,7 @@
       "test": "Test",
       "testSuccess": "Test passed!",
       "testFailed": "Test failed. Please check your model configuration.",
-      "localModelTitle": "Local Embedding Model (Semi-localized)",
+      "localModelTitle": "Local Embedding Model",
       "localModelDesc": "Run embedding models locally using llama.cpp to save API costs and improve privacy.",
       "localModelEnabled": "Enabled",
       "presetModel": "Preset Recommended Model (GGUF)",
@@ -325,6 +331,33 @@
       "downloadSuccess": "Downloaded successfully",
       "serverStarted": "Server started successfully",
       "serverStopped": "Server stopped"
+    },
+    "encryption": {
+      "title": "Encryption",
+      "description": "Encrypt notes to ensure privacy. Encrypted notes are stored as unreadable ciphertext on disk.",
+      "passwordSet": "Encryption password set",
+      "passwordNotSet": "No encryption password set",
+      "unlocked": "Unlocked",
+      "locked": "Locked",
+      "passwordManagement": "Password Management",
+      "setPassword": "Set Encryption Password",
+      "setPasswordDesc": "Set a password to protect your notes.",
+      "setPasswordSuccess": "Encryption password set successfully",
+      "setPasswordFailed": "Failed to set password",
+      "changePassword": "Change Password",
+      "oldPassword": "Current Password",
+      "oldPasswordPlaceholder": "Enter current password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "changing": "Changing...",
+      "changePasswordSuccess": "Password changed successfully",
+      "changePasswordFailed": "Failed to change password",
+      "changePartialFailed": "{count} file(s) failed to re-encrypt",
+      "lockNow": "Lock Now",
+      "lockedSuccess": "Locked. Password required to access encrypted notes.",
+      "stats": "Encryption Stats",
+      "encryptedCount": "{count} note(s) currently encrypted",
+      "securityWarning": "Important: The password is not stored anywhere. If you forget it, encrypted content cannot be recovered."
     },
     "developer": {
       "title": "Developer",
@@ -356,6 +389,21 @@
         "pinkShadow": "Pink Shadow",
         "orangeShadow": "Orange Shadow"
       }
+    }
+  },
+  "encryption": {
+    "dialog": {
+      "password": "Password",
+      "passwordPlaceholder": "Enter encryption password",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Re-enter password",
+      "passwordMismatch": "Passwords do not match",
+      "warning": "The password cannot be recovered once forgotten. Please keep it safe.",
+      "unlockTitle": "Unlock Note",
+      "unlockDesc": "This note is encrypted. Please enter the password to unlock.",
+      "setPasswordTitle": "Set Encryption Password",
+      "setPasswordDesc": "Set a password to protect your note content.",
+      "wrongPassword": "Wrong password, please try again"
     }
   }
 }

@@ -9,6 +9,7 @@ import {join} from '@tauri-apps/api/path'
 // 导入路径/工作区工具函数
 import {getFilePathOptions, getWorkspacePath, toWorkspaceRelativePath} from '@/lib/workspace'
 import {getCurrentFolder} from '@/lib/path'
+import {useEncryptionStore} from '@/stores/encryption'
 
 // 类型定义
 export type SortType = 'name' | 'created' | 'modified' | 'none'
@@ -440,7 +441,7 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // 读取文章内容
+    // 读取文章内容（集成加密支持）
     async function readArticle(path: string, _sha?: string, isLocale = true) {
         setLoading(true)
         errorMsg.value = null
@@ -458,9 +459,31 @@ export const useArticleStore = defineStore('article', () => {
                 const fileExists = await exists(pathOptions.path)
 
                 if (fileExists) {
-                    // 读取本地文件
-                    content = await readTextFile(pathOptions.path)
-                    currentArticle.value = content
+                    // 检查文件是否已加密
+                    const encryptionStore = useEncryptionStore()
+                    const isEncrypted = await encryptionStore.checkFileEncrypted(path)
+
+                    if (isEncrypted) {
+                        // 加密文件：需要密码解密
+                        if (!encryptionStore.hasSessionPassword()) {
+                            // 没有缓存密码，设置特殊标记让 UI 层弹出密码框
+                            currentArticle.value = ''
+                            errorMsg.value = '__ENCRYPTED_NEED_PASSWORD__'
+                            return
+                        }
+                        // 用缓存密码解密
+                        try {
+                            content = await encryptionStore.readEncryptedNote(path, encryptionStore.sessionPassword!)
+                            currentArticle.value = content
+                        } catch (e) {
+                            currentArticle.value = ''
+                            errorMsg.value = `解密失败：${(e as Error).message}`
+                        }
+                    } else {
+                        // 普通文件：直接读取
+                        content = await readTextFile(pathOptions.path)
+                        currentArticle.value = content
+                    }
                 } else {
                     currentArticle.value = ''
                     errorMsg.value = `本地文件不存在：${path}`
@@ -475,13 +498,10 @@ export const useArticleStore = defineStore('article', () => {
         }
     }
 
-    // 保存当前文章
+    // 保存当前文章（集成加密支持）
     async function saveCurrentArticle(content: string) {
         // 基础检查：没有内容或没有活跃文件时不保存
         if (!activeFilePath.value) return
-
-        // 如果内容未发生变化，可以增加一个对比逻辑减少 IO 操作（可选）
-        // if (content === currentArticle.value) return
 
         try {
             const path = activeFilePath.value
@@ -510,13 +530,22 @@ export const useArticleStore = defineStore('article', () => {
                 }
             }
 
-            // 3. 保存文件内容到物理磁盘
+            // 3. 检查是否为加密文件
+            const encryptionStore = useEncryptionStore()
+            const isEncrypted = encryptionStore.isEncrypted(path)
+
+            // 4. 保存文件内容到物理磁盘
             await writeTextFile(pathOptions.path, content)
 
-            // 4. 更新内部状态
+            // 5. 如果是加密文件，保存后自动重新加密
+            if (isEncrypted && encryptionStore.hasSessionPassword()) {
+                await encryptionStore.encryptNote(path, encryptionStore.sessionPassword!)
+            }
+
+            // 6. 更新内部状态
             currentArticle.value = content
 
-            // 5. 如果是第一次保存该文件（从虚构变为真实），更新文件树 UI 状态
+            // 7. 如果是第一次保存该文件（从虚构变为真实），更新文件树 UI 状态
             if (!isLocale) {
                 const cacheTree = cloneDeep(fileTree.value)
                 const current = path.includes('/')
@@ -528,7 +557,7 @@ export const useArticleStore = defineStore('article', () => {
                 }
             }
 
-            // 6. 向量数据库同步 (根据你的例子要求实现)
+            // 8. 向量数据库同步
             if (path.endsWith('.md')) {
                 try {
                     // 这里假设你有一个 vectorStore，如果没有请忽略或根据项目调整
