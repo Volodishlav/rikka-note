@@ -39,6 +39,7 @@
       "collapseAll": "Collapse All",
       "expandAll": "Expand All",
       "refresh": "Refresh",
+      "refreshed": "Refreshed",
       "fileCreated": "File created",
       "folderCreated": "Folder created",
       "createFileFailed": "Create file failed",

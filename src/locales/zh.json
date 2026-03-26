@@ -39,6 +39,7 @@
       "collapseAll": "折叠全部",
       "expandAll": "展开全部",
       "refresh": "刷新",
+      "refreshed": "已刷新",
       "fileCreated": "文件已创建",
       "folderCreated": "文件夹已创建",
       "createFileFailed": "创建文件失败",
