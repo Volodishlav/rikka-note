@@ -41,9 +41,8 @@ tauri-plugin-clipboard-manager = "2"
 reqwest = { version = "0.13.2", features = ["stream", "json"] }
 futures-util = "0.3.32"
 image = "0.25"
-aes-gcm = "0.10"
-pbkdf2 = { version = "0.12", features = ["simple"] }
-sha2 = "0.10"
+chacha20poly1305 = "0.10"
+argon2 = "0.5"
 rand = "0.8"
 windows = { version = "0.58.0", features = [
     "Media_Ocr",
