@@ -377,6 +377,35 @@
     },
     "developer": {
       "title": "Developer",
+      "tabs": {
+        "color": "Color Scheme",
+        "debug": "Debug System"
+      },
+      "debug": {
+        "title": "Debug System Config",
+        "description": "Control frontend log output level and functional module filtering",
+        "level": "Log Level",
+        "modules": "Enable Modules",
+        "levelDesc": "Only show logs with level greater than or equal to this",
+        "moduleDesc": "Check to show debug info for specific functional modules"
+      },
+      "levelLabels": {
+        "debug": "Debug (All)",
+        "info": "Info (General)",
+        "warn": "Warn (Warning)",
+        "error": "Error (Error)",
+        "none": "None (Disabled)"
+      },
+      "moduleLabels": {
+        "assistant": "AI Assistant",
+        "explorer": "File Explorer",
+        "editor": "Editor",
+        "db": "Database (Local)",
+        "ai": "AI Core",
+        "general": "General",
+        "auth": "Auth & Encryption",
+        "default": "Default/Other"
+      },
       "colorScheme": {
         "title": "Color Scheme Debug",
         "description": "Display all Tailwind CSS color variables configured in the project for development debugging",

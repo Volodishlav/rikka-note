@@ -113,6 +113,7 @@ import { Button } from '@/components/ui/button'
 import { Send, FileText, X, AlertCircle, Wand2, Sparkles } from 'lucide-vue-next'
 import { fetchAiStream } from '@/lib/ai'
 import { getRetrievedDocs, type RetrievedDoc } from '@/lib/rag'
+import { logger } from '@/utils/logger'
 import { invoke } from '@tauri-apps/api/core'
 import { storeToRefs } from 'pinia'
 import { toast } from '@/components/ui/toast/use-toast'
@@ -175,7 +176,7 @@ const navigateToDoc = async (filename: string) => {
       })
     }
   } catch (err) {
-    console.error('Navigation failed:', err)
+    logger.assistant.error('Navigation failed:', err)
   }
 }
 
@@ -196,7 +197,7 @@ const sendMessage = async () => {
   if (isRagEnabled.value && documentCount.value > 0) {
     isSending.value = true
     try {
-      console.log('Pre-fetching RAG context for verification...')
+      logger.assistant.debug('Pre-fetching RAG context for verification...')
       
       let keywords: { text: string; weight: number }[]
       if (content.length > 10) {
@@ -219,7 +220,7 @@ const sendMessage = async () => {
         return
       }
     } catch (error) {
-      console.error('Failed to pre-fetch RAG docs:', error)
+      logger.assistant.error('Failed to pre-fetch RAG docs:', error)
     } finally {
       isSending.value = false
     }
@@ -287,7 +288,7 @@ ${content.trim()}
       }
 
       // 5. Stream AI Response
-      console.log('--- Sending AI Request ---')
+      logger.assistant.debug('--- Sending AI Request ---')
 
       const history = chatStore.chats.slice(0, -2).map(chat => ({
         role: chat.role === 'user' ? 'user' : 'assistant',
@@ -317,10 +318,10 @@ ${content.trim()}
         content: fullContent
       }, true)
 
-      console.log('--- AI Request Completed ---')
+      logger.assistant.debug('--- AI Request Completed ---')
     }
   } catch (e) {
-    console.error('Failed to perform send message', e)
+    logger.assistant.error('Failed to perform send message', e)
     toast({
       variant: 'destructive',
       title: '发送失败',

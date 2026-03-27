@@ -25,6 +25,7 @@ import { initAllDatabases } from '@/db'
 import { useToast } from "@/composables/useToast"
 import WelcomeGuide from '@/components/WelcomeGuide.vue'
 import { useWorkspaceStore } from '@/stores/workspace'
+import { logger } from '@/utils/logger'
 
 const settingStore = useSettingStore()
 const vectorStore = useVectorStore()
@@ -64,12 +65,12 @@ onMounted(async () => {
       await vectorStore.initVectorDb()
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      console.error('应用数据库初始化失败:', errorMsg);
+      logger.general.error('应用数据库初始化失败:', errorMsg);
       toast.show({ title: '数据库初始化失败', message: errorMsg, variant: 'error' })
     }
   }
   
-  console.log('TooltipProvider has been added to RootLayout')
+  logger.general.debug('TooltipProvider has been added to RootLayout')
 })
 
 // UI 缩放

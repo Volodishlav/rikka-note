@@ -101,6 +101,7 @@ import { toast } from '@/components/ui/toast/use-toast'
 import { Download, Play, Square, RefreshCw } from 'lucide-vue-next'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
+import { logger } from '@/utils/logger'
 
 const { t } = useI18n()
 const settingStore = useSettingStore()
@@ -173,7 +174,7 @@ onUnmounted(() => {
 const handleSwitchChange = async (val: boolean) => {
   await settingStore.setUseLocalEmbedding(val)
   if (val) {
-     console.log('=== [DEBUG] 启用了本地模型开关 ===')
+     logger.ai.debug('=== [DEBUG] 启用了本地模型开关 ===')
      toast({ description: t('settings.rag.localPriorityEnabled') })
      await checkLocalFile()
   } else {
@@ -208,7 +209,7 @@ const checkLocalFile = async (showToast: boolean = false) => {
   try {
     const exists = await invoke<boolean>('check_model_exists', { filename: modelFilename.value })
     isFileExists.value = exists
-    console.log(`=== [DEBUG] Check file ${modelFilename.value}: exists=${exists}`)
+    logger.ai.debug(`=== [DEBUG] Check file ${modelFilename.value}: exists=${exists}`)
     if (showToast) {
       if (exists) {
         toast({ description: t('settings.rag.fileExist') })
@@ -217,7 +218,7 @@ const checkLocalFile = async (showToast: boolean = false) => {
       }
     }
   } catch(e) {
-    console.error('Check file err', e)
+    logger.ai.error('Check file err', e)
     if (showToast) {
       toast({ variant: 'destructive', description: `${e}` })
     }
@@ -229,14 +230,14 @@ const downloadModel = async () => {
   isDownloading.value = true
   downloadProgress.value = 0
   downloadedBytes.value = 0
-  console.log(`=== [DEBUG] Start downloading ${customUrl.value} -> ${modelFilename.value}`)
+  logger.ai.debug(`=== [DEBUG] Start downloading ${customUrl.value} -> ${modelFilename.value}`)
   
   try {
     const res = await invoke<string>('download_local_model', { url: customUrl.value, filename: modelFilename.value })
-    console.log(`=== [DEBUG] Download ok -> ${res}`)
+    logger.ai.debug(`=== [DEBUG] Download ok -> ${res}`)
     isFileExists.value = true
   } catch (e: any) {
-    console.error('Download err', e)
+    logger.ai.error('Download err', e)
     toast({ variant: 'destructive', description: `下载失败: ${e}` })
     isDownloading.value = false
   }
@@ -244,17 +245,17 @@ const downloadModel = async () => {
 
 const startServer = async () => {
   isStarting.value = true
-  console.log(`=== [DEBUG] Start llama-server port=${localPort.value} model=${modelFilename.value} ===`)
+  logger.ai.debug(`=== [DEBUG] Start llama-server port=${localPort.value} model=${modelFilename.value} ===`)
   try {
     const res = await invoke<string>('start_llama_server', {
        modelFilename: modelFilename.value,
        port: Number(localPort.value)
     })
-    console.log(`=== [DEBUG] Server started: ${res} ===`)
+    logger.ai.debug(`=== [DEBUG] Server started: ${res} ===`)
     isServerRunning.value = true
     toast({ description: t('settings.rag.serverStarted') })
   } catch(e: any) {
-    console.error('Start server failed', e)
+    logger.ai.error('Start server failed', e)
     toast({ variant: 'destructive', description: `启动失败: ${e}` })
   } finally {
     isStarting.value = false
@@ -262,13 +263,13 @@ const startServer = async () => {
 }
 
 const stopServer = async () => {
-  console.log(`=== [DEBUG] Stop llama-server ===`)
+  logger.ai.debug(`=== [DEBUG] Stop llama-server ===`)
   try {
     await invoke<string>('stop_llama_server')
     isServerRunning.value = false
     toast({ description: t('settings.rag.serverStopped') })
   } catch(e) {
-    console.error('Stop err', e)
+    logger.ai.error('Stop err', e)
   }
 }
 </script>

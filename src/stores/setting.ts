@@ -38,6 +38,10 @@ export const useSettingStore = defineStore('setting', () => {
     const useLocalEmbedding = ref<boolean>(false)
     const localEmbeddingModelStr = ref<string>('qwen3-embedding-0.6b-q8_0.gguf')
     const localEmbeddingPort = ref<number>(8080)
+    
+    // Developer & Log Configs
+    const devLogLevel = ref<'debug' | 'info' | 'warn' | 'error' | 'none'>('debug')
+    const devLogModules = ref<string[]>(['assistant', 'explorer', 'editor', 'db', 'ai', 'general', 'auth', 'default'])
 
 
     // actions
@@ -103,6 +107,12 @@ export const useSettingStore = defineStore('setting', () => {
             const savedLocalEmbeddingPort = await tauriGet<number>('localEmbeddingPort')
             if (savedLocalEmbeddingPort) localEmbeddingPort.value = savedLocalEmbeddingPort
 
+            const savedDevLogLevel = await tauriGet<string>('devLogLevel')
+            if (savedDevLogLevel) devLogLevel.value = savedDevLogLevel as any
+
+            const savedDevLogModules = await tauriGet<string[]>('devLogModules')
+            if (savedDevLogModules) devLogModules.value = savedDevLogModules
+
             // 初始化系统主题监听
             if (preferDarkQuery) {
                 preferDarkQuery.addEventListener('change', (e) => {
@@ -145,7 +155,7 @@ export const useSettingStore = defineStore('setting', () => {
     }
     
     async function updateAiModel(config: AiConfig) {
-        const index = aiModelList.value.findIndex(item => item.key === config.key)
+        const index = aiModelList.value.findIndex((item: AiConfig) => item.key === config.key)
         if (index > -1) {
             aiModelList.value[index] = config
         } else {
@@ -209,6 +219,16 @@ export const useSettingStore = defineStore('setting', () => {
         await tauriSet('localEmbeddingPort', val)
     }
 
+    async function setDevLogLevel(val: 'debug' | 'info' | 'warn' | 'error' | 'none') {
+        devLogLevel.value = val
+        await tauriSet('devLogLevel', val)
+    }
+
+    async function setDevLogModules(val: string[]) {
+        devLogModules.value = val
+        await tauriSet('devLogModules', val)
+    }
+
     return {
         // state
         theme,
@@ -245,6 +265,10 @@ export const useSettingStore = defineStore('setting', () => {
         localEmbeddingPort,
         setUseLocalEmbedding,
         setLocalEmbeddingModelStr,
-        setLocalEmbeddingPort
+        setLocalEmbeddingPort,
+        devLogLevel,
+        devLogModules,
+        setDevLogLevel,
+        setDevLogModules
     }
 })

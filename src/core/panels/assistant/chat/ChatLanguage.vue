@@ -26,6 +26,7 @@
 import { ref, onMounted } from 'vue'
 import { Store } from '@tauri-apps/plugin-store'
 import { Globe, Check } from 'lucide-vue-next'
+import { logger } from '@/utils/logger'
 import { useI18n } from '@/hooks/useI18n'
 import { Button } from '@/components/ui/button'
 import {
@@ -67,7 +68,7 @@ async function initChatLanguage() {
       await store.save()
     }
   } catch (error) {
-    console.error('Failed to initialize chat language:', error)
+    logger.assistant.error('Failed to initialize chat language:', error)
     chatLanguage.value = 'English' // Default fallback
   }
 }
@@ -79,9 +80,9 @@ async function languageSelectChangeHandler(langId: string) {
     const store = await Store.load('store.json')
     await store.set('chatLanguage', langId)
     await store.save()
-    console.log('Language saved:', langId)
+    logger.assistant.debug('Language saved:', langId)
   } catch (error) {
-    console.error('Failed to save chat language:', error)
+    logger.assistant.error('Failed to save chat language:', error)
   }
 }
 

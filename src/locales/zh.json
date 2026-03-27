@@ -377,6 +377,35 @@
     },
     "developer": {
       "title": "开发者",
+      "tabs": {
+        "color": "配色方案",
+        "debug": "调试系统"
+      },
+      "debug": {
+        "title": "调试系统配置",
+        "description": "控制前端日志输出级别与功能模块过滤",
+        "level": "日志级别",
+        "modules": "启用模块",
+        "levelDesc": "仅显示大于等于该级别的日志",
+        "moduleDesc": "勾选以显示特定功能模块的调试信息"
+      },
+      "levelLabels": {
+        "debug": "Debug (全部)",
+        "info": "Info (常规)",
+        "warn": "Warn (警告)",
+        "error": "Error (错误)",
+        "none": "None (禁用)"
+      },
+      "moduleLabels": {
+        "assistant": "AI 助手",
+        "explorer": "文件管理器",
+        "editor": "编辑器",
+        "db": "数据库 (Local)",
+        "ai": "AI 基础调用",
+        "general": "通用功能",
+        "auth": "加密与权限",
+        "default": "其他/未分类"
+      },
       "colorScheme": {
         "title": "配色方案调试",
         "description": "展示项目中所有 Tailwind CSS 配置的颜色变量，方便开发调试",

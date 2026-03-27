@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { tauriGet, tauriSet } from '@/utils/tauriStore'
 import { exists, writeTextFile, mkdir } from '@tauri-apps/plugin-fs'
+import { logger } from '@/utils/logger'
 import { useI18n } from '@/hooks/useI18n'
 import { closeDb, initAllDatabases } from '@/db'
 import { useArticleStore } from '@/stores/article'
@@ -46,7 +47,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
             found.lastAccessed = Date.now()
             await tauriSet('workspaces', workspaces.value)
           } else {
-            console.warn(`[Workspace] 启动时发现激活仓库的文件夹(${found.path})已丢失。状态回退。`)
+            logger.explorer.warn(`[Workspace] 启动时发现激活仓库的文件夹(${found.path})已丢失。状态回退。`)
             // 失效则悬空
             activeWorkspace.value = null
             await tauriSet('activeWorkspaceId', null)
@@ -54,7 +55,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         }
       }
     } catch (e) {
-      console.error('initWorkspaceData error:', e)
+      logger.explorer.error('initWorkspaceData error:', e)
     }
   }
 
@@ -69,7 +70,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       isMarkerExists = await exists(markerFile)
     } catch (e) {
       // 路径无法访问等情况直接视作不存在或异常
-      console.warn('Check marker failed, maybe not exists', e)
+      logger.explorer.warn('Check marker failed, maybe not exists', e)
     }
     
     if (!isMarkerExists) {
@@ -79,7 +80,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
           name: name
         }, null, 2))
       } catch (e) {
-        console.error('Failed to create .rikka_note marker file:', e)
+        logger.explorer.error('Failed to create .rikka_note marker file:', e)
         throw new Error(t('workspace.toast.markerCreateFailed'))
       }
     }
@@ -125,10 +126,10 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       const encryptionStore = useEncryptionStore()
       if (encryptionStore.isUnlocked) {
         await encryptionStore.lock()
-        console.log('[Workspace] 切换工作区前已自动锁定加密文件')
+        logger.explorer.debug('[Workspace] 切换工作区前已自动锁定加密文件')
       }
     } catch (e) {
-      console.warn('[Workspace] 切换工作区时锁定加密失败:', e)
+      logger.explorer.warn('[Workspace] 切换工作区时锁定加密失败:', e)
     }
 
     activeWorkspace.value = found
@@ -144,9 +145,9 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     try {
       const articleStore = useArticleStore()
       articleStore.clearSelectedFolder()
-      console.log('[Workspace] 已清除旧仓库的选中文件夹状态')
+      logger.explorer.debug('[Workspace] 已清除旧仓库的选中文件夹状态')
     } catch (e) {
-      console.warn('[Workspace] 清除选中文件夹状态失败:', e)
+      logger.explorer.warn('[Workspace] 清除选中文件夹状态失败:', e)
     }
     
     // 断开旧的数据库连接，并重新初始化对应新仓库的各类数据表
@@ -154,7 +155,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       await closeDb()
       await initAllDatabases()
     } catch (e) {
-      console.warn('切换仓库时重置数据库失败', e)
+      logger.explorer.warn('切换仓库时重置数据库失败', e)
     }
   }
 

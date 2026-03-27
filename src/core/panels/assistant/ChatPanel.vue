@@ -13,6 +13,7 @@ import { useTagStore } from '@/stores/tag'
 import ChatHeader from './chat/ChatHeader.vue'
 import ChatList from './chat/ChatList.vue'
 import ChatInput from './chat/ChatInput.vue'
+import { logger } from '@/utils/logger'
 
 const chatStore = useChatStore()
 const tagStore = useTagStore()
@@ -20,9 +21,9 @@ const tagStore = useTagStore()
 // Initialize chats when tag changes
 watch(() => tagStore.currentTagId, async (newId) => {
   if (newId) {
-    console.log('Switching chat context to tag:', newId)
+    logger.assistant.debug('Switching chat context to tag:', newId)
     await chatStore.init(newId)
-    console.log('Chats loaded:', chatStore.chats.length)
+    logger.assistant.debug('Chats loaded:', chatStore.chats.length)
   }
 }, { immediate: true })
 </script>
