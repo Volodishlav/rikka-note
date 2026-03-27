@@ -6,6 +6,9 @@
         :toolbars="toolbars"
         :editor-id="editorId"
         @onUploadImg="onUploadImg"
+        @onGetControl="onGetControl"
+        @click="updateSelection"
+        @keyup="updateSelection"
         class="flex-1"
     />
   </div>
@@ -18,10 +21,14 @@ import {v4 as uuid} from 'uuid';
 import {appDataDir, join} from '@tauri-apps/api/path';
 import {exists, mkdir, writeFile} from '@tauri-apps/plugin-fs';
 import {useArticleStore} from '@/stores/article';
+import {useChatStore} from '@/stores/chat';
 // 导入 TAURI 的 convertFileSrc API
 import {convertFileSrc} from '@tauri-apps/api/core';
 // 编辑器内容
 const text = ref('# Hello md-editor-v3!\n\n这是一个测试文档。');
+
+// 聊天存储
+const chatStore = useChatStore();
 
 // 编辑器ID
 const editorId = `md-editor-${uuid().substring(0, 8)}`;
@@ -101,13 +108,35 @@ watch(
 // 监听文章内容变化
 watch(
     () => articleStore.currentArticle,
-    (newContent) => {
+    (newContent: string) => {
       if (newContent !== text.value) {
         text.value = newContent;
       }
     },
     { immediate: true }
 );
+
+// 保存编辑器实例引用
+const editorRef = ref<any>(null);
+const onGetControl = (ctrl: any) => {
+  editorRef.value = ctrl;
+};
+
+// 捕捉当前选择并同步至 Chat Store
+const updateSelection = () => {
+    // 只有当有活动文件时才获取选中区域并同步上下文
+    const selection = editorRef.value?.getSelection() || window.getSelection()?.toString() || '';
+    if (articleStore.activeFilePath) {
+        chatStore.setEditContext(selection, text.value, articleStore.activeFilePath);
+    }
+};
+
+// 监听 AI 编辑模式开启，自动触发一次上下文同步
+watch(() => chatStore.isEditMode, (enabled: boolean) => {
+    if (enabled) {
+        updateSelection();
+    }
+});
 
 // 防抖定时器
 let saveTimer: ReturnType<typeof setTimeout> | null = null;

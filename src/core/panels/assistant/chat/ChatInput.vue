@@ -58,6 +58,18 @@
       </div>
     </Transition>
 
+    <!-- AI 编辑模式上下文提示 -->
+    <div v-if="chatStore.isEditMode && articleStore.activeFilePath" class="mb-2 px-1 flex items-center justify-between">
+      <div class="flex items-center gap-2 text-[10px] font-medium text-purple-500 animate-pulse">
+        <Sparkles class="h-3 w-3" />
+        <span v-if="chatStore.editSelection">正在编辑：选中片段 ({{ chatStore.editSelection.length }} 字)</span>
+        <span v-else>正在编辑：全文件内容</span>
+      </div>
+      <Button variant="ghost" size="xs" class="h-5 text-[10px] text-muted-foreground hover:text-foreground" @click="chatStore.toggleEditMode(false)">
+        关闭编辑模式
+      </Button>
+    </div>
+
     <div class="relative">
       <Textarea 
         v-model="input" 
@@ -75,6 +87,18 @@
       >
         <Send class="h-4 w-4" />
       </Button>
+      
+      <!-- AI 编辑模式切换按钮 -->
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        class="absolute bottom-2 right-11 h-8 w-8 transition-all hover:bg-purple-500/10 hover:text-purple-500" 
+        :class="{ 'text-purple-500 bg-purple-500/10': chatStore.isEditMode }"
+        @click="chatStore.toggleEditMode()"
+        title="AI 编辑模式"
+      >
+        <Wand2 class="h-4 w-4" />
+      </Button>
     </div>
   </div>
 </template>
@@ -86,7 +110,7 @@ import { useVectorStore } from '@/stores/vector'
 import { useI18n } from '@/hooks/useI18n'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Send, FileText, X, AlertCircle } from 'lucide-vue-next'
+import { Send, FileText, X, AlertCircle, Wand2, Sparkles } from 'lucide-vue-next'
 import { fetchAiStream } from '@/lib/ai'
 import { getRetrievedDocs, type RetrievedDoc } from '@/lib/rag'
 import { invoke } from '@tauri-apps/api/core'
@@ -235,10 +259,32 @@ ${docs.map(ctx => `文件：${ctx.filename}\n${ctx.content}\n`).join('\n---\n\n'
       }
 
       // 构建最终提示词
-      const finalContent = `
+      let finalContent = ''
+      
+      if (chatStore.isEditMode) {
+        // AI 编辑模式专项 Prompt
+        const targetText = chatStore.editSelection || chatStore.editFullContent
+        const isFullFile = !chatStore.editSelection
+        
+        finalContent = `
+IMPORTANT: You are in "Edit Mode". Your task is to modify the provided text based on the user's instruction.
+Return the modified version wrapped in a \`\`\`proposal\`\`\` code block. 
+
+TARGET TEXT (${isFullFile ? 'Full File' : 'Selected Fragment'}):
+${targetText}
+
+USER INSTRUCTION:
+${content.trim()}
+
+Please provide the revised content inside a \`\`\`proposal\`\`\` block.
+`.trim()
+      } else {
+        // 普通聊天模式
+        finalContent = `
 ${ragContext.trim()}
 ${content.trim()}
 `.trim()
+      }
 
       // 5. Stream AI Response
       console.log('--- Sending AI Request ---')
@@ -257,7 +303,15 @@ ${content.trim()}
         })
       }, undefined, history)
 
-      // 6. Save Final AI Message
+      // 6. 如果是编辑模式，附加元数据
+      if (chatStore.isEditMode) {
+        const originalText = chatStore.editSelection || chatStore.editFullContent;
+        // 使用 Base64 编码原文以避免 HTML/Markdown 冲突 (处理中文需要 encodeURIComponent)
+        const encodedOriginal = btoa(encodeURIComponent(originalText));
+        fullContent += `\n\n<!-- rikka-edit-meta: {"original": "${encodedOriginal}", "status": "suggestion", "isFull": ${!chatStore.editSelection}} -->`;
+      }
+
+      // 7. Save Final AI Message
       await chatStore.saveChat({
         ...aiChat,
         content: fullContent

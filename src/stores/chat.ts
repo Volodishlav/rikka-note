@@ -34,6 +34,12 @@ export const useChatStore = defineStore('chat', () => {
     const syncState = ref(false)
     const lastSyncTime = ref('')
 
+    // AI 编辑模式状态
+    const isEditMode = ref(false)
+    const editSelection = ref('')
+    const editFullContent = ref('')
+    const editFilePath = ref('')
+
     // 初始化整个聊天环境（按 Tag）
     const init = async (tagId: number) => {
         loading.value = true
@@ -202,6 +208,18 @@ export const useChatStore = defineStore('chat', () => {
         }
     }
 
+    // 更新编辑上下文
+    const setEditContext = (selection: string, fullContent: string, filePath: string) => {
+        editSelection.value = selection
+        editFullContent.value = fullContent
+        editFilePath.value = filePath
+    }
+
+    // 切换编辑模式
+    const toggleEditMode = (val?: boolean) => {
+        isEditMode.value = val !== undefined ? val : !isEditMode.value
+    }
+
     return {
         chats,
         sessions,
@@ -223,6 +241,12 @@ export const useChatStore = defineStore('chat', () => {
         saveChat,
         deleteChat,
         clearCurrentSession,
-        updateInsert
+        updateInsert,
+        isEditMode,
+        editSelection,
+        editFullContent,
+        editFilePath,
+        setEditContext,
+        toggleEditMode
     }
 })

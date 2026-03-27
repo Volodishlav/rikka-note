@@ -14,7 +14,26 @@
         </div>
       </div>
       <div class="prose dark:prose-invert max-w-none break-words leading-relaxed">
-        <MdPreview :modelValue="message.content || ''" :editorId="'msg-' + message.id" :theme="isDark ? 'dark' : 'light'" />
+        <!-- 如果消息包含提案代码块，且是助手回复，渲染 Diff 预览 -->
+        <template v-if="proposalData">
+          <div v-if="proposalData.prefix" class="mb-2">
+            <MdPreview :modelValue="proposalData.prefix" :editorId="'msg-pre-' + message.id" :theme="isDark ? 'dark' : 'light'" />
+          </div>
+          
+          <DiffPreview 
+            :message-id="message.id"
+            :original="proposalData.original" 
+            :proposed="proposalData.proposed" 
+            :isFullFile="proposalData.isFullFile"
+            :status="proposalData.status"
+          />
+          
+          <div v-if="proposalData.suffix" class="mt-2">
+            <MdPreview :modelValue="proposalData.suffix" :editorId="'msg-post-' + message.id" :theme="isDark ? 'dark' : 'light'" />
+          </div>
+        </template>
+        
+        <MdPreview v-else :modelValue="message.content || ''" :editorId="'msg-' + message.id" :theme="isDark ? 'dark' : 'light'" />
       </div>
     </div>
   </div>
@@ -30,7 +49,10 @@ import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import { useToast } from '@/components/ui/toast/use-toast'
 import { useI18n } from '@/hooks/useI18n'
+import { useChatStore } from '@/stores/chat'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
+import DiffPreview from './DiffPreview.vue'
+import { computed } from 'vue'
 
 const props = defineProps<{
   message: Chat
@@ -38,6 +60,47 @@ const props = defineProps<{
 
 const { toast } = useToast()
 const { t } = useI18n()
+const chatStore = useChatStore()
+
+// 解析消息中的提案内容
+const proposalData = computed(() => {
+  if (props.message.role !== 'assistant' || !props.message.content) return null;
+  
+  // 1. 优先尝试解析隐藏元数据 (新方案)
+  const metaMatch = props.message.content.match(/<!-- rikka-edit-meta: (\{.*?\}) -->/);
+  let metadata: any = null;
+  if (metaMatch) {
+    try {
+      metadata = JSON.parse(metaMatch[1]);
+      // 解码原文 (处理中文)
+      metadata.original = decodeURIComponent(atob(metadata.original));
+    } catch (e) {
+      console.error('Failed to parse rikka-edit-meta:', e);
+    }
+  }
+
+  // 2. 匹配 ```proposal 内容 ```
+  const proposalMatch = props.message.content.match(/([\s\S]*?)```proposal\s*([\s\S]*?)```([\s\S]*)/);
+  if (proposalMatch) {
+    const [_, prefix, proposed, suffix] = proposalMatch;
+    
+    // 如果有元数据，使用元数据中的原文和状态，实现状态锁定
+    // 否则回退到 chatStore (旧消息兼容性)
+    const original = metadata ? metadata.original : (chatStore.editSelection || chatStore.editFullContent);
+    const isFullFile = metadata ? metadata.isFull : !chatStore.editSelection;
+    const status = metadata ? metadata.status : 'suggestion';
+    
+    return {
+      prefix: prefix.trim(),
+      proposed: proposed.trim(),
+      suffix: suffix.trim(),
+      original: original,
+      isFullFile: isFullFile,
+      status: status
+    };
+  }
+  return null;
+});
 
 // 主题状态 - 检测当前是否为深色模式
 const isDark = ref(document.documentElement.classList.contains('dark'))
