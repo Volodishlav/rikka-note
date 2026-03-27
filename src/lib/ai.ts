@@ -359,9 +359,8 @@ async function prepareMessages(text: string, includeLanguage = false, history: {
   if (includeLanguage) {
     const store = await Store.load('store.json')
     const chatLanguage = await store.get<string>('chatLanguage') || 'en'
-    promptContent += '\n\n' + `Use **${chatLanguage}** to answer.`
+    promptContent = `[IMPORTANT] YOU MUST ONLY SPEAK ${chatLanguage}. ALL RESPONSES IN ${chatLanguage}.` +promptContent
   }
-  
   // 定义消息数组
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = []
   let geminiText: string | undefined
