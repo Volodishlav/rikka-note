@@ -192,7 +192,8 @@
         "editTitle": "重命名",
         "saveTitle": "保存修改",
         "deleteTitle": "删除会话",
-        "deleteConfirm": "确定要删除这个会话吗？"
+        "deleteConfirm": "确定要删除这个会话吗？",
+        "desc": "聊天会话管理面板"
       },
       "input": {
         "placeholder": "输入消息... (Shift+Enter 换行)"

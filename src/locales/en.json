@@ -192,7 +192,8 @@
         "editTitle": "Rename",
         "saveTitle": "Save",
         "deleteTitle": "Delete Session",
-        "deleteConfirm": "Are you sure you want to delete this session?"
+        "deleteConfirm": "Are you sure you want to delete this session?",
+        "desc": "Chat session management panel"
       },
       "input": {
         "placeholder": "Type a message... (Shift+Enter for new line)"
