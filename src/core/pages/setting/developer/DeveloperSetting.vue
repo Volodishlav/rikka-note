@@ -102,21 +102,43 @@
           <span class="text-xs text-muted-foreground">{{ t('settings.developer.debug.moduleDesc') }}</span>
         </div>
         
-        <div class="flex flex-wrap gap-2">
-          <Button
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div
             v-for="(label, key) in moduleOptions"
             :key="key"
-            size="sm"
-            :variant="isModuleEnabled(key as string) ? 'secondary' : 'outline'"
+            class="flex flex-col gap-2 p-3 rounded-lg border bg-card/50 hover:bg-accent/5 transition-colors cursor-pointer"
             @click="toggleModule(key as string)"
-            class="flex items-center gap-2"
           >
-            <div 
-              class="w-2 h-2 rounded-full" 
-              :style="{ backgroundColor: getModuleColor(key as string) }"
-            />
-            {{ label }}
-          </Button>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div 
+                  class="w-2.5 h-2.5 rounded-full shadow-sm" 
+                  :style="{ backgroundColor: getModuleColor(key as string) }"
+                />
+                <span class="font-medium text-sm">{{ label }}</span>
+              </div>
+              <div 
+                class="w-8 h-4 rounded-full relative transition-colors duration-200"
+                :class="isModuleEnabled(key as string) ? 'bg-primary' : 'bg-muted'"
+              >
+                <div 
+                  class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform duration-200"
+                  :style="{ transform: isModuleEnabled(key as string) ? 'translateX(18px)' : 'translateX(2px)' }"
+                />
+              </div>
+            </div>
+            
+            <!-- File Mapping -->
+            <div class="flex flex-wrap gap-1.5 mt-1">
+              <span 
+                v-for="file in moduleFileMap[key as string] || []" 
+                :key="file"
+                class="text-[10px] px-1.5 py-0.5 rounded bg-muted/80 text-muted-foreground font-mono"
+              >
+                {{ file }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -168,6 +190,18 @@ const moduleOptions = computed(() => ({
   auth: t('settings.developer.moduleLabels.auth'),
   default: t('settings.developer.moduleLabels.default')
 }))
+
+// Module to File Mapping (for display only)
+const moduleFileMap: Record<string, string[]> = {
+  assistant: ['ChatPanel.vue', 'ChatHeader.vue', 'ChatInput.vue', 'MessageItem.vue', 'ChatLanguage.vue'],
+  explorer: ['workspace.ts', 'ExplorerPanel.vue'],
+  editor: ['MdEditor.vue', 'EditorToolbar.vue'],
+  db: ['db/index.ts', 'db/chats.ts', 'db/vector.ts'],
+  ai: ['ai.ts', 'rag.ts', 'LocalModelManager.vue'],
+  general: ['RootLayout.vue', 'App.vue', 'main.ts'],
+  auth: ['encryption.ts', 'UnlockDialog.vue'],
+  default: ['Global Fallback']
+}
 
 const isModuleEnabled = (module: string) => {
   return settingStore.devLogModules.includes(module)
