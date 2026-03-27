@@ -15,9 +15,56 @@
 </template>
 <script setup lang="ts">
 import {onMounted, onUnmounted, ref, watch} from 'vue';
-import {MdEditor} from 'md-editor-v3';
+import {MdEditor, config} from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 import {v4 as uuid} from 'uuid';
+
+// ============================================
+// 配置 md-editor-v3 使用本地库，避免 CDN 加载被 Tracking Prevention 阻止
+// ============================================
+import screenfull from 'screenfull';
+import mermaid from 'mermaid';
+import katex from 'katex';
+import * as echarts from 'echarts';
+import Cropper from 'cropperjs';
+import * as prettier from 'prettier';
+import prettierPluginMarkdown from 'prettier/plugins/markdown';
+import hljs from 'highlight.js';
+
+// 配置编辑器使用本地库
+config({
+  editorExtensions: {
+    // 全屏功能
+    screenfull: {
+      instance: screenfull,
+    },
+    // Mermaid 图表
+    mermaid: {
+      instance: mermaid,
+    },
+    // KaTeX 数学公式
+    katex: {
+      instance: katex,
+    },
+    // ECharts 图表
+    echarts: {
+      instance: echarts,
+    },
+    // 图片裁剪
+    cropper: {
+      instance: Cropper,
+    },
+    // 代码格式化
+    prettier: {
+      prettierInstance: prettier,
+      parserMarkdownInstance: prettierPluginMarkdown,
+    },
+    // 代码高亮
+    highlight: {
+      instance: hljs,
+    },
+  },
+});
 import {appDataDir, join} from '@tauri-apps/api/path';
 import {exists, mkdir, writeFile} from '@tauri-apps/plugin-fs';
 import {useArticleStore} from '@/stores/article';
