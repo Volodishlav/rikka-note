@@ -6,7 +6,7 @@
         <div class="p-1 bg-purple-500/10 rounded">
           <History class="h-3.5 w-3.5 text-purple-500" />
         </div>
-        <span class="text-xs font-semibold">修改建议预览</span>
+        <span class="text-xs font-semibold">{{ t('record.chat.diffPreview.title') }}</span>
       </div>
       <div class="flex items-center gap-2">
         <Button 
@@ -17,7 +17,7 @@
           @click="handleApply"
         >
           <Check class="h-3 w-3 mr-1" />
-          应用
+          {{ t('record.chat.diffPreview.apply') }}
         </Button>
         <Button 
           v-else
@@ -27,7 +27,7 @@
           @click="handleUndo"
         >
           <Undo2 class="h-3 w-3 mr-1" />
-          回退
+          {{ t('record.chat.diffPreview.undo') }}
         </Button>
       </div>
     </div>
@@ -64,6 +64,7 @@ import { useChatStore } from '@/stores/chat';
 import { type Chat } from '@/db/chats';
 import { useArticleStore } from '@/stores/article';
 import { toast } from '@/components/ui/toast/use-toast';
+import { useI18n } from '@/hooks/useI18n';
 
 const props = defineProps<{
   messageId: number;
@@ -75,6 +76,7 @@ const props = defineProps<{
 
 const chatStore = useChatStore();
 const articleStore = useArticleStore();
+const { t } = useI18n();
 
 // 简单的行 DIFF 逻辑
 const diffLines = computed(() => {

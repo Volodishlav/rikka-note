@@ -217,7 +217,21 @@
       "rag": {
         "enabled": "RAG Enabled",
         "disabled": "RAG Disabled",
-        "embeddingModelNotAvailable": "Embedding model not available or not configured."
+        "embeddingModelNotAvailable": "Embedding model not available or not configured.",
+        "confirmTitle": "The system will extract the following local notes and send them to the cloud. Please confirm:",
+        "relevance": "Relevance",
+        "confirmHint": "Press Enter again or click the send button to confirm and submit"
+      },
+      "diffPreview": {
+        "title": "Edit Suggestion Preview",
+        "apply": "Apply",
+        "undo": "Undo"
+      },
+      "editMode": {
+        "title": "AI Edit Mode",
+        "editingSelection": "Editing: Selected fragment ({length} chars)",
+        "editingFullFile": "Editing: Full file content",
+        "close": "Close Edit Mode"
       }
     }
   },

@@ -13,7 +13,7 @@
         <div class="flex items-center justify-between px-1">
           <div class="flex items-center gap-2 text-xs font-medium text-primary">
             <AlertCircle class="h-3.5 w-3.5" />
-            <span>系统将提取以下本地笔记发送至云端，请确认：</span>
+            <span>{{ t('record.chat.rag.confirmTitle') }}</span>
           </div>
           <Button variant="ghost" size="icon" class="h-6 w-6 hover:bg-destructive/10 hover:text-destructive transition-colors" @click="cancelRag">
             <X class="h-3 w-3" />
@@ -43,7 +43,7 @@
               </div>
               <span class="text-sm font-semibold truncate flex-1 pr-6">{{ doc.filename }}</span>
               <span class="text-[10px] font-medium px-1.5 py-0 bg-primary/5 text-primary/70 rounded-full border border-primary/10">
-                相关度: {{ (doc.score * 100).toFixed(0) }}%
+                {{ t('record.chat.rag.relevance') }}: {{ (doc.score * 100).toFixed(0) }}%
               </span>
             </div>
             <p class="text-xs text-muted-foreground line-clamp-2 leading-relaxed pl-7">
@@ -53,7 +53,7 @@
         </div>
 
         <div class="text-[10px] text-center text-muted-foreground pt-1 flex items-center justify-center gap-1">
-          <span>再次敲击 Enter 或点击发送按钮确认并提交</span>
+          <span>{{ t('record.chat.rag.confirmHint') }}</span>
         </div>
       </div>
     </Transition>
@@ -62,11 +62,11 @@
     <div v-if="chatStore.isEditMode && articleStore.activeFilePath" class="mb-2 px-1 flex items-center justify-between">
       <div class="flex items-center gap-2 text-[10px] font-medium text-purple-500 animate-pulse">
         <Sparkles class="h-3 w-3" />
-        <span v-if="chatStore.editSelection">正在编辑：选中片段 ({{ chatStore.editSelection.length }} 字)</span>
-        <span v-else>正在编辑：全文件内容</span>
+        <span v-if="chatStore.editSelection">{{ t('record.chat.editMode.editingSelection', { length: chatStore.editSelection.length }) }}</span>
+        <span v-else>{{ t('record.chat.editMode.editingFullFile') }}</span>
       </div>
       <Button variant="ghost" size="xs" class="h-5 text-[10px] text-muted-foreground hover:text-foreground" @click="chatStore.toggleEditMode(false)">
-        关闭编辑模式
+        {{ t('record.chat.editMode.close') }}
       </Button>
     </div>
 
@@ -95,7 +95,7 @@
         class="absolute bottom-2 right-11 h-8 w-8 transition-all hover:bg-purple-500/10 hover:text-purple-500" 
         :class="{ 'text-purple-500 bg-purple-500/10': chatStore.isEditMode }"
         @click="chatStore.toggleEditMode()"
-        title="AI 编辑模式"
+        :title="t('record.chat.editMode.title')"
       >
         <Wand2 class="h-4 w-4" />
       </Button>
@@ -127,8 +127,8 @@ const pendingContent = ref('')
 const chatStore = useChatStore()
 const vectorStore = useVectorStore()
 const articleStore = useArticleStore()
-const { isRagEnabled, documentCount } = storeToRefs(vectorStore)
 const { t } = useI18n()
+const { isRagEnabled, documentCount } = storeToRefs(vectorStore)
 
 const handleEnter = (e: KeyboardEvent) => {
   if (!e.shiftKey) {

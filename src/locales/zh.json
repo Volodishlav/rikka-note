@@ -217,7 +217,21 @@
       "rag": {
         "enabled": "RAG 已启用",
         "disabled": "RAG 已禁用",
-        "embeddingModelNotAvailable": "Embedding 模型不可用或未配置。"
+        "embeddingModelNotAvailable": "Embedding 模型不可用或未配置。",
+        "confirmTitle": "系统将提取以下本地笔记发送至云端，请确认：",
+        "relevance": "相关度",
+        "confirmHint": "再次敲击 Enter 或点击发送按钮确认并提交"
+      },
+      "diffPreview": {
+        "title": "修改建议预览",
+        "apply": "应用",
+        "undo": "回退"
+      },
+      "editMode": {
+        "title": "AI 编辑模式",
+        "editingSelection": "正在编辑：选中片段 ({length} 字)",
+        "editingFullFile": "正在编辑：全文件内容",
+        "close": "关闭编辑模式"
       }
     }
   },
