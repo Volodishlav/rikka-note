@@ -78,6 +78,10 @@ export const useArticleStore = defineStore('article', () => {
     }
 
     async function setActiveFilePath(path: string) {
+        // 如果点击的是当前已打开的文件，不要重复设置，避免清空内容
+        if (activeFilePath.value === path) {
+            return
+        }
         activeFilePath.value = path
         // 关键修复：切换路径时先清空当前文章内容，防止内容污染
         currentArticle.value = ''
