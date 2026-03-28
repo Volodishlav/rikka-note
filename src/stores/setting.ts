@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { tauriGet, tauriSet } from '@/utils/tauriStore'
-import { AiConfig, baseAiConfig } from '@/types/ai'
+import { AiConfig, baseAiConfig } from '@/lib/ai.types'
 
 export const useSettingStore = defineStore('setting', () => {
     // state
@@ -30,6 +30,11 @@ export const useSettingStore = defineStore('setting', () => {
     const markDescModel = ref<string | null>(null)
     const translateModel = ref<string | null>(null)
     const placeholderModel = ref<string | null>(null)
+
+    // Derived State (Filtered Models)
+    const chatModels = computed(() => aiModelList.value.filter((m: AiConfig) => m.modelType === 'chat' || !m.modelType))
+    const embeddingModels = computed(() => aiModelList.value.filter((m: AiConfig) => m.modelType === 'embedding'))
+    const rerankModels = computed(() => aiModelList.value.filter((m: AiConfig) => m.modelType === 'rerank'))
     
     // Backup Configs
     const primaryBackupMethod = ref<'github' | 'gitee' | 'gitlab' | null>(null)
@@ -155,6 +160,10 @@ export const useSettingStore = defineStore('setting', () => {
     }
     
     async function updateAiModel(config: AiConfig) {
+        // Ensure default modelType if missing
+        if (!config.modelType) {
+            config.modelType = 'chat'
+        }
         const index = aiModelList.value.findIndex((item: AiConfig) => item.key === config.key)
         if (index > -1) {
             aiModelList.value[index] = config
@@ -244,6 +253,9 @@ export const useSettingStore = defineStore('setting', () => {
         markDescModel,
         translateModel,
         placeholderModel,
+        chatModels,
+        embeddingModels,
+        rerankModels,
         primaryBackupMethod,
         // actions
         initSettingData,

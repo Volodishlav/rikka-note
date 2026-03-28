@@ -30,6 +30,20 @@
           <Input id="model" v-model="form.model" class="col-span-3" :placeholder="t('settings.ai.editDialog.modelNamePlaceholder')" />
         </div>
         <div class="grid grid-cols-4 items-center gap-4">
+          <Label for="modelType" class="text-right">{{ t('settings.ai.editDialog.typeLabel') }}</Label>
+          <Select v-model="form.modelType">
+            <SelectTrigger class="col-span-3">
+              <SelectValue :placeholder="t('settings.ai.editDialog.typePlaceholder')" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="chat">{{ t('settings.ai.types.chat') }}</SelectItem>
+              <SelectItem value="embedding">{{ t('settings.ai.types.embedding') }}</SelectItem>
+              <SelectItem value="rerank">{{ t('settings.ai.types.rerank') }}</SelectItem>
+              <SelectItem value="image">{{ t('settings.ai.types.image') }}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div class="grid grid-cols-4 items-center gap-4">
           <Label for="temperature" class="text-right">{{ t('settings.ai.editDialog.temperatureLabel') }}</Label>
           <Input id="temperature" v-model.number="form.temperature" type="number" step="0.1" min="0" max="2" class="col-span-3" />
         </div>
@@ -46,11 +60,12 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from '@/hooks/useI18n'
-import { AiConfig } from '@/types/ai'
+import { AiConfig } from '@/lib/ai.types'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const { t } = useI18n()
 
@@ -71,11 +86,12 @@ const form = ref<AiConfig>({
   baseURL: '',
   apiKey: '',
   model: '',
+  modelType: 'chat',
   temperature: 0.7,
   topP: 1
 })
 
-watch(() => props.open, (newVal) => {
+watch(() => props.open, (newVal: boolean) => {
   if (newVal) {
     if (props.config) {
       isEdit.value = true
@@ -88,6 +104,7 @@ watch(() => props.open, (newVal) => {
         baseURL: '',
         apiKey: '',
         model: '',
+        modelType: 'chat',
         temperature: 0.7,
         topP: 1
       }

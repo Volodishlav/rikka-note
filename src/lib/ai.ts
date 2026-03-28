@@ -1,7 +1,7 @@
 import { toast } from "@/components/ui/toast/use-toast";
 import { Store } from "@tauri-apps/plugin-store";
 import OpenAI from 'openai';
-import { AiConfig } from "@/types/ai";
+import { AiConfig } from "@/lib/ai.types";
 import { fetch } from "@tauri-apps/plugin-http";
 import { logger } from "@/utils/logger";
 
@@ -221,8 +221,7 @@ export async function fetchEmbedding(text: string, throwError = false): Promise<
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKey}`,
-              'Origin': ""
+              'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
               model: model,

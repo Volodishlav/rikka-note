@@ -253,6 +253,9 @@
         "en": "English"
       }
     },
+    "local": {
+      "title": "Local Models"
+    },
     "ai": {
       "title": "AI Models",
       "listTitle": "AI Models",
@@ -260,6 +263,16 @@
       "defaultBadge": "Default",
       "noModelSelected": "No model selected",
       "setAsDefault": "Set as Default",
+      "apiTitle": "AI API Configuration",
+      "chatRegion": "Chat Models (LLM)",
+      "embeddingRegion": "Embedding Models",
+      "rerankRegion": "Rerank Models",
+      "types": {
+        "chat": "Chat (LLM)",
+        "embedding": "Embedding",
+        "rerank": "Rerank",
+        "image": "Image/Vision"
+      },
       "deleteConfirm": "Are you sure you want to delete this model configuration?",
       "editDialog": {
         "addTitle": "Add Model",
@@ -275,6 +288,8 @@
         "apiKeyPlaceholder": "sk-...",
         "modelNameLabel": "Model Name",
         "modelNamePlaceholder": "gpt-4o",
+        "typeLabel": "Model Type",
+        "typePlaceholder": "Select type",
         "temperatureLabel": "Temperature",
         "cancel": "Cancel",
         "save": "Save"
@@ -302,7 +317,8 @@
     },
     "rag": {
       "title": "RAG Settings",
-      "modelTitle": "Model Configuration",
+      "localModelTab": "Local Models",
+      "modelTitle": "Model Selection",
       "embeddingLabel": "Embedding Model",
       "embeddingDesc": "Model used for generating text embeddings",
       "rerankLabel": "Rerank Model",

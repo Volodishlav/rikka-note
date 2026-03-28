@@ -22,7 +22,7 @@
           <SelectValue :placeholder="t('record.chat.header.modelPlaceholder')" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem v-for="model in settingStore.aiModelList" :key="model.key" :value="model.key">
+          <SelectItem v-for="model in settingStore.chatModels" :key="model.key" :value="model.key">
             {{ model.title }}
           </SelectItem>
         </SelectContent>
@@ -65,12 +65,12 @@ onMounted(() => {
   promptStore.initPromptData()
 })
 
-const setModel = (val: any) => {
+const setModel = (val: string | number) => {
   settingStore.setPrimaryModel(val as string)
 }
 
-const setPrompt = (val: any) => {
-  const prompt = promptStore.promptList.find(p => p.id === val)
+const setPrompt = (val: string | number) => {
+  const prompt = promptStore.promptList.find((p: any) => p.id === val)
   if (prompt) {
     promptStore.setCurrentPrompt(prompt)
   }

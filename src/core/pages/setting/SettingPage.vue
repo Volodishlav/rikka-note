@@ -18,6 +18,7 @@
     <!-- Content -->
     <div class="flex-1 overflow-auto p-6">
       <GeneralSetting v-if="activeTab === 'general'" />
+      <LocalModelSetting v-if="activeTab === 'local'" />
       <AiSetting v-if="activeTab === 'ai'" />
       <PromptSetting v-if="activeTab === 'prompt'" />
       <RagSetting v-if="activeTab === 'rag'" />
@@ -31,8 +32,9 @@
 import { ref, computed } from 'vue'
 import { useI18n } from '@/hooks/useI18n'
 import { Button } from '@/components/ui/button'
-import { BotMessageSquare, Drama, Settings, BookText, Code2, Shield } from 'lucide-vue-next'
+import { BotMessageSquare, Drama, Settings, BookText, Code2, Shield, Laptop } from 'lucide-vue-next'
 import GeneralSetting from './general/GeneralSetting.vue'
+import LocalModelSetting from './local/LocalModelSetting.vue'
 import AiSetting from './ai/AiSetting.vue'
 import PromptSetting from './prompt/PromptSetting.vue'
 import RagSetting from './rag/RagSetting.vue'
@@ -48,6 +50,11 @@ const navItems = computed(() => [
     id: 'general',
     label: t('settings.general.title'),
     icon: Settings
+  },
+  {
+    id: 'local',
+    label: t('settings.local.title'),
+    icon: Laptop
   },
   {
     id: 'ai',

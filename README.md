@@ -1,45 +1,28 @@
-# Rikka Note (六花笔记)
+# Rikka Note
 
-<div align="center">
+一个使用 Vue 3 + Tauri 2.x 开发的跨平台笔记应用，支持桌面端和浏览器端，具备主题切换和多语言支持。
 
-一个基于 **Tauri 2.x** + **Vue 3** 开发的跨平台个人笔记应用。
-具备 AI 辅助编辑、本地离线 OCR、信封加密隐私保护及多工作区管理等核心功能。
+## 技术栈
 
-[![Tauri](https://img.shields.io/badge/Tauri-2.x-24C8DB?logo=tauri)](https://tauri.app/)
-[![Vue](https://img.shields.io/badge/Vue-3.x-4FC08D?logo=vuedotjs)](https://vuejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)](https://www.typescriptlang.org/)
-[![Rust](https://img.shields.io/badge/Rust-2021-000000?logo=rust)](https://www.rust-lang.org/)
+### 前端
+- **Vue 3**
+- **TypeScript**
+- **Vite**
+- **Tailwind CSS**
+- **Pinia**
+- **Vue Router**
+- **Vue I18n**
 
-</div>
+### 桌面端
+- **Tauri 2.x**
+- **Rust**
+- 
+### 图标与样式
+- **Lucide Vue Next**
+- **PostCSS**
 
----
-
-## 🛠️ 核心功能特性
-
-### 1. AI 智能辅助与知识增强
-- **对话式编辑**: 支持与 AI 实时交互，提供文本润色、解释、重写及续写功能。
-- **RAG (知识库增强)**: 通过检索增强生成技术，使 AI 能够基于笔记内容提供更精准的回答。
-- **模型管理**: 适配 OpenAI 标准 API 协议，支持自定义模型参数及系统提示词 (Prompt)。
-
-### 2. 本地离线 OCR 识别
-- **系统原生 API**: 调用 Windows Native OCR (WinRT) 接口，实现全离线文字识别，保障数据隐私。
-- **高效录入**: 提供截图识别与图片文字批量提取功能。
-
-### 3. 数据安全与隐私保护
-- **信封加密架构 (DEK/KEK)**: 采用多层密钥管理方案。
-- **加密标准**: 使用 Argon2id 算法进行密钥派生，结合 XChaCha20-Poly1305 进行核心数据加密存储。
-- **多工作区隔离**: 支持创建独立的工作区，各工作区拥有独立的数据库文件与配置。
-
-### 4. 笔记管理与同步
-- **三栏布局**: 资源管理器 (Explorer)、编辑器 (Editor) 与 AI 助手 (Assistant) 的高效协作空间。
-- **多端同步**: 集成 WebDAV 协议，支持第三方网盘备份与同步。
-- **高级渲染**: 支持 Markdown、MathJax/KaTeX 公式、Mermaid 图表及 ECharts 数据可视化。
-
----
-
-## 📂 项目结构树
-
-```text
+## 项目结构树
+```
 d:\graduation_project\project\rikka-note
 ├── public/                     # 静态资源
 ├── src/                        # 前端源代码

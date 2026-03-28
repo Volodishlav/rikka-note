@@ -1,88 +1,106 @@
 <template>
-  <div class="space-y-4 rounded-md border p-4 bg-muted/20">
+  <div class="space-y-6">
     <div class="flex items-center justify-between">
       <div class="space-y-0.5">
-        <h3 class="text-base font-medium">{{ t('settings.rag.localModelTitle') }}</h3>
+        <h3 class="text-xl font-semibold tracking-tight">{{ t('settings.local.title') }}</h3>
         <p class="text-sm text-muted-foreground">
           {{ t('settings.rag.localModelDesc') }}
         </p>
       </div>
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-2 bg-muted/50 px-3 py-1.5 rounded-full border">
         <input 
           type="checkbox" 
           id="local-model-switch" 
-          class="w-4 h-4 text-primary rounded border-input focus:ring-primary"
+          class="w-4 h-4 text-primary rounded border-input focus:ring-primary cursor-pointer"
           :checked="settingStore.useLocalEmbedding" 
           @change="(e) => handleSwitchChange((e.target as HTMLInputElement).checked)" 
         />
-        <label for="local-model-switch" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+        <label for="local-model-switch" class="text-sm font-medium leading-none cursor-pointer">
           {{ t('settings.rag.localModelEnabled') }}
         </label>
       </div>
     </div>
 
-    <div v-if="settingStore.useLocalEmbedding" class="space-y-4 pt-4 border-t">
-      <!-- 选择预设模型 -->
-      <div class="space-y-2">
-        <Label>{{ t('settings.rag.presetModel') }}</Label>
-        <Select v-model="selectedModel" @update:model-value="onModelSelect">
-          <SelectTrigger>
-            <SelectValue placeholder="选择预设模型" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="m in presetModels" :key="m.filename" :value="m.filename">
-              {{ m.name }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+    <div v-if="settingStore.useLocalEmbedding" class="space-y-6 pt-6 border-t animate-in fade-in slide-in-from-top-2 duration-300">
+      <div class="grid gap-6 md:grid-cols-2">
+        <!-- 模型选择 -->
+        <div class="space-y-4 p-4 border rounded-xl bg-card">
+          <div class="flex items-center gap-2 font-medium">
+            <Bot class="w-4 h-4 text-primary" />
+            {{ t('settings.rag.presetModel') }}
+          </div>
+          <Select v-model="selectedModel" @update:model-value="onModelSelect">
+            <SelectTrigger>
+              <SelectValue placeholder="选择预设模型" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="m in presetModels" :key="m.filename" :value="m.filename">
+                {{ m.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <div class="space-y-2">
+            <Label class="text-xs uppercase text-muted-foreground">{{ t('settings.rag.modelFile') }}</Label>
+            <Input v-model="modelFilename" placeholder="model.gguf" :disabled="isDownloading" />
+          </div>
+        </div>
 
-      <!-- 或者自定义 URL -->
-      <div class="space-y-2">
-        <Label>{{ t('settings.rag.customUrl') }}</Label>
-        <Input v-model="customUrl" placeholder="https://..." :disabled="isDownloading" />
-      </div>
-
-      <div class="space-y-2">
-        <Label>{{ t('settings.rag.modelFile') }}</Label>
-        <Input v-model="modelFilename" placeholder="model.gguf" :disabled="isDownloading" />
-      </div>
-      
-      <div class="space-y-2">
-        <Label>{{ t('settings.rag.localPort') }}</Label>
-        <Input type="number" v-model="localPort" @change="updatePort" :disabled="isServerRunning" />
+        <!-- 配置项 -->
+        <div class="space-y-4 p-4 border rounded-xl bg-card">
+           <div class="flex items-center gap-2 font-medium">
+            <Settings2 class="w-4 h-4 text-primary" />
+            配置参数
+          </div>
+          <div class="space-y-2">
+            <Label class="text-xs uppercase text-muted-foreground">{{ t('settings.rag.customUrl') }}</Label>
+            <Input v-model="customUrl" placeholder="https://..." :disabled="isDownloading" />
+          </div>
+          <div class="space-y-2">
+            <Label class="text-xs uppercase text-muted-foreground">{{ t('settings.rag.localPort') }}</Label>
+            <Input type="number" v-model="localPort" @change="updatePort" :disabled="isServerRunning" />
+          </div>
+        </div>
       </div>
 
       <!-- 进度条 -->
-      <div v-if="isDownloading" class="space-y-1">
-        <div class="flex justify-between text-xs text-muted-foreground">
-          <span>{{ t('settings.rag.downloading') }}</span>
-          <span v-if="downloadTotal > 0">{{ (downloadedBytes / 1024 / 1024).toFixed(2) }} MB / {{ (downloadTotal / 1024 / 1024).toFixed(2) }} MB</span>
+      <div v-if="isDownloading" class="space-y-2 p-4 border rounded-xl bg-muted/30">
+        <div class="flex justify-between text-sm">
+          <span class="flex items-center gap-2">
+            <Loader2 class="w-4 h-4 animate-spin text-primary" />
+            {{ t('settings.rag.downloading') }}
+          </span>
+          <span v-if="downloadTotal > 0" class="font-mono text-xs">
+            {{ (downloadedBytes / 1024 / 1024).toFixed(2) }} MB / {{ (downloadTotal / 1024 / 1024).toFixed(2) }} MB
+          </span>
         </div>
-        <progress class="w-full h-2 rounded overflow-hidden" :value="downloadedBytes" :max="downloadTotal || 100" />
+        <div class="w-full h-2 bg-muted rounded-full overflow-hidden border">
+          <div class="h-full bg-primary transition-all duration-300" :style="{ width: `${downloadProgress}%` }"></div>
+        </div>
       </div>
 
       <!-- 操作按钮 -->
-      <div class="flex items-center gap-2 pt-2">
-        <Button size="sm" variant="outline" @click="checkLocalFile(true)" :disabled="isDownloading || !modelFilename">
+      <div class="flex items-center gap-3 p-4 border rounded-xl bg-card">
+        <Button variant="outline" @click="checkLocalFile(true)" :disabled="isDownloading || !modelFilename">
           <RefreshCw class="w-4 h-4 mr-2" /> {{ t('settings.rag.checkFile') }}
         </Button>
-        <Button size="sm" @click="downloadModel" :disabled="isDownloading || isFileExists || !customUrl || !modelFilename">
+        <Button @click="downloadModel" :disabled="isDownloading || isFileExists || !customUrl || !modelFilename">
           <Download class="w-4 h-4 mr-2" /> 
           {{ isFileExists ? t('settings.rag.fileExist') : t('settings.rag.oneClickDownload') }}
         </Button>
         
         <div class="flex-1"></div>
         
-        <Button v-if="!isServerRunning" size="sm" variant="default" @click="startServer" :disabled="!isFileExists || isStarting">
-          <Play class="w-4 h-4 mr-2 text-green-500" /> {{ isStarting ? t('settings.rag.starting') : t('settings.rag.startServer') }}
+        <Button v-if="!isServerRunning" variant="default" @click="startServer" :disabled="!isFileExists || isStarting" class="bg-green-600 hover:bg-green-700 text-white">
+          <Play class="w-4 h-4 mr-2 fill-current" /> {{ isStarting ? t('settings.rag.starting') : t('settings.rag.startServer') }}
         </Button>
-        <Button v-else size="sm" variant="destructive" @click="stopServer">
-          <Square class="w-4 h-4 mr-2" /> {{ t('settings.rag.stopServer') }}
+        <Button v-else variant="destructive" @click="stopServer">
+          <Square class="w-4 h-4 mr-2 fill-current" /> {{ t('settings.rag.stopServer') }}
         </Button>
       </div>
       
-      <div v-if="isServerRunning" class="text-xs text-green-600 font-medium">
+      <div v-if="isServerRunning" class="p-3 rounded-lg border border-green-200 bg-green-50 text-green-700 text-sm flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
         {{ t('settings.rag.connected') }}: http://127.0.0.1:{{ localPort }}/v1/embeddings
       </div>
     </div>
@@ -98,7 +116,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast/use-toast'
-import { Download, Play, Square, RefreshCw } from 'lucide-vue-next'
+import { Download, Play, Square, RefreshCw, Bot, Settings2, Loader2 } from 'lucide-vue-next'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { logger } from '@/utils/logger'
@@ -130,7 +148,7 @@ const presetModels = [
   {
     name: 'bce-embedding-base_v1 (备选)',
     filename: 'bce-embedding-base_v1-q8_0.gguf',
-    url: 'https://huggingface.co/netease-youdao/bce-embedding-base_v1-GGUF/resolve/main/bce-embedding-base_v1-q8_0.gguf' // 假设链接
+    url: 'https://huggingface.co/netease-youdao/bce-embedding-base_v1-GGUF/resolve/main/bce-embedding-base_v1-q8_0.gguf'
   }
 ]
 
@@ -149,7 +167,7 @@ onMounted(async () => {
   await checkLocalFile()
 
   unlistenProgress = await listen('model-download-progress', (event: any) => {
-    const payload = event.payload
+    const payload = event.payload as { filename: string, downloaded: number, total: number }
     if (payload.filename === modelFilename.value) {
        downloadedBytes.value = payload.downloaded
        downloadTotal.value = payload.total || 1
@@ -174,7 +192,6 @@ onUnmounted(() => {
 const handleSwitchChange = async (val: boolean) => {
   await settingStore.setUseLocalEmbedding(val)
   if (val) {
-     logger.ai.debug('=== [DEBUG] 启用了本地模型开关 ===')
      toast({ description: t('settings.rag.localPriorityEnabled') })
      await checkLocalFile()
   } else {
@@ -189,7 +206,7 @@ const updatePort = async () => {
   }
 }
 
-const onModelSelect = (val: any) => {
+const onModelSelect = (val: string) => {
   const item = presetModels.find(m => m.filename === val)
   if (item) {
     customUrl.value = item.url
@@ -197,7 +214,7 @@ const onModelSelect = (val: any) => {
   }
 }
 
-watch(modelFilename, async (newVal) => {
+watch(modelFilename, async (newVal: string) => {
   if (newVal) {
     await settingStore.setLocalEmbeddingModelStr(newVal)
     await checkLocalFile()
@@ -209,7 +226,6 @@ const checkLocalFile = async (showToast: boolean = false) => {
   try {
     const exists = await invoke<boolean>('check_model_exists', { filename: modelFilename.value })
     isFileExists.value = exists
-    logger.ai.debug(`=== [DEBUG] Check file ${modelFilename.value}: exists=${exists}`)
     if (showToast) {
       if (exists) {
         toast({ description: t('settings.rag.fileExist') })
@@ -218,7 +234,6 @@ const checkLocalFile = async (showToast: boolean = false) => {
       }
     }
   } catch(e) {
-    logger.ai.error('Check file err', e)
     if (showToast) {
       toast({ variant: 'destructive', description: `${e}` })
     }
@@ -230,14 +245,11 @@ const downloadModel = async () => {
   isDownloading.value = true
   downloadProgress.value = 0
   downloadedBytes.value = 0
-  logger.ai.debug(`=== [DEBUG] Start downloading ${customUrl.value} -> ${modelFilename.value}`)
   
   try {
-    const res = await invoke<string>('download_local_model', { url: customUrl.value, filename: modelFilename.value })
-    logger.ai.debug(`=== [DEBUG] Download ok -> ${res}`)
+    await invoke<string>('download_local_model', { url: customUrl.value, filename: modelFilename.value })
     isFileExists.value = true
   } catch (e: any) {
-    logger.ai.error('Download err', e)
     toast({ variant: 'destructive', description: `下载失败: ${e}` })
     isDownloading.value = false
   }
@@ -245,17 +257,14 @@ const downloadModel = async () => {
 
 const startServer = async () => {
   isStarting.value = true
-  logger.ai.debug(`=== [DEBUG] Start llama-server port=${localPort.value} model=${modelFilename.value} ===`)
   try {
-    const res = await invoke<string>('start_llama_server', {
+    await invoke<string>('start_llama_server', {
        modelFilename: modelFilename.value,
        port: Number(localPort.value)
     })
-    logger.ai.debug(`=== [DEBUG] Server started: ${res} ===`)
     isServerRunning.value = true
     toast({ description: t('settings.rag.serverStarted') })
   } catch(e: any) {
-    logger.ai.error('Start server failed', e)
     toast({ variant: 'destructive', description: `启动失败: ${e}` })
   } finally {
     isStarting.value = false
@@ -263,7 +272,6 @@ const startServer = async () => {
 }
 
 const stopServer = async () => {
-  logger.ai.debug(`=== [DEBUG] Stop llama-server ===`)
   try {
     await invoke<string>('stop_llama_server')
     isServerRunning.value = false

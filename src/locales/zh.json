@@ -253,6 +253,9 @@
         "en": "English"
       }
     },
+    "local": {
+      "title": "本地模型"
+    },
     "ai": {
       "title": "AI 模型",
       "listTitle": "AI 模型",
@@ -260,6 +263,16 @@
       "defaultBadge": "默认",
       "noModelSelected": "未选择模型",
       "setAsDefault": "设为默认",
+      "apiTitle": "AI API 配置",
+      "chatRegion": "对话模型 (LLM)",
+      "embeddingRegion": "向量模型 (Embedding)",
+      "rerankRegion": "排序模型 (Rerank)",
+      "types": {
+        "chat": "对话模型 (LLM)",
+        "embedding": "向量模型 (Embedding)",
+        "rerank": "排序模型 (Rerank)",
+        "image": "多模态/图片模型"
+      },
       "deleteConfirm": "确定要删除此模型配置吗？",
       "editDialog": {
         "addTitle": "添加模型",
@@ -275,6 +288,8 @@
         "apiKeyPlaceholder": "sk-...",
         "modelNameLabel": "模型名称",
         "modelNamePlaceholder": "gpt-4o",
+        "typeLabel": "模型类型",
+        "typePlaceholder": "选择模型类型",
         "temperatureLabel": "温度",
         "cancel": "取消",
         "save": "保存"
@@ -302,7 +317,8 @@
     },
     "rag": {
       "title": "RAG 设置",
-      "modelTitle": "模型配置",
+      "localModelTab": "本地模型",
+      "modelTitle": "模型选择",
       "embeddingLabel": "Embedding 模型",
       "embeddingDesc": "用于生成文本向量的模型",
       "rerankLabel": "Rerank 模型",

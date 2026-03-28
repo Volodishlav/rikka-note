@@ -4,61 +4,58 @@
     <div class="space-y-4">
       <h3 class="text-lg font-medium">{{ t('settings.rag.modelTitle') }}</h3>
       
-      <!-- 本地架构 (新增) -->
-      <LocalModelManager />
-
       <!-- Embedding Model -->
-      <div class="space-y-2">
+      <div class="space-y-2 p-4 border rounded-xl bg-card/50">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <ChartScatter class="h-4 w-4" />
-            <Label>{{ t('settings.rag.embeddingLabel') }}</Label>
+            <ChartScatter class="h-4 w-4 text-primary" />
+            <Label class="font-semibold">{{ t('settings.rag.embeddingLabel') }}</Label>
           </div>
           <div class="flex items-center gap-2">
             <Button variant="outline" size="sm" @click="testEmbedding" :disabled="isTesting">
               <Loader2 v-if="isTesting" class="h-4 w-4 animate-spin" />
               <span v-else>{{ t('settings.rag.test') }}</span>
             </Button>
-            <Select :model-value="settingStore.embeddingModel || ''" @update:model-value="(val) => settingStore.setEmbeddingModel(val as string)">
-              <SelectTrigger class="w-[200px]">
+            <Select :model-value="settingStore.embeddingModel || ''" @update:model-value="(val: string | number) => settingStore.setEmbeddingModel(val as string)">
+              <SelectTrigger class="w-[220px]">
                 <SelectValue :placeholder="t('settings.ai.noModelSelected')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem v-for="model in settingStore.aiModelList" :key="model.key" :value="model.key">
+                <SelectItem v-for="model in settingStore.embeddingModels" :key="model.key" :value="model.key">
                   {{ model.title }}
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
-        <div class="text-sm text-muted-foreground">{{ t('settings.rag.embeddingDesc') }}</div>
+        <div class="text-xs text-muted-foreground pl-6">{{ t('settings.rag.embeddingDesc') }}</div>
       </div>
 
       <!-- Rerank Model -->
-      <div class="space-y-2">
+      <div class="space-y-2 p-4 border rounded-xl bg-card/50">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <ListOrdered class="h-4 w-4" />
-            <Label>{{ t('settings.rag.rerankLabel') }}</Label>
+            <ListOrdered class="h-4 w-4 text-primary" />
+            <Label class="font-semibold">{{ t('settings.rag.rerankLabel') }}</Label>
           </div>
           <div class="flex items-center gap-2">
             <Button variant="outline" size="sm" @click="testRerank" :disabled="isTestingRerank">
               <Loader2 v-if="isTestingRerank" class="h-4 w-4 animate-spin" />
               <span v-else>{{ t('settings.rag.test') }}</span>
             </Button>
-            <Select :model-value="settingStore.rerankModel || ''" @update:model-value="(val) => settingStore.setRerankModel(val as string)">
-              <SelectTrigger class="w-[200px]">
+            <Select :model-value="settingStore.rerankModel || ''" @update:model-value="(val: string | number) => settingStore.setRerankModel(val as string)">
+              <SelectTrigger class="w-[220px]">
                 <SelectValue :placeholder="t('settings.ai.noModelSelected')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem v-for="model in settingStore.aiModelList" :key="model.key" :value="model.key">
+                <SelectItem v-for="model in settingStore.rerankModels" :key="model.key" :value="model.key">
                   {{ model.title }}
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
-        <div class="text-sm text-muted-foreground">{{ t('settings.rag.rerankDesc') }}</div>
+        <div class="text-xs text-muted-foreground pl-6">{{ t('settings.rag.rerankDesc') }}</div>
       </div>
     </div>
 
@@ -69,10 +66,10 @@
       <h3 class="text-lg font-medium">{{ t('settings.rag.paramsTitle') }}</h3>
       
       <!-- Chunk Size -->
-      <div class="space-y-2">
-        <div class="flex justify-between">
+      <div class="space-y-4">
+        <div class="flex justify-between items-center">
           <Label>{{ t('settings.rag.chunkSize') }}</Label>
-          <span class="text-sm text-muted-foreground">{{ chunkSize }}</span>
+          <span class="text-sm font-mono bg-muted px-2 py-0.5 rounded">{{ chunkSize }}</span>
         </div>
         <Slider
           v-model="chunkSizeVal"
@@ -81,14 +78,14 @@
           :step="100"
           @update:model-value="updateChunkSize"
         />
-        <div class="text-sm text-muted-foreground">{{ t('settings.rag.chunkSizeDesc') }}</div>
+        <div class="text-xs text-muted-foreground">{{ t('settings.rag.chunkSizeDesc') }}</div>
       </div>
 
       <!-- Chunk Overlap -->
-      <div class="space-y-2">
-        <div class="flex justify-between">
+      <div class="space-y-4">
+        <div class="flex justify-between items-center">
           <Label>{{ t('settings.rag.chunkOverlap') }}</Label>
-          <span class="text-sm text-muted-foreground">{{ chunkOverlap }}</span>
+          <span class="text-sm font-mono bg-muted px-2 py-0.5 rounded">{{ chunkOverlap }}</span>
         </div>
         <Slider
           v-model="chunkOverlapVal"
@@ -97,14 +94,14 @@
           :step="50"
           @update:model-value="updateChunkOverlap"
         />
-        <div class="text-sm text-muted-foreground">{{ t('settings.rag.chunkOverlapDesc') }}</div>
+        <div class="text-xs text-muted-foreground">{{ t('settings.rag.chunkOverlapDesc') }}</div>
       </div>
       
       <!-- Result Count -->
-       <div class="space-y-2">
-        <div class="flex justify-between">
+       <div class="space-y-4">
+        <div class="flex justify-between items-center">
           <Label>{{ t('settings.rag.resultCount') }}</Label>
-          <span class="text-sm text-muted-foreground">{{ resultCount }}</span>
+          <span class="text-sm font-mono bg-muted px-2 py-0.5 rounded">{{ resultCount }}</span>
         </div>
         <Slider
           v-model="resultCountVal"
@@ -113,14 +110,14 @@
           :step="1"
           @update:model-value="updateResultCount"
         />
-        <div class="text-sm text-muted-foreground">{{ t('settings.rag.resultCountDesc') }}</div>
+        <div class="text-xs text-muted-foreground">{{ t('settings.rag.resultCountDesc') }}</div>
       </div>
       
        <!-- Similarity Threshold -->
-       <div class="space-y-2">
-        <div class="flex justify-between">
+       <div class="space-y-4">
+        <div class="flex justify-between items-center">
           <Label>{{ t('settings.rag.similarityThreshold') }}</Label>
-          <span class="text-sm text-muted-foreground">{{ similarityThreshold }}</span>
+          <span class="text-sm font-mono bg-muted px-2 py-0.5 rounded">{{ similarityThreshold }}</span>
         </div>
         <Slider
           v-model="similarityThresholdVal"
@@ -129,14 +126,14 @@
           :step="0.01"
           @update:model-value="updateSimilarityThreshold"
         />
-        <div class="text-sm text-muted-foreground">{{ t('settings.rag.similarityThresholdDesc') }}</div>
+        <div class="text-xs text-muted-foreground">{{ t('settings.rag.similarityThresholdDesc') }}</div>
       </div>
     </div>
 
     <Separator />
 
     <!-- Actions -->
-    <div class="flex gap-2">
+    <div class="flex gap-3">
       <Button variant="outline" @click="resetDefaults">
         <RefreshCw class="mr-2 h-4 w-4" /> {{ t('settings.rag.resetDefaults') }}
       </Button>
@@ -152,7 +149,6 @@ import { ref, onMounted, watch } from 'vue'
 import { useSettingStore } from '@/stores/setting'
 import { useVectorStore } from '@/stores/vector'
 import { useI18n } from '@/hooks/useI18n'
-import LocalModelManager from './LocalModelManager.vue'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
@@ -164,6 +160,7 @@ import { clearVectorDb, initVectorDb } from '@/db/vector'
 import { toast } from '@/components/ui/toast/use-toast'
 import { ask } from '@tauri-apps/plugin-dialog'
 import { checkEmbeddingModelAvailable, checkRerankModelAvailable } from '@/lib/rag'
+
 const { t } = useI18n()
 const settingStore = useSettingStore()
 const vectorStore = useVectorStore()
@@ -181,10 +178,10 @@ const resultCountVal = ref([5])
 const similarityThresholdVal = ref([0.7])
 
 // Sync slider values
-watch(chunkSizeVal, (val) => chunkSize.value = val[0])
-watch(chunkOverlapVal, (val) => chunkOverlap.value = val[0])
-watch(resultCountVal, (val) => resultCount.value = val[0])
-watch(similarityThresholdVal, (val) => similarityThreshold.value = val[0])
+watch(chunkSizeVal, (val: number[]) => chunkSize.value = val[0])
+watch(chunkOverlapVal, (val: number[]) => chunkOverlap.value = val[0])
+watch(resultCountVal, (val: number[]) => resultCount.value = val[0])
+watch(similarityThresholdVal, (val: number[]) => similarityThreshold.value = val[0])
 
 const initParams = async () => {
   const store = await Store.load('store.json')
