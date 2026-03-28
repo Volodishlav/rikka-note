@@ -11,6 +11,7 @@ import {
   Loader2,
   X
 } from 'lucide-vue-next';
+import { logger } from '@/utils/logger';
 import { useLayoutStore } from '@/stores/layout';
 
 const layoutStore = useLayoutStore();
@@ -106,7 +107,7 @@ const copyToClipboard = async () => {
     isCopied.value = true;
     setTimeout(() => { isCopied.value = false; }, 2000);
   } catch (err) {
-    console.error('复制失败', err);
+    logger.ocr.error('复制失败', err);
   }
 };
 

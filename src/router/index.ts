@@ -8,6 +8,7 @@ import {
 import { isMobileDevice } from '@/utils/device' // 设备检测工具
 import { initStores } from '@/stores' // store初始化函数
 import { tauriGet, tauriSet } from '@/utils/tauriStore' // 持久化存储工具
+import { logger } from '@/utils/logger'
 
 // 导入布局组件
 import CoreLayout from '@/core/layouts/CoreLayout.vue' // 核心布局
@@ -54,7 +55,7 @@ const routes: Array<RouteRecordRaw> = [
 
                 next(redirectPath)
             } catch (e) {
-                console.error('路由重定向处理失败:', e)
+                logger.general.error('路由重定向处理失败:', e)
                 next(isMobileDevice() ? '/mobile/chat' : '/core')
             }
         }
@@ -92,7 +93,7 @@ router.afterEach(async (to) => {
     } catch (e) {
         // fallback
         localStorage.setItem('currentPage', to.fullPath)
-        console.error('保存路由失败，已兜底到localStorage:', e)
+        logger.general.error('保存路由失败，已兜底到localStorage:', e)
     }
 })
 

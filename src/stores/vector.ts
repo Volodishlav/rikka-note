@@ -10,6 +10,7 @@ import {
 import { checkRerankModelAvailable } from '@/lib/ai';
 import { Store } from "@tauri-apps/plugin-store";
 import { toast } from "@/components/ui/toast/use-toast";
+import {logger} from "@/utils/logger.ts";
 
 export const useVectorStore = defineStore('vector', () => {
   // State
@@ -25,12 +26,12 @@ export const useVectorStore = defineStore('vector', () => {
     try {
       const result = await checkEmbeddingModelAvailable();
       if (typeof result === 'string') {
-        console.error('检查嵌入模型失败:', result);
+        logger.rag.error('检查嵌入模型失败:', result);
         return false;
       }
       return result;
     } catch (error) {
-      console.error('检查嵌入模型失败:', error);
+      logger.rag.error('检查嵌入模型失败:', error);
       return false;
     }
   };
@@ -41,7 +42,7 @@ export const useVectorStore = defineStore('vector', () => {
       hasRerankModel.value = modelAvailable;
       return modelAvailable;
     } catch (error) {
-      console.error('检查重排序模型失败:', error);
+      logger.rag.error('检查重排序模型失败:', error);
       hasRerankModel.value = false;
       return false;
     }
@@ -72,7 +73,7 @@ export const useVectorStore = defineStore('vector', () => {
         }
       }
     } catch (error) {
-      console.error('设置向量数据库状态失败:', error);
+      logger.rag.error('设置向量数据库状态失败:', error);
     }
   };
 
@@ -89,7 +90,7 @@ export const useVectorStore = defineStore('vector', () => {
         await setVectorDbEnabled(true);
       }
     } catch (error) {
-      console.error('设置RAG状态失败:', error);
+      logger.rag.error('设置RAG状态失败:', error);
     }
   };
 
@@ -123,7 +124,7 @@ export const useVectorStore = defineStore('vector', () => {
       // 检查重排序模型是否可用
       await checkRerankModel();
     } catch (error) {
-      console.error('初始化向量数据库失败:', error);
+      logger.rag.error('初始化向量数据库失败:', error);
     }
   };
 
@@ -171,7 +172,7 @@ export const useVectorStore = defineStore('vector', () => {
         description: `成功处理 ${result.success} 个文档，失败 ${result.failed} 个文档。`,
       });
     } catch (error) {
-      console.error('处理文档向量失败:', error);
+      logger.rag.error('处理文档向量失败:', error);
       isProcessing.value = false;
 
       toast({
@@ -189,7 +190,7 @@ export const useVectorStore = defineStore('vector', () => {
     try {
       await processMarkdownFile(filename, content);
     } catch (error) {
-      console.error(`处理文档 ${filename} 向量失败:`, error);
+      logger.rag.error(`处理文档 ${filename} 向量失败:`, error);
     }
   };
 

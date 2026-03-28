@@ -52,6 +52,7 @@ import { useI18n } from '@/hooks/useI18n'
 import { useChatStore } from '@/stores/chat'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import DiffPreview from './DiffPreview.vue'
+import { logger } from '@/utils/logger'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -75,7 +76,7 @@ const proposalData = computed(() => {
       // 解码原文 (处理中文)
       metadata.original = decodeURIComponent(atob(metadata.original));
     } catch (e) {
-      console.error('Failed to parse rikka-edit-meta:', e);
+      logger.assistant.error('Failed to parse rikka-edit-meta:', e);
     }
   }
 
@@ -137,7 +138,7 @@ const copyContent = async () => {
       await writeText(props.message.content)
       toast({ description: t('record.chat.message.copiedToClipboard') })
     } catch (e) {
-      console.error('Copy failed', e)
+      logger.assistant.error('Copy failed', e)
     }
   }
 }

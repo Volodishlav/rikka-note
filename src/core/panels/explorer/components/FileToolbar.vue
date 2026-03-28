@@ -162,6 +162,7 @@ import { useI18n } from '@/hooks/useI18n'
 import { appDataDir, join } from '@tauri-apps/api/path'
 import { exists, mkdir, writeTextFile } from '@tauri-apps/plugin-fs'
 import { getWorkspacePath } from '@/lib/workspace'
+import { logger } from '@/utils/logger'
 // import { useUsername } from '@/composables/useUsername'
 
 const articleStore = useArticleStore()
@@ -219,7 +220,7 @@ const handleNewFile = debounce(async () => {
     await articleStore.loadFileTree()
     show({ title: t('article.fileToolbar.fileCreated'), variant: 'success' })
   } catch (err) {
-    console.error('Create file failed:', err)
+    logger.explorer.error('Create file failed:', err)
     show({ title: t('article.fileToolbar.createFileFailed'), variant: 'error' })
   }
 }, 200)
@@ -256,7 +257,7 @@ const handleNewFolder = debounce(async () => {
     await articleStore.loadFileTree()
     show({ title: t('article.fileToolbar.folderCreated'), variant: 'success' })
   } catch (err) {
-    console.error('Create folder failed:', err)
+    logger.explorer.error('Create folder failed:', err)
     show({ title: t('article.fileToolbar.createFolderFailed'), variant: 'error' })
   }
 }, 200)

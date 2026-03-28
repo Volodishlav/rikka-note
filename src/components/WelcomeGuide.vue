@@ -35,6 +35,7 @@ import { useWorkspaceStore } from '@/stores/workspace'
 import { useToast } from '@/composables/useToast'
 import { useArticleStore } from '@/stores/article'
 import { useI18n } from '@/hooks/useI18n'
+import { logger } from '@/utils/logger'
 
 const { t } = useI18n()
 const isVisible = ref(false)
@@ -94,7 +95,7 @@ const handleSelectFolder = async () => {
     await articleStore.loadFileTree()
 
   } catch (err: any) {
-    console.error(err)
+    logger.general.error(err)
     errorMsg.value = err.message || t('workspace.toast.initFailedMsg')
     show({ title: t('workspace.toast.initFailedTitle'), message: errorMsg.value, variant: 'error' })
   } finally {

@@ -6,6 +6,7 @@ import {useI18n} from '@/hooks/useI18n'
 import useArticleStore from '@/stores/article'
 import {FuzzySearchResult, RustFuzzySearch, SearchItem as ISearchItem} from '@/lib/fuzzy-search'
 import SearchItem from '../../pages/search/SearchItem.vue'
+import { logger } from '@/utils/logger'
 
 const { t } = useI18n()
 
@@ -50,7 +51,7 @@ const search = async (value: string) => {
   try {
     searchResult.value = await fuzzySearch.searchParallel(value)
   } catch (error) {
-    console.error('Error during search:', error)
+    logger.search.error('Error during search:', error)
     searchResult.value = []
   }
 }

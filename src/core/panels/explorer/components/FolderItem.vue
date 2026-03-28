@@ -101,6 +101,7 @@ import {
 import {useToast} from '@/composables/useToast'
 import useClipboardStore from '@/stores/clipboard'
 import { useI18n } from '@/hooks/useI18n'
+import { logger } from '@/utils/logger'
 
 interface Props {
   item: DirTree
@@ -232,7 +233,7 @@ const handleRename = async () => {
     }
 
   } catch (error) {
-    console.error('Rename failed:', error)
+    logger.explorer.error('Rename failed:', error)
     show({
       title: t('article.contextMenu.renameFailed'),
       variant: 'error'
@@ -301,7 +302,7 @@ const handleNewFile = async () => {
     isExpanded.value = true
     await articleStore.loadFileTree()
   } catch (err) {
-    console.error('Create file failed:', err)
+    logger.explorer.error('Create file failed:', err)
     show({ title: t('article.contextMenu.createFileFailed'), variant: 'error' })
   }
 }
@@ -322,7 +323,7 @@ const handleNewFolder = async () => {
     isExpanded.value = true
     await articleStore.loadFileTree()
   } catch (err) {
-    console.error('Create folder failed:', err)
+    logger.explorer.error('Create folder failed:', err)
     show({ title: t('article.contextMenu.createFolderFailed'), variant: 'error' })
   }
 }
@@ -332,7 +333,7 @@ const handleShowFileManager = async () => {
     const fullPath = await getAbsoluteFilePath(path.value)
     await openPath(fullPath)
   } catch (err) {
-    console.error('Open file manager failed:', err)
+    logger.explorer.error('Open file manager failed:', err)
     show({ title: t('article.contextMenu.openFileManagerFailed'), variant: 'error' })
   }
 }
@@ -354,7 +355,7 @@ const handleDeleteFolder = async () => {
       articleStore.setSelectedFolder('')
     }
   } catch (error) {
-    console.error('Delete folder failed:', error)
+    logger.explorer.error('Delete folder failed:', error)
     show({ title: t('article.contextMenu.deleteFailed'), variant: 'error' })
   }
 }

@@ -4,6 +4,7 @@ import { twMerge } from "tailwind-merge";
 import { appDataDir } from '@tauri-apps/api/path';
 import {getWorkspacePath} from "@/lib/workspace.ts";
 import {convertFileSrc} from "@tauri-apps/api/core";
+import { logger } from "@/utils/logger";
 
 /**
  * 合并 CSS 类名（shadcn-vue 核心工具函数）
@@ -33,7 +34,7 @@ export async function convertImageByWorkspace(relativePath: string): Promise<str
       return convertFileSrc(fullPath)
     }
   } catch (error) {
-    console.error('Convert image failed:', error)
+    logger.general.error('Convert image failed:', error)
     return ''
   }
 }

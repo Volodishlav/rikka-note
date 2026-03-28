@@ -168,7 +168,7 @@ export async function checkRerankModelAvailable(): Promise<boolean> {
     const data = await response.json();
     return !!(data && data.results);
   } catch (error) {
-    logger.ai.error('重排序模型检查失败:', error);
+    logger.rag.error('重排序模型检查失败:', error);
     return false;
   }
 }
@@ -188,7 +188,7 @@ export async function fetchEmbedding(text: string, throwError = false): Promise<
       let baseURL, apiKey, model;
 
       if (useLocalEmbedding) {
-        logger.ai.debug("=== [DEBUG] Using Local Embedding Server in fetchEmbedding ===");
+        logger.rag.debug("=== [DEBUG] Using Local Embedding Server in fetchEmbedding ===");
         const port = await store.get<number>('localEmbeddingPort') || 8080;
         const localModelStr = await store.get<string>('localEmbeddingModelStr') || 'local-model';
         baseURL = `http://127.0.0.1:${port}/v1`;
@@ -242,7 +242,7 @@ export async function fetchEmbedding(text: string, throwError = false): Promise<
 
         attempt++;
         if (attempt < maxRetries) {
-           logger.ai.debug(`=== [DEBUG] Local server not ready, retrying (${attempt}/${maxRetries}) in 2s...`);
+           logger.rag.debug(`=== [DEBUG] Local server not ready, retrying (${attempt}/${maxRetries}) in 2s...`);
            await new Promise(resolve => setTimeout(resolve, 2000));
         }
       }
@@ -340,7 +340,7 @@ export async function rerankDocuments(
     // 根据新的相似度分数排序
     return rerankResults.sort((a: {similarity: number}, b: {similarity: number}) => b.similarity - a.similarity);
   } catch (error) {
-    logger.ai.error('重排序失败:', error);
+    logger.rag.error('重排序失败:', error);
     // 发生错误时返回原始排序
     return documents;
   }
@@ -478,10 +478,10 @@ export async function fetchAiStream(text: string, onUpdate: (content: string) =>
     // 准备消息
     const { messages } = await prepareMessages(text, true, history)
 
-    logger.ai.debug('--- AI Request Debug ---')
-    logger.ai.debug('Model:', aiConfig?.model)
-    logger.ai.debug('Messages:', messages)
-    logger.ai.debug('Config:', { temperature: aiConfig?.temperature, top_p: aiConfig?.topP })
+    logger.assistant.debug('--- AI Request Debug ---')
+    logger.assistant.debug('Model:', aiConfig?.model)
+    logger.assistant.debug('Messages:', messages)
+    logger.assistant.debug('Config:', { temperature: aiConfig?.temperature, top_p: aiConfig?.topP })
 
     const openai = await createOpenAIClient(aiConfig)
     

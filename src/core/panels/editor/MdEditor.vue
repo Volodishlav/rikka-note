@@ -71,6 +71,7 @@ import {useArticleStore} from '@/stores/article';
 import {useChatStore} from '@/stores/chat';
 // 导入 TAURI 的 convertFileSrc API
 import {convertFileSrc} from '@tauri-apps/api/core';
+import { logger } from '@/utils/logger';
 // 编辑器内容
 const text = ref('# Hello md-editor-v3!\n\n这是一个测试文档。');
 
@@ -242,7 +243,7 @@ const onUploadImg = async (files: File[], callback: (urls: string[]) => void) =>
             // 路径格式归一化（可选，进一步保证兼容性）
             return safeUrl.replace(/\\/g, '/');
           } catch (error) {
-            console.error(`保存图片 ${file.name} 失败:`, error);
+            logger.editor.error(`保存图片 ${file.name} 失败:`, error);
             return 'error: image save failed';
           }
         })
@@ -251,7 +252,7 @@ const onUploadImg = async (files: File[], callback: (urls: string[]) => void) =>
     // 5. 传入转换后的安全路径，用于编辑器预览和插入 MD 文本
     callback(safeImageUrls);
   } catch (error) {
-    console.error('图片上传整体流程失败:', error);
+    logger.editor.error('图片上传整体流程失败:', error);
     callback(files.map(() => 'error: upload process failed'));
   }
 };

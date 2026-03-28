@@ -136,7 +136,7 @@ export async function processMarkdownFile(
       const embedding = await fetchEmbedding(chunk);
       
       if (!embedding) {
-        logger.ai.error(`无法计算文件 ${filename} 第 ${i+1} 块的向量`);
+        logger.rag.error(`无法计算文件 ${filename} 第 ${i+1} 块的向量`);
         continue;
       }
       
@@ -152,7 +152,7 @@ export async function processMarkdownFile(
     
     return true;
   } catch (error) {
-    logger.ai.error(`处理文件 ${filePath} 失败:`, error);
+    logger.rag.error(`处理文件 ${filePath} 失败:`, error);
     return false;
   }
 }
@@ -256,7 +256,7 @@ export async function processAllMarkdownFiles(): Promise<{
     await processTree(fileTree);
     return result;
   } catch (error) {
-    logger.ai.error('处理工作区Markdown文件失败:', error);
+    logger.rag.error('处理工作区Markdown文件失败:', error);
     throw error;
   }
 }
@@ -349,7 +349,7 @@ async function collectMarkdownContents(): Promise<SearchItem[]> {
               search_type: 'markdown'
             });
           } catch (error) {
-            logger.ai.error(`读取文件 ${filePath} 内容失败:`, error);
+            logger.rag.error(`读取文件 ${filePath} 内容失败:`, error);
           }
         }
         
@@ -363,7 +363,7 @@ async function collectMarkdownContents(): Promise<SearchItem[]> {
     await processTree(fileTree);
     return items;
   } catch (error) {
-    logger.ai.error('收集Markdown内容失败:', error);
+    logger.rag.error('收集Markdown内容失败:', error);
     return [];
   }
 }
@@ -401,17 +401,17 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
     const isMeaningfulQuery = query.trim().length > 2 && /[\u4e00-\u9fa5\u3040-\u30ffa-zA-Z0-9]/i.test(query);
 
     if (!isMeaningfulQuery) {
-      logger.ai.debug('Query is too short or meaningless, skipping vector search.');
+      logger.rag.debug('Query is too short or meaningless, skipping vector search.');
     }
     // ==========================================
     // 核心改进 1：使用【完整原句】进行一次向量检索 (最重要)
     // ==========================================
     if (isMeaningfulQuery && query && query.trim().length > 0) {
-      logger.ai.debug(`Searching vector for full query: ${query}`);
+      logger.rag.debug(`Searching vector for full query: ${query}`);
       const queryEmbedding = await fetchEmbedding(query);
       if (queryEmbedding) {
         let similarDocs = await getSimilarDocuments(queryEmbedding, resultCount, similarityThreshold);
-        logger.ai.debug(`Found ${similarDocs.length} vector docs for full query`);
+        logger.rag.debug(`Found ${similarDocs.length} vector docs for full query`);
 
         if (similarDocs.length > 0) {
           for (const doc of similarDocs) {
@@ -522,7 +522,7 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
     if (uniqueContexts.length > 0) {
       const rerankAvailable = await checkRerankModelAvailable();
       if (rerankAvailable) {
-        logger.ai.debug('Applying Rerank to top candidates...');
+        logger.rag.debug('Applying Rerank to top candidates...');
         // 准备重排格式 (rerankDocuments 需要 id, filename,内容,相似度)
         const candidates = uniqueContexts.slice(0, 10).map((ctx, idx) => ({
           id: idx,
@@ -549,7 +549,7 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
 
     return uniqueContexts.slice(0, resultCount);
   } catch (error) {
-    logger.ai.error('获取查询文档失败:', error);
+    logger.rag.error('获取查询文档失败:', error);
     return [];
   }
 }
@@ -574,7 +574,7 @@ export async function handleFileUpdate(filename: string, content: string): Promi
   try {
     await processMarkdownFile(filename, content);
   } catch (error) {
-    logger.ai.error(`更新文件 ${filename} 的向量失败:`, error);
+    logger.rag.error(`更新文件 ${filename} 的向量失败:`, error);
   }
 }
 
@@ -588,7 +588,7 @@ export async function checkEmbeddingModelAvailable(): Promise<boolean | string> 
     const embedding = await fetchEmbedding('测试嵌入模型', true);
     return !!embedding;
   } catch (error) {
-    logger.ai.error('嵌入模型检查失败:', error);
+    logger.rag.error('嵌入模型检查失败:', error);
     return error instanceof Error ? error.message : String(error);
   }
 }

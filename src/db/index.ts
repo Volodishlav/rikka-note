@@ -2,6 +2,7 @@
 import Database from '@tauri-apps/plugin-sql';
 import { getWorkspacePath } from '@/lib/workspace';
 import { join } from '@tauri-apps/api/path';
+import {logger} from "@/utils/logger.ts";
 
 // 数据库实例（初始为 null）
 let db: Awaited<ReturnType<typeof Database.load>> | null = null;
@@ -34,7 +35,7 @@ export async function initDb() {
         return db;
     } catch (e: any) {
         const errorMsg = (e instanceof Error ? e.message : (typeof e === 'string' ? e : JSON.stringify(e))) || 'Unknown Error';
-        console.error('❌ 数据库加载失败:', errorMsg);
+        logger.general.error('数据库加载失败:', errorMsg)
         if (errorMsg.includes('plugin sql not found')) {
             throw new Error('SQL 插件未找到：请检查 main.rs 中是否用 Builder 注册插件');
         } else if (errorMsg.includes('not allowed')) {
@@ -51,7 +52,7 @@ export async function closeDb() {
         try {
             await db.close();
         } catch (e) {
-            console.error('关闭数据库连接失败:', e);
+            logger.general.error('关闭数据库连接失败:', e)
         } finally {
             db = null;
             currentDbPath = null;

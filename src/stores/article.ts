@@ -3,6 +3,7 @@ import {defineStore} from 'pinia'
 import {ref} from 'vue'
 import {DirEntry, exists, mkdir, readDir, readTextFile, rename, stat, writeTextFile} from '@tauri-apps/plugin-fs'
 import {Store} from '@tauri-apps/plugin-store'
+import {logger} from '@/utils/logger'
 import {cloneDeep, uniq} from 'lodash-es'
 import {join} from '@tauri-apps/api/path'
 
@@ -58,7 +59,7 @@ export const useArticleStore = defineStore('article', () => {
             await store.save()
         } catch (err) {
             errorMsg.value = `保存大纲配置失败：${(err as Error).message}`
-            console.warn('Failed to save enableOutline:', err)
+            logger.explorer.warn('Failed to save enableOutline:', err)
         }
     }
 
@@ -70,7 +71,7 @@ export const useArticleStore = defineStore('article', () => {
             enableOutline.value = res ?? false // 兜底：无值时默认 false
         } catch (err) {
             errorMsg.value = `初始化大纲配置失败：${(err as Error).message}`
-            console.warn('Failed to init enableOutline:', err)
+            logger.explorer.warn('Failed to init enableOutline:', err)
         }
     }
     function setLoading(val: boolean) {
@@ -91,7 +92,7 @@ export const useArticleStore = defineStore('article', () => {
             await store.save()
         } catch (err) {
             errorMsg.value = `保存活跃文件路径失败：${(err as Error).message}`
-            console.warn('Failed to save activeFilePath:', err)
+            logger.explorer.warn('Failed to save activeFilePath:', err)
         }
     }
 
@@ -107,7 +108,7 @@ export const useArticleStore = defineStore('article', () => {
             html2md.value = res || false
         } catch (err) {
             errorMsg.value = `初始化html2md配置失败：${(err as Error).message}`
-            console.warn('Failed to init html2md:', err)
+            logger.explorer.warn('Failed to init html2md:', err)
         }
     }
 
@@ -119,7 +120,7 @@ export const useArticleStore = defineStore('article', () => {
             await store.save()
         } catch (err) {
             errorMsg.value = `保存html2md配置失败：${(err as Error).message}`
-            console.warn('Failed to save html2md:', err)
+            logger.explorer.warn('Failed to save html2md:', err)
         }
     }
 
@@ -131,7 +132,7 @@ export const useArticleStore = defineStore('article', () => {
             await store.set('sortType', newSortType)
             fileTree.value = sortFileTree(fileTree.value)
         } catch (err) {
-            console.warn('Failed to save sortType:', err)
+            logger.explorer.warn('Failed to save sortType:', err)
         }
     }
 
@@ -142,7 +143,7 @@ export const useArticleStore = defineStore('article', () => {
             await store.set('sortDirection', newDirection)
             fileTree.value = sortFileTree(fileTree.value)
         } catch (err) {
-            console.warn('Failed to save sortDirection:', err)
+            logger.explorer.warn('Failed to save sortDirection:', err)
         }
     }
 
@@ -218,7 +219,7 @@ export const useArticleStore = defineStore('article', () => {
                     entry.modifiedAt = fileStat.mtime?.toISOString()
                 } catch (error) {
                     errorMsg.value = `获取文件统计信息失败(${filePath})：${(error as Error).message}`
-                    console.error(`Error getting stats for ${filePath}:`, error)
+                    logger.explorer.error(`Error getting stats for ${filePath}:`, error)
                 }
             } else if (entry.isDirectory && entry.children) {
                 const dirPath = await join(basePath, entry.name)
@@ -319,7 +320,7 @@ export const useArticleStore = defineStore('article', () => {
 
         } catch (error) {
             errorMsg.value = `加载文件树失败：${(error as Error).message}`
-            console.error('[ArticleStore] loadFileTree error:', error)
+            logger.explorer.error('[ArticleStore] loadFileTree error:', error)
         } finally {
             fileTreeLoading.value = false
         }
@@ -345,7 +346,7 @@ export const useArticleStore = defineStore('article', () => {
             collapsibleList.value = res ? uniq(res.filter(item => !item.includes('.md'))) : []
         } catch (err) {
             errorMsg.value = `初始化折叠列表失败：${(err as Error).message}`
-            console.warn('Failed to init collapsibleList:', err)
+            logger.explorer.warn('Failed to init collapsibleList:', err)
         }
     }
 
@@ -368,7 +369,7 @@ export const useArticleStore = defineStore('article', () => {
             collapsibleList.value = uniq(list).filter(item => !item.includes('.md'))
         } catch (err) {
             errorMsg.value = `保存折叠列表失败：${(err as Error).message}`
-            console.warn('Failed to save collapsibleList:', err)
+            logger.explorer.warn('Failed to save collapsibleList:', err)
         }
     }
 
@@ -403,7 +404,7 @@ export const useArticleStore = defineStore('article', () => {
             }
         } catch (err) {
             errorMsg.value = `展开所有文件夹失败：${(err as Error).message}`
-            console.warn('Failed to expand all folders:', err)
+            logger.explorer.warn('Failed to expand all folders:', err)
         }
     }
 
@@ -418,7 +419,7 @@ export const useArticleStore = defineStore('article', () => {
             collapsibleList.value = []
         } catch (err) {
             errorMsg.value = `折叠所有文件夹失败：${(err as Error).message}`
-            console.warn('Failed to collapse all folders:', err)
+            logger.explorer.warn('Failed to collapse all folders:', err)
         }
     }
 
@@ -441,7 +442,7 @@ export const useArticleStore = defineStore('article', () => {
             await store.save()
         } catch (err) {
             errorMsg.value = `清空折叠列表失败：${(err as Error).message}`
-            console.warn('Failed to clear collapsibleList:', err)
+            logger.explorer.warn('Failed to clear collapsibleList:', err)
         }
     }
 
@@ -496,7 +497,7 @@ export const useArticleStore = defineStore('article', () => {
         } catch (error) {
             errorMsg.value = `读取文章失败：${(error as Error).message}`
             currentArticle.value = ''
-            console.error('[ArticleStore] readArticle error:', error)
+            logger.explorer.error('[ArticleStore] readArticle error:', error)
         } finally {
             setLoading(false)
         }
@@ -570,13 +571,13 @@ export const useArticleStore = defineStore('article', () => {
                     //     vectorStore.processDocument(path, content)
                     // }
                 } catch (error) {
-                    console.error('更新文档向量失败:', error)
+                    logger.explorer.error('更新文档向量失败:', error)
                 }
             }
 
         } catch (error) {
             errorMsg.value = `自动保存失败：${(error as Error).message}`
-            console.error('[ArticleStore] saveCurrentArticle error:', error)
+            logger.explorer.error('[ArticleStore] saveCurrentArticle error:', error)
         }
     }
 
@@ -635,7 +636,7 @@ export const useArticleStore = defineStore('article', () => {
             allArticle.value = allArticles
         } catch (error) {
             errorMsg.value = `加载所有文章失败：${(error as Error).message}`
-            console.error('[ArticleStore] loadAllArticle error:', error)
+            logger.explorer.error('[ArticleStore] loadAllArticle error:', error)
         }
     }
 
@@ -700,7 +701,7 @@ export const useArticleStore = defineStore('article', () => {
         } catch (error) {
             const msg = (error as Error).message
             errorMsg.value = `移动失败：${msg}`
-            console.error('[ArticleStore] moveItem error:', error)
+            logger.explorer.error('[ArticleStore] moveItem error:', error)
             throw error // 重新抛出以便组件捕获
         }
     }

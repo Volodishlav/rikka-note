@@ -158,6 +158,7 @@ import {
 import useClipboardStore from '@/stores/clipboard'
 import {convertImageByWorkspace} from '@/lib/utils'
 import { useI18n } from '@/hooks/useI18n'
+import { logger } from '@/utils/logger'
 
 interface Props {
   item: DirTree
@@ -266,7 +267,7 @@ const handleSelectFile = async (e: Event) => {
       const imgUrl = await convertImageByWorkspace(path.value)
       window.open(imgUrl, '_blank')
     } catch (err) {
-      console.error('Show image failed:', err)
+      logger.explorer.error('Show image failed:', err)
       show({ title: 'Show image failed', variant: 'error' })
     }
   } else {
@@ -361,7 +362,7 @@ const handleRename = async () => {
 
     show({ title: t('article.contextMenu.renameSuccess'), variant: 'success' })
   } catch (error) {
-    console.error('Rename failed:', error)
+    logger.explorer.error('Rename failed:', error)
     show({ title: t('article.contextMenu.renameFailed'), variant: 'error' })
   }
 }
@@ -392,7 +393,7 @@ const handleDeleteFile = async () => {
       await articleStore.setActiveFilePath('')
     }
   } catch (error) {
-    console.error('Delete failed:', error)
+    logger.explorer.error('Delete failed:', error)
     show({
       title: t('article.contextMenu.deleteFailed'),
       variant: 'error'
@@ -467,7 +468,7 @@ const handlePasteFile = async () => {
     await articleStore.loadFileTree()
     show({ title: t('article.contextMenu.pasted'), variant: 'success' })
   } catch (err) {
-    console.error('Paste failed:', err)
+    logger.explorer.error('Paste failed:', err)
     show({ title: t('article.contextMenu.pasteFailed'), variant: 'error' })
   }
 }
@@ -500,7 +501,7 @@ const handleEncryptFile = async () => {
       show({ title: t('article.contextMenu.encryptSuccess'), variant: 'success' })
     } catch (e) {
       show({ title: t('article.contextMenu.encryptFailed'), variant: 'error' })
-      console.error('Encrypt failed:', e)
+      logger.auth.error('Encrypt failed:', e)
     }
   } else if (encryptionStore.isPasswordSet) {
     // 已设置密码但未解锁，弹出解锁对话框
@@ -533,7 +534,7 @@ const handleEncryptFile = async () => {
         show({ title: t('article.contextMenu.encryptSuccess'), variant: 'success' })
       } catch (e) {
         passwordDialogRef.value?.setError(t('article.contextMenu.encryptFailed'))
-        console.error('Setup encryption failed:', e)
+        logger.auth.error('Setup encryption failed:', e)
       }
     }
     showPasswordDialog.value = true
@@ -551,7 +552,7 @@ const handleDecryptFile = async () => {
       show({ title: t('article.contextMenu.decryptSuccess'), variant: 'success' })
     } catch (e) {
       show({ title: t('article.contextMenu.decryptFailed'), variant: 'error' })
-      console.error('Decrypt failed:', e)
+      logger.auth.error('Decrypt failed:', e)
     }
   } else {
     // 需要先解锁

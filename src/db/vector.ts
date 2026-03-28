@@ -1,4 +1,5 @@
 import { db } from './index';
+import { logger } from '@/utils/logger';
 
 // 向量数据库表结构定义
 export interface VectorDocument {
@@ -73,7 +74,7 @@ export async function getSimilarDocuments(
   `);
   
   if (!docs.length) {
-    console.warn('Vector database is empty');
+    logger.rag.warn('Vector database is empty');
     return [];
   }
   
@@ -83,12 +84,12 @@ export async function getSimilarDocuments(
     try {
         docEmbedding = JSON.parse(doc.embedding) as number[];
     } catch (e) {
-        console.error(`Failed to parse embedding for doc ${doc.id}:`, e);
+        logger.rag.error(`Failed to parse embedding for doc ${doc.id}:`, e);
         return null;
     }
     
     if (!docEmbedding || docEmbedding.length !== queryEmbedding.length) {
-        console.warn(`Dimension mismatch for doc ${doc.id}: doc=${docEmbedding?.length}, query=${queryEmbedding.length}`);
+        logger.rag.warn(`Dimension mismatch for doc ${doc.id}: doc=${docEmbedding?.length}, query=${queryEmbedding.length}`);
         return null;
     }
 
@@ -113,7 +114,7 @@ export async function getSimilarDocuments(
 // 余弦相似度计算
 function cosineSimilarity(vecA: number[], vecB: number[]): number {
   if (vecA.length !== vecB.length) {
-    console.error(`Vector dimension mismatch: ${vecA.length} vs ${vecB.length}`);
+    logger.rag.error(`Vector dimension mismatch: ${vecA.length} vs ${vecB.length}`);
     return 0;
   }
   

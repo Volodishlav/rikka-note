@@ -142,6 +142,7 @@ import { useI18n } from '@/hooks/useI18n'
 import { useEncryptionStore } from '@/stores/encryption'
 import { useToast } from '@/composables/useToast'
 import PasswordDialog from '@/components/PasswordDialog.vue'
+import { logger } from '@/utils/logger'
 
 const { t } = useI18n()
 const encryptionStore = useEncryptionStore()
@@ -164,7 +165,7 @@ async function handleSetPassword(password: string) {
     showSetPasswordDialog.value = false
     show({ title: t('settings.encryption.setPasswordSuccess'), variant: 'success' })
   } catch (e) {
-    console.error('设置密码失败:', e)
+    logger.auth.error('设置密码失败:', e)
     show({ title: t('settings.encryption.setPasswordFailed'), variant: 'error' })
   }
 }
@@ -185,7 +186,7 @@ async function handleChangePassword() {
     newPasswordConfirm.value = ''
   } catch (e) {
     changeError.value = t('settings.encryption.changePasswordFailed')
-    console.error('修改密码失败:', e)
+    logger.auth.error('修改密码失败:', e)
   } finally {
     changing.value = false
   }

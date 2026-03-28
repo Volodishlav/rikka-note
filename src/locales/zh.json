@@ -413,13 +413,15 @@
         "none": "None (禁用)"
       },
       "moduleLabels": {
-        "assistant": "AI 助手",
-        "explorer": "文件管理器",
-        "editor": "编辑器",
-        "db": "数据库 (Local)",
-        "ai": "AI 基础调用",
-        "general": "通用功能",
-        "auth": "加密与权限",
+        "assistant": "AI 助手 (对话/编辑)",
+        "explorer": "资源管理器 (文件/标签)",
+        "editor": "编辑器相关",
+        "ai": "AI 模型管理",
+        "rag": "RAG 知识库",
+        "search": "全局搜索",
+        "ocr": "文字识别",
+        "auth": "权限与加密",
+        "general": "全局底层 (DB/布局)",
         "default": "其他/未分类"
       },
       "colorScheme": {

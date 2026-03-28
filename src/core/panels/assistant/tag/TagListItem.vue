@@ -66,6 +66,7 @@ import { useTagStore } from '@/stores/tag'
 import { useMarkStore } from '@/stores/mark'
 import { useChatStore } from '@/stores/chat'
 import { useI18n } from '@/hooks/useI18n'
+import { logger } from '@/utils/logger'
 
 const props = defineProps<{
   tag: any // Type definition for Tag
@@ -104,7 +105,7 @@ async function confirmRename() {
     await tagStore.updateTagItem({ ...props.tag, name: renameInput.value.trim() })
     isRenameDialogOpen.value = false
   } catch (error) {
-    console.error('Failed to rename tag:', error)
+    logger.explorer.error('Failed to rename tag:', error)
   }
 }
 
@@ -119,7 +120,7 @@ async function handleDelete() {
       await tagStore.deleteTag(props.tag.id)
     }
   } catch (error) {
-    console.error('Failed to delete tag:', error)
+    logger.explorer.error('Failed to delete tag:', error)
   }
 }
 </script>

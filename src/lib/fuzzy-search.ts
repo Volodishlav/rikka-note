@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-
+import {logger} from '@/utils/logger.ts'
 // 匹配 Rust 类型的接口定义
 export interface SearchItem {
   id?: string;
@@ -86,7 +86,7 @@ export class RustFuzzySearch {
       };
       });
     } catch (error) {
-      console.error('模糊搜索出错:', error);
+      logger.search.error('模糊搜索出错:', error)
       return [];
     }
   }
@@ -121,7 +121,7 @@ export class RustFuzzySearch {
         };
       });
     } catch (error) {
-      console.error('并行模糊搜索出错:', error);
+      logger.search.error('并行模糊搜索出错:', error)
       return [];
     }
   }

@@ -3,6 +3,7 @@
 
 import { toast } from '@/components/ui/toast'
 import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification'
+import { logger } from '@/utils/logger'
 
 // 定义toast变体类型
 export type ToastVariant = 'info' | 'success' | 'error' | 'warning'
@@ -36,7 +37,7 @@ async function showNativeNotification(title: string, message: string) {
       }
     }
   } catch (e) {
-    console.warn('Failed to show native notification:', e);
+    logger.general.warn('Failed to show native notification:', e);
   }
 }
 

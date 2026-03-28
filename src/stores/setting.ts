@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { tauriGet, tauriSet } from '@/utils/tauriStore'
 import { AiConfig, baseAiConfig } from '@/lib/ai.types'
 import { LOG_MODULES } from '@/utils/logger.config'
+import { logger } from '@/utils/logger'
 
 export const useSettingStore = defineStore('setting', () => {
     // state
@@ -129,7 +130,7 @@ export const useSettingStore = defineStore('setting', () => {
             }
 
         } catch (e) {
-            console.error('initSettingData error', e)
+            logger.general.error('initSettingData error', e)
         }
     }
 
@@ -147,7 +148,7 @@ export const useSettingStore = defineStore('setting', () => {
             const { setLocale: syncI18n } = await import('@/i18n')
             syncI18n(l)
         } catch (e) {
-            console.warn('Failed to sync i18n in store:', e)
+            logger.general.warn('Failed to sync i18n in store:', e)
         }
     }
 

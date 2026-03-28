@@ -4,6 +4,7 @@ import {onMounted, onUnmounted, ref} from 'vue';
 import ArtTitle from "@/shared/components/ArtTitle.vue";
 import { useLayoutStore } from '@/stores/layout';
 import {ScanText} from "lucide-vue-next";
+import { logger } from '@/utils/logger';
 
 // 初始化布局状态
 const layoutStore = useLayoutStore();
@@ -38,7 +39,7 @@ const handleMinimize = async () => {
   try {
     await appWindow.minimize();
   } catch (err) {
-    console.warn('最小化窗口失败:', err);
+    logger.general.warn('最小化窗口失败:', err);
   }
 };
 
@@ -48,7 +49,7 @@ const handleToggleMaximize = async () => {
     // 同步更新最大化状态
     isMaximized.value = await appWindow.isMaximized();
   } catch (err) {
-    console.warn('切换最大化状态失败:', err);
+    logger.general.warn('切换最大化状态失败:', err);
   }
 };
 
@@ -56,7 +57,7 @@ const handleClose = async () => {
   try {
     await appWindow.close();
   } catch (err) {
-    console.error('关闭窗口失败:', err);
+    logger.general.error('关闭窗口失败:', err);
   }
 };
 
@@ -77,7 +78,7 @@ onMounted(async () => {
     });
 
   } catch (err) {
-    console.error('标题栏初始化失败:', err);
+    logger.general.error('标题栏初始化失败:', err);
   }
 });
 

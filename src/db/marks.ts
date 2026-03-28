@@ -1,5 +1,6 @@
 import { getDb } from "./index"
 import { BaseDirectory, exists, mkdir } from "@tauri-apps/plugin-fs"
+import { logger } from "@/utils/logger"
 
 export interface Mark {
   id: number
@@ -101,7 +102,7 @@ export async function insertMarks(marks: Partial<Mark>[]) {
       );
     }
   } catch (error) {
-    console.error('Error inserting marks:', error);
+    logger.assistant.error('Error inserting marks:', error);
     throw error;
   }
 }

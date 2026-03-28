@@ -53,6 +53,7 @@ import { useI18n } from '@/hooks/useI18n'
 import { insertTag } from '@/db/tags'
 import TagListItem from './TagListItem.vue'
 import { useToast } from '@/components/ui/toast/use-toast'
+import { logger } from '@/utils/logger'
 
 const tagStore = useTagStore()
 const markStore = useMarkStore()
@@ -132,7 +133,7 @@ async function quickAddTag() {
         })
      }
   } catch (e) {
-     console.error(e)
+     logger.explorer.error('Failed to add tag:', e)
   }
 }
 </script>

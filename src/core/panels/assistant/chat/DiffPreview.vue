@@ -65,6 +65,7 @@ import { type Chat } from '@/db/chats';
 import { useArticleStore } from '@/stores/article';
 import { toast } from '@/components/ui/toast/use-toast';
 import { useI18n } from '@/hooks/useI18n';
+import { logger } from '@/utils/logger';
 
 const props = defineProps<{
   messageId: number;
@@ -150,7 +151,7 @@ const handleApply = async () => {
             description: '笔记已成功更新。'
         });
     } catch (err) {
-        console.error('Failed to apply edit:', err);
+        logger.assistant.error('Failed to apply edit:', err);
         toast({
             variant: 'destructive',
             title: '应用失败',
@@ -190,7 +191,7 @@ const handleUndo = async () => {
             description: '笔记内容已恢复。'
         });
     } catch (err) {
-        console.error('Failed to undo edit:', err);
+        logger.assistant.error('Failed to undo edit:', err);
         toast({
             variant: 'destructive',
             title: '回退失败',

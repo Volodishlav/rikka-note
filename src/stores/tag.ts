@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { Tag, getTags, insertTag, updateTag, delTag, deleteAllTags } from '@/db/tags'
 import { Store } from '@tauri-apps/plugin-store'
+import { logger } from '@/utils/logger'
 
 // 如果已迁移这些模块，可以导入；否则暂时注释掉
 // import { uploadFile as uploadGithubFile, getFiles as githubGetFiles, decodeBase64ToString } from '@/lib/github'
@@ -63,7 +64,7 @@ export const useTagStore = defineStore('tag', () => {
             // 获取当前选中的标签对象
             getCurrentTag()
         } catch (error) {
-            console.error('Failed to init tags:', error)
+            logger.explorer.error('Failed to init tags:', error)
             // 备用方案：直接从DB加载
             await fetchTags()
             getCurrentTag()
@@ -79,7 +80,7 @@ export const useTagStore = defineStore('tag', () => {
             const tagList = await getTags()
             tags.value = tagList
         } catch (error) {
-            console.error('tag.ts - Failed to fetch tags:', error)
+            logger.explorer.error('tag.ts - Failed to fetch tags:', error)
         }
     }
 
@@ -96,7 +97,7 @@ export const useTagStore = defineStore('tag', () => {
             await store.set('currentTagId', id)
             await store.save()
         } catch (error) {
-            console.error('Failed to save currentTagId:', error)
+            logger.explorer.error('Failed to save currentTagId:', error)
         }
     }
 
@@ -112,7 +113,7 @@ export const useTagStore = defineStore('tag', () => {
             await fetchTags()
             return result
         } catch (error) {
-            console.error('Failed to add tag:', error)
+            logger.explorer.error('Failed to add tag:', error)
             throw error
         }
     }
@@ -126,7 +127,7 @@ export const useTagStore = defineStore('tag', () => {
             await updateTag(tag)
             await fetchTags()
         } catch (error) {
-            console.error('Failed to update tag:', error)
+            logger.explorer.error('Failed to update tag:', error)
             throw error
         }
     }
@@ -147,7 +148,7 @@ export const useTagStore = defineStore('tag', () => {
                 await setCurrentTagId(tags.value[0].id)
             }
         } catch (error) {
-            console.error('Failed to delete tag:', error)
+            logger.explorer.error('Failed to delete tag:', error)
             throw error
         }
     }
@@ -161,7 +162,7 @@ export const useTagStore = defineStore('tag', () => {
             await deleteAllTags()
             await fetchTags()
         } catch (error) {
-            console.error('Failed to clear tags:', error)
+            logger.explorer.error('Failed to clear tags:', error)
             throw error
         }
     }
@@ -217,7 +218,7 @@ export const useTagStore = defineStore('tag', () => {
     //         lastSyncTime.value = new Date().toLocaleString()
     //         return result
     //     } catch (error) {
-    //         console.error('Failed to upload tags:', error)
+    //         logger.explorer.error('Failed to upload tags:', error)
     //         throw error
     //     } finally {
     //         syncState.value = false
@@ -263,7 +264,7 @@ export const useTagStore = defineStore('tag', () => {
     //         lastSyncTime.value = new Date().toLocaleString()
     //         return result
     //     } catch (error) {
-    //         console.error('Failed to download tags:', error)
+    //         logger.explorer.error('Failed to download tags:', error)
     //         throw error
     //     } finally {
     //         syncState.value = false

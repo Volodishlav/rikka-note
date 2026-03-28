@@ -247,9 +247,12 @@ const downloadModel = async () => {
   downloadedBytes.value = 0
   
   try {
+    logger.ai.info('Starting model download:', { url: customUrl.value, filename: modelFilename.value })
     await invoke<string>('download_local_model', { url: customUrl.value, filename: modelFilename.value })
     isFileExists.value = true
+    logger.ai.info('Model download started/scheduled successfuly')
   } catch (e: any) {
+    logger.ai.error('Model download failed:', e)
     toast({ variant: 'destructive', description: `下载失败: ${e}` })
     isDownloading.value = false
   }
@@ -258,13 +261,16 @@ const downloadModel = async () => {
 const startServer = async () => {
   isStarting.value = true
   try {
+    logger.ai.info('Starting llama server:', { model: modelFilename.value, port: localPort.value })
     await invoke<string>('start_llama_server', {
        modelFilename: modelFilename.value,
        port: Number(localPort.value)
     })
     isServerRunning.value = true
+    logger.ai.info('Llama server started successfully')
     toast({ description: t('settings.rag.serverStarted') })
   } catch(e: any) {
+    logger.ai.error('Failed to start llama server:', e)
     toast({ variant: 'destructive', description: `启动失败: ${e}` })
   } finally {
     isStarting.value = false

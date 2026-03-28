@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { tauriGet, tauriSet } from '@/utils/tauriStore'
+import { logger } from '@/utils/logger'
 
 export interface Prompt {
   id: string
@@ -45,7 +46,7 @@ export const usePromptStore = defineStore('prompt', () => {
         await tauriSet('currentPromptId', defaultPrompt.id)
       }
     } catch (e) {
-      console.error('initPromptData error', e)
+      logger.assistant.error('initPromptData error', e)
     }
   }
 
