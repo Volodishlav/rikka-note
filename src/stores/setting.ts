@@ -29,7 +29,6 @@ export const useSettingStore = defineStore('setting', () => {
     const embeddingModel = ref<string | null>(null)
     const rerankModel = ref<string | null>(null)
     const imageMethodModel = ref<string | null>(null)
-    const markDescModel = ref<string | null>(null)
     const translateModel = ref<string | null>(null)
     const placeholderModel = ref<string | null>(null)
 
@@ -94,9 +93,6 @@ export const useSettingStore = defineStore('setting', () => {
 
             const savedImageMethodModel = await tauriGet<string>('imageMethodModel')
             if (savedImageMethodModel) imageMethodModel.value = savedImageMethodModel
-
-            const savedMarkDescModel = await tauriGet<string>('markDescModel')
-            if (savedMarkDescModel) markDescModel.value = savedMarkDescModel
 
             const savedTranslateModel = await tauriGet<string>('translateModel')
             if (savedTranslateModel) translateModel.value = savedTranslateModel
@@ -197,10 +193,6 @@ export const useSettingStore = defineStore('setting', () => {
         await tauriSet('imageMethodModel', key)
     }
 
-    async function setMarkDescModel(key: string | null) {
-        markDescModel.value = key
-        await tauriSet('markDescModel', key)
-    }
 
     async function setTranslateModel(key: string | null) {
         translateModel.value = key
@@ -254,7 +246,6 @@ export const useSettingStore = defineStore('setting', () => {
         embeddingModel,
         rerankModel,
         imageMethodModel,
-        markDescModel,
         translateModel,
         placeholderModel,
         chatModels,
@@ -272,7 +263,6 @@ export const useSettingStore = defineStore('setting', () => {
         setEmbeddingModel,
         setRerankModel,
         setImageMethodModel,
-        setMarkDescModel,
         setTranslateModel,
         setPlaceholderModel,
         setPrimaryBackupMethod,

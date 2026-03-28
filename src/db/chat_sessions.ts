@@ -2,7 +2,6 @@ import { getDb } from "./index"
 
 export interface ChatSession {
   id: number
-  tagId: number
   title: string
   createdAt: number
   updatedAt: number
@@ -14,7 +13,6 @@ export async function initChatSessionsDb() {
   await db.execute(`
     create table if not exists chat_sessions (
                                        id integer primary key autoincrement,
-                                       tagId integer not null,
                                        title text not null,
                                        createdAt integer not null,
                                        updatedAt integer not null
@@ -27,17 +25,16 @@ export async function insertChatSession(session: Omit<ChatSession, 'id' | 'creat
   const db = await getDb()
   const now = Date.now()
   return await db.execute(
-      "insert into chat_sessions (tagId, title, createdAt, updatedAt) values ($1, $2, $3, $4)",
-      [session.tagId, session.title, now, now]
+      "insert into chat_sessions (title, createdAt, updatedAt) values ($1, $2, $3)",
+      [session.title, now, now]
   )
 }
 
-// 获取 tagId 下所有 chat_sessions
-export async function getChatSessions(tagId: number) {
+// 获取所有 chat_sessions
+export async function getChatSessions() {
   const db = await getDb()
   const result = await db.select<ChatSession[]>(
-      "select * from chat_sessions where tagId = $1 order by updatedAt desc",
-      [tagId]
+      "select * from chat_sessions order by updatedAt desc"
   )
   return result
 }
@@ -71,11 +68,3 @@ export async function deleteChatSession(id: number) {
   )
 }
 
-// 清空 tagId 下的所有 chat_sessions
-export async function clearChatSessionsByTagId(tagId: number) {
-  const db = await getDb()
-  return await db.execute(
-      "delete from chat_sessions where tagId = $1",
-      [tagId]
-  )
-}

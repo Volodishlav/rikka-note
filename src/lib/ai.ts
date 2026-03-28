@@ -569,31 +569,6 @@ export async function fetchAiStreamToken(text: string, onUpdate: (content: strin
   }
 }
 
-// 生成描述描述
-export async function fetchAiDesc(text: string) {
-  try {
-    // 获取AI设置
-    const aiConfig = await getAISettings('markDescPrimaryModel')
-    
-    const descContent = `根据截图的内容：${text}，返回一条描述，不要超过50字，不要包含特殊字符。`
-    
-    const openai = await createOpenAIClient(aiConfig)
-    const completion = await openai.chat.completions.create({
-      model: aiConfig?.model || '',
-      messages: [{
-        role: 'user' as const,
-        content: descContent
-      }],
-      temperature: aiConfig?.temperature || 1,
-      top_p: aiConfig?.topP || 1,
-    })
-    
-    return completion.choices[0].message.content || ''
-  } catch (error) {
-    handleAIError(error, false)
-    return null
-  }
-}
 
 export async function fetchAiDescByImage(base64: string) {
   try {

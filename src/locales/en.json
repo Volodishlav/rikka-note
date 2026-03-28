@@ -133,47 +133,6 @@
     }
   },
   "record": {
-    "trash": {
-      "records": "Recycle Bin ({count})",
-      "empty": "Empty"
-    },
-    "mark": {
-      "title": "Record List",
-      "noMarks": "No records yet",
-      "desc": "Description",
-      "content": "Content",
-      "delete": "Delete",
-      "createdAt": "Created At",
-      "noDesc": "No description",
-      "type": {
-         "text": "Text",
-         "link": "Link",
-         "image": "Image",
-         "scan": "Scan",
-         "file": "File"
-      },
-      "tag": {
-        "selectTag": "Select Tag",
-        "switchTip": "Click to switch tag",
-        "noTags": "No tags yet",
-        "pinned": "Pinned",
-        "others": "Others",
-        "addNew": "Add Tag",
-        "addNewTag": "Add New Tag",
-        "tagName": "Tag Name",
-        "enterTagName": "Please enter tag name",
-        "nameCantBeEmpty": "Tag name cannot be empty",
-        "searchPlaceholder": "Search tags",
-        "enterNewTagPlaceholder": "Please enter new tag",
-        "noResults": "No matching tags found",
-        "quickAdd": "Quick Add",
-        "pin": "Pin",
-        "unpin": "Unpin",
-        "rename": "Rename",
-        "delete": "Delete",
-        "locked": "This tag is locked"
-      }
-    },
     "chat": {
       "header": {
         "title": "AI Chat",
@@ -183,7 +142,7 @@
         "historyButtonTitle": "Chat History",
         "clearButtonTitle": "Clear Chat History",
         "clearDialogTitle": "Clear Chat History",
-        "clearDialogMessage": "Are you sure you want to clear chat history for this tag?"
+        "clearDialogMessage": "Are you sure you want to clear chat history?"
       },
       "sessions": {
         "title": "Chat History",

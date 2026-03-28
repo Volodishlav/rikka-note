@@ -133,47 +133,6 @@
     }
   },
   "record": {
-    "trash": {
-      "records": "回收站 ({count})",
-      "empty": "清空"
-    },
-    "mark": {
-      "title": "记录列表",
-      "noMarks": "暂无记录",
-      "desc": "描述",
-      "content": "内容",
-      "delete": "删除",
-      "createdAt": "创建时间",
-      "noDesc": "无描述",
-      "type": {
-         "text": "文本",
-         "link": "链接",
-         "image": "图片",
-         "scan": "扫描",
-         "file": "文件"
-      },
-      "tag": {
-        "selectTag": "选择标签",
-        "switchTip": "点击切换标签",
-        "noTags": "暂无标签",
-        "pinned": "置顶",
-        "others": "其他",
-        "addNew": "新增标签",
-        "addNewTag": "新增标签",
-        "tagName": "标签名称",
-        "enterTagName": "请输入标签名称",
-        "nameCantBeEmpty": "标签名称不能为空",
-        "searchPlaceholder": "搜索标签",
-        "enterNewTagPlaceholder": "请输入新标签",
-        "noResults": "没有找到匹配的标签",
-        "quickAdd": "快速添加",
-        "pin": "置顶",
-        "unpin": "取消置顶",
-        "rename": "重命名",
-        "delete": "删除",
-        "locked": "此标签已锁定"
-      }
-    },
     "chat": {
       "header": {
         "title": "AI 聊天",

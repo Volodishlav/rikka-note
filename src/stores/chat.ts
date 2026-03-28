@@ -7,8 +7,7 @@ import {
     getChats,
     initChatsDb,
     insertChat,
-    updateChat as updateChatDb,
-    updateChatsInsertedById
+    updateChat as updateChatDb
 } from '@/db/chats'
 import {
     type ChatSession,
@@ -25,11 +24,9 @@ export const useChatStore = defineStore('chat', () => {
     const chats = ref<Chat[]>([])
     const sessions = ref<ChatSession[]>([])
     const currentSessionId = ref<number | null>(null)
-    const currentTagId = ref<number | null>(null)
     
     // UI状态
     const loading = ref(false)
-    const isLinkMark = ref(true)
     const isPlaceholderEnabled = ref(true)
     const syncState = ref(false)
     const lastSyncTime = ref('')
@@ -40,10 +37,9 @@ export const useChatStore = defineStore('chat', () => {
     const editFullContent = ref('')
     const editFilePath = ref('')
 
-    // 初始化整个聊天环境（按 Tag）
-    const init = async (tagId: number) => {
+    // 初始化整个聊天环境
+    const init = async () => {
         loading.value = true
-        currentTagId.value = tagId
         try {
             await initChatsDb()
             await initChatSessionsDb()
@@ -62,17 +58,14 @@ export const useChatStore = defineStore('chat', () => {
         }
     }
 
-    // 获取当前标签下的会话列表
+    // 获取会话列表
     const fetchSessions = async () => {
-        if (!currentTagId.value) return
-        sessions.value = await getChatSessions(currentTagId.value)
+        sessions.value = await getChatSessions()
     }
 
     // 新建会话
     const createSession = async (title: string = 'New Chat') => {
-        if (!currentTagId.value) return null
         const res = await insertChatSession({
-            tagId: currentTagId.value,
             title
         })
         if (res.lastInsertId) {
@@ -108,11 +101,10 @@ export const useChatStore = defineStore('chat', () => {
 
     // 更新会话标题
     const editSessionTitle = async (id: number, title: string) => {
-        const session = sessions.value.find(s => s.id === id)
+        const session = sessions.value.find((s: ChatSession) => s.id === id)
         if (session) {
             await updateChatSession({
                 id,
-                tagId: session.tagId,
                 title,
                 updatedAt: Date.now()
             })
@@ -141,13 +133,13 @@ export const useChatStore = defineStore('chat', () => {
             } else { return null }
         } else {
             // Check if this is the first real user message in an existing empty/default session
-            const session = sessions.value.find(s => s.id === sessionId)
+            const session = sessions.value.find((s: ChatSession) => s.id === sessionId)
             if (session && chats.value.length === 0 && chat.role === 'user' && chat.content) {
                 const newTitle = chat.content.slice(0, 15) + (chat.content.length > 15 ? '...' : '')
-                await editSessionTitle(sessionId, newTitle)
+                await editSessionTitle(sessionId!, newTitle)
             } else {
                 // 如果有会话插入消息，更新一下会话时间，以便排序置顶
-                await updateChatSessionTime(sessionId)
+                await updateChatSessionTime(sessionId!)
                 await fetchSessions() // 刷新列表以反应顺序变化
             }
         }
@@ -172,7 +164,7 @@ export const useChatStore = defineStore('chat', () => {
 
     // 更新聊天
     const updateChat = (chat: Chat) => {
-        const index = chats.value.findIndex(item => item.id === chat.id)
+        const index = chats.value.findIndex((item: Chat) => item.id === chat.id)
         if (index !== -1) {
             chats.value[index] = Object.assign({}, chats.value[index], chat)
         }
@@ -188,7 +180,7 @@ export const useChatStore = defineStore('chat', () => {
 
     // 删除聊天
     const deleteChat = async (id: number) => {
-        chats.value = chats.value.filter(item => item.id !== id)
+        chats.value = chats.value.filter((item: Chat) => item.id !== id)
         await deleteChatDb(id)
     }
     
@@ -199,14 +191,6 @@ export const useChatStore = defineStore('chat', () => {
         await clearChatsBySessionId(currentSessionId.value)
     }
 
-    // 更新 Inserted 状态
-    const updateInsert = async (id: number) => {
-        await updateChatsInsertedById(id)
-        const index = chats.value.findIndex(item => item.id === id)
-        if (index !== -1) {
-            chats.value[index].inserted = true
-        }
-    }
 
     // 更新编辑上下文
     const setEditContext = (selection: string, fullContent: string, filePath: string) => {
@@ -224,9 +208,7 @@ export const useChatStore = defineStore('chat', () => {
         chats,
         sessions,
         currentSessionId,
-        currentTagId,
         loading,
-        isLinkMark,
         isPlaceholderEnabled,
         syncState,
         lastSyncTime,
@@ -241,7 +223,6 @@ export const useChatStore = defineStore('chat', () => {
         saveChat,
         deleteChat,
         clearCurrentSession,
-        updateInsert,
         isEditMode,
         editSelection,
         editFullContent,

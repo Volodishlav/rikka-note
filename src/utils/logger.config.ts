@@ -16,7 +16,7 @@ export const LOG_MODULES: LogModuleConfig[] = [
     id: 'explorer',
     color: '#06b6d4', // cyan
     defaultEnabled: true,
-    files: ['workspace.ts', 'ExplorerPanel.vue', 'stores/article.ts', 'stores/tag.ts', 'stores/workspace.ts']
+    files: ['workspace.ts', 'ExplorerPanel.vue', 'stores/article.ts', 'stores/workspace.ts']
   },
   {
     id: 'editor',

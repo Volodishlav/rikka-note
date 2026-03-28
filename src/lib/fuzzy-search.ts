@@ -10,7 +10,6 @@ export interface SearchItem {
   path?: string;
   searchType?: string;
   type?: string;
-  tagId?: number;
   createdAt?: number;
   score?: number;
   matches?: MatchInfo;

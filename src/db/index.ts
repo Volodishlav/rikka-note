@@ -77,16 +77,12 @@ export async function initAllDatabases() {
 
     const { initChatsDb } = await import('./chats');
     const { initChatSessionsDb } = await import('./chat_sessions');
-    const { initMarksDb } = await import('./marks');
-    const { initTagsDb } = await import('./tags');
     const { initVectorDb } = await import('./vector');
 
     // 并行初始化所有表
     await Promise.all([
         initChatsDb(),
         initChatSessionsDb(),
-        initMarksDb(),
-        initTagsDb(),
         initVectorDb()
     ]);
 }

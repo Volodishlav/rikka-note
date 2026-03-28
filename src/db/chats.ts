@@ -10,7 +10,6 @@ export interface Chat {
   role: Role
   type: ChatType
   image?: string
-  inserted: boolean // 是否插入到 mark 中
   createdAt: number
 }
 
@@ -28,7 +27,6 @@ export async function initChatsDb() {
                                        role text not null,
                                        type text not null,
                                        image text default null,
-                                       inserted boolean default false,
                                        createdAt integer not null
     )
   `)
@@ -39,8 +37,8 @@ export async function insertChat(chat: Omit<Chat, 'id' | 'createdAt'>) {
   const db = await getDb()
   const createdAt = Date.now();
   return await db.execute(
-      "insert into chats (sessionId, content, role, type, image, inserted, createdAt) values ($1, $2, $3, $4, $5, $6, $7)",
-      [chat.sessionId, chat.content, chat.role, chat.type, chat.image, chat.inserted ? 1 : 0, createdAt])
+      "insert into chats (sessionId, content, role, type, image, createdAt) values ($1, $2, $3, $4, $5, $6)",
+      [chat.sessionId, chat.content, chat.role, chat.type, chat.image, createdAt])
 }
 
 // 获取所有 chats
@@ -68,8 +66,8 @@ export async function insertChats(chats: Chat[]) {
   const db = await getDb()
   for (const chat of chats) {
     await db.execute(
-        "insert into chats (sessionId, content, role, type, image, inserted, createdAt) values ($1, $2, $3, $4, $5, $6, $7)",
-        [chat.sessionId, chat.content, chat.role, chat.type, chat.image, chat.inserted ? 1 : 0, chat.createdAt]
+        "insert into chats (sessionId, content, role, type, image, createdAt) values ($1, $2, $3, $4, $5, $6)",
+        [chat.sessionId, chat.content, chat.role, chat.type, chat.image, chat.createdAt]
     )
   }
 }
@@ -87,8 +85,8 @@ export async function deleteAllChats() {
 export async function updateChat(chat: Chat) {
   const db = await getDb()
   return await db.execute(
-      "update chats set content = $1, role = $2, type = $3, image = $4, inserted = $5 where id = $6",
-      [chat.content, chat.role, chat.type, chat.image, chat.inserted ? 1 : 0, chat.id])
+      "update chats set content = $1, role = $2, type = $3, image = $4 where id = $5",
+      [chat.content, chat.role, chat.type, chat.image, chat.id])
 }
 
 // 清空 sessionId 下的所有 chats
@@ -99,13 +97,6 @@ export async function clearChatsBySessionId(sessionId: number) {
       [sessionId])
 }
 
-// 已插入
-export async function updateChatsInsertedById(id: number) {
-  const db = await getDb()
-  return await db.execute(
-      "update chats set inserted = $1 where id = $2",
-      [true, id])
-}
 
 // 删除一条 chat
 export async function deleteChat(id: number) {
