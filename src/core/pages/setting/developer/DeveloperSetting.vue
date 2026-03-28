@@ -159,6 +159,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import ColorSection from './ColorSection.vue'
+import { LOG_MODULES } from '@/utils/logger.config'
 
 const { t } = useI18n()
 const settingStore = useSettingStore()
@@ -179,29 +180,28 @@ const levelOptions = computed(() => ({
   none: t('settings.developer.levelLabels.none')
 }))
 
-// Module Options
-const moduleOptions = computed(() => ({
-  assistant: t('settings.developer.moduleLabels.assistant'),
-  explorer: t('settings.developer.moduleLabels.explorer'),
-  editor: t('settings.developer.moduleLabels.editor'),
-  db: t('settings.developer.moduleLabels.db'),
-  ai: t('settings.developer.moduleLabels.ai'),
-  general: t('settings.developer.moduleLabels.general'),
-  auth: t('settings.developer.moduleLabels.auth'),
-  default: t('settings.developer.moduleLabels.default')
-}))
+// Module Options & Configs derived from central config
+const moduleOptions = computed(() => {
+  const options: Record<string, string> = {}
+  LOG_MODULES.forEach(mod => {
+    options[mod.id] = t(`settings.developer.moduleLabels.${mod.id}`)
+  })
+  return options
+})
 
-// Module to File Mapping (for display only)
-const moduleFileMap: Record<string, string[]> = {
-  assistant: ['ChatPanel.vue', 'ChatHeader.vue', 'ChatInput.vue', 'MessageItem.vue', 'ChatLanguage.vue'],
-  explorer: ['workspace.ts', 'ExplorerPanel.vue'],
-  editor: ['MdEditor.vue', 'EditorToolbar.vue'],
-  db: ['db/index.ts', 'db/chats.ts', 'db/vector.ts'],
-  ai: ['ai.ts', 'rag.ts', 'LocalModelManager.vue'],
-  general: ['RootLayout.vue', 'App.vue', 'main.ts'],
-  auth: ['encryption.ts', 'UnlockDialog.vue'],
-  default: ['Global Fallback']
-}
+const moduleFileMap = computed(() => {
+  return LOG_MODULES.reduce((acc, mod) => {
+    acc[mod.id] = mod.files
+    return acc
+  }, {} as Record<string, string[]>)
+})
+
+const moduleColors = computed(() => {
+  return LOG_MODULES.reduce((acc, mod) => {
+    acc[mod.id] = mod.color
+    return acc
+  }, {} as Record<string, string>)
+})
 
 const isModuleEnabled = (module: string) => {
   return settingStore.devLogModules.includes(module)
@@ -218,19 +218,8 @@ const toggleModule = (module: string) => {
   settingStore.setDevLogModules(current)
 }
 
-// Module Colors (matched with logger.ts)
 const getModuleColor = (module: string) => {
-  const colors: Record<string, string> = {
-    assistant: '#8b5cf6',
-    explorer: '#06b6d4',
-    editor: '#ec4899',
-    db: '#f97316',
-    ai: '#10b981',
-    general: '#64748b',
-    auth: '#ef4444',
-    default: '#6366f1'
-  }
-  return colors[module] || colors.default
+  return moduleColors.value[module] || '#6366f1'
 }
 
 // --- Color Scheme Debug Logic (Original) ---

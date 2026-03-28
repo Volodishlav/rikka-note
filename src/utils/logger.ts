@@ -1,20 +1,15 @@
 import { useSettingStore } from '@/stores/setting'
 import { unref } from 'vue'
+import { LOG_MODULES } from './logger.config'
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'none'
 
 const levelOrder: LogLevel[] = ['debug', 'info', 'warn', 'error', 'none']
 
-const moduleColors: Record<string, string> = {
-  assistant: '#8b5cf6', // purple
-  explorer: '#06b6d4',  // cyan
-  editor: '#ec4899',    // pink
-  db: '#f97316',        // orange
-  ai: '#10b981',        // green
-  general: '#64748b',   // slate
-  auth: '#ef4444',      // red
-  default: '#6366f1'    // indigo
-}
+const moduleColors = LOG_MODULES.reduce((acc, mod) => {
+  acc[mod.id] = mod.color
+  return acc
+}, {} as Record<string, string>)
 
 function getTimestamp() {
   const now = new Date()

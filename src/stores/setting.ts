@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { tauriGet, tauriSet } from '@/utils/tauriStore'
 import { AiConfig, baseAiConfig } from '@/lib/ai.types'
+import { LOG_MODULES } from '@/utils/logger.config'
 
 export const useSettingStore = defineStore('setting', () => {
     // state
@@ -46,7 +47,9 @@ export const useSettingStore = defineStore('setting', () => {
     
     // Developer & Log Configs
     const devLogLevel = ref<'debug' | 'info' | 'warn' | 'error' | 'none'>('debug')
-    const devLogModules = ref<string[]>(['assistant', 'explorer', 'editor', 'db', 'ai', 'general', 'auth', 'default'])
+    const devLogModules = ref<string[]>(
+        LOG_MODULES.filter(m => m.defaultEnabled).map(m => m.id)
+    )
 
 
     // actions
