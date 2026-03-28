@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 
-interface ClipboardItem {
+export interface ClipboardItem {
   path: string
   name: string
   isDirectory: boolean

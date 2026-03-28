@@ -237,16 +237,14 @@ const performSendMessage = async (content: string, docs: RetrievedDoc[]) => {
     await chatStore.insert({
       role: 'user',
       content: content,
-      type: 'chat',
-      inserted: false
+      type: 'chat'
     })
 
     // 2. Insert AI Placeholder
     const aiChat = await chatStore.insert({
       role: 'assistant',
       content: 'Thinking...',
-      type: 'chat',
-      inserted: false
+      type: 'chat'
     })
 
     if (aiChat) {

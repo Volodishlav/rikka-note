@@ -12,7 +12,7 @@
         </div>
         <!-- 3. SheetDescription 必须是 SheetHeader 直接子元素，用于无障碍描述 -->
         <SheetDescription class="sr-only">
-          {{ t('record.chat.sessions.desc', ) }}
+          {{ t('record.chat.sessions.desc') }}
         </SheetDescription>
       </SheetHeader>
 
@@ -86,7 +86,7 @@ import {
 import { ask } from '@tauri-apps/plugin-dialog'
 import { useI18n } from '@/hooks/useI18n'
 
-const props = defineProps<{
+defineProps<{
   isOpen: boolean
 }>()
 

@@ -32,7 +32,6 @@ const vectorStore = useVectorStore()
 const encryptionStore = useEncryptionStore()
 const { locale } = useI18n()
 const toast = useToast()
-const dbInitialized = ref(false)
 const welcomeGuideRef = ref<InstanceType<typeof WelcomeGuide> | null>(null)
 
 onMounted(async () => {

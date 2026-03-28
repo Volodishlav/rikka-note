@@ -81,7 +81,7 @@
           <label class="text-sm font-medium">{{ t('settings.developer.debug.level') }}</label>
           <span class="text-xs text-muted-foreground">{{ t('settings.developer.debug.levelDesc') }}</span>
         </div>
-        <Select v-model="settingStore.devLogLevel" @update:modelValue="settingStore.setDevLogLevel">
+        <Select :model-value="settingStore.devLogLevel" @update:model-value="handleLogLevelUpdate">
           <SelectTrigger class="w-[240px]">
             <SelectValue :placeholder="t('settings.developer.debug.level')" />
           </SelectTrigger>
@@ -164,9 +164,17 @@ import { LOG_MODULES } from '@/utils/logger.config'
 const { t } = useI18n()
 const settingStore = useSettingStore()
 
+// 辅助函数：处理日志等级切换时的类型检查
+const handleLogLevelUpdate = (val: string | number | boolean | null | undefined | any) => {
+  if (val !== null && val !== undefined && typeof val !== 'boolean') {
+    settingStore.setDevLogLevel(val as any)
+  }
+}
+
 // Tab Logic
-const activeTab = ref<'color' | 'debug'>('color')
-const tabs = [
+type TabId = 'color' | 'debug'
+const activeTab = ref<TabId>('color')
+const tabs: { id: TabId }[] = [
   { id: 'color' },
   { id: 'debug' }
 ]
@@ -203,6 +211,10 @@ const moduleColors = computed(() => {
   }, {} as Record<string, string>)
 })
 
+const getModuleColor = (module: string) => {
+  return moduleColors.value[module] || '#6366f1'
+}
+
 const isModuleEnabled = (module: string) => {
   return settingStore.devLogModules.includes(module)
 }
@@ -216,10 +228,6 @@ const toggleModule = (module: string) => {
     current.push(module)
   }
   settingStore.setDevLogModules(current)
-}
-
-const getModuleColor = (module: string) => {
-  return moduleColors.value[module] || '#6366f1'
 }
 
 // --- Color Scheme Debug Logic (Original) ---

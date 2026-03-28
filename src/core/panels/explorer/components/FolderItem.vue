@@ -32,7 +32,7 @@
                 ref="inputRef"
                 v-model="name"
                 class="h-5 rounded-sm text-xs px-0 font-normal flex-1 mr-1 bg-transparent border-none outline-none min-w-0 focus:ring-1 focus:ring-primary focus:rounded-sm"
-                @blur="handleBlur"
+                @blur="handleRename"
                 @input="handleInputChange"
                 @compositionstart="isComposing = true"
                 @compositionend="handleCompositionEnd"
@@ -99,7 +99,6 @@ import {
   ContextMenuTrigger
 } from '@/components/ui/context-menu'
 import {useToast} from '@/composables/useToast'
-import useClipboardStore from '@/stores/clipboard'
 import { useI18n } from '@/hooks/useI18n'
 import { logger } from '@/utils/logger'
 
@@ -110,7 +109,6 @@ interface Props {
 const props = defineProps<Props>()
 const articleStore = useArticleStore()
 const { show } = useToast()
-const clipboardStore = useClipboardStore()
 const { t } = useI18n()
 
 // --- 状态定义 (仿照 FileItem) ---
@@ -270,10 +268,6 @@ function computePath(item: DirTree): string {
 
 const toggleExpand = () => {
   isExpanded.value = !isExpanded.value
-}
-
-const handleExpandChange = (open: boolean) => {
-  isExpanded.value = open
 }
 
 const handleFolderClick = (e: MouseEvent) => {

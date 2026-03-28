@@ -40,7 +40,9 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
 }>()
 
-const updateModel = (val: string) => {
-  emit('update:modelValue', val)
+const updateModel = (val: any) => {
+  if (typeof val === 'string') {
+    emit('update:modelValue', val)
+  }
 }
 </script>

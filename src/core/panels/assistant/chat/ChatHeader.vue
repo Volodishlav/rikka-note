@@ -5,7 +5,7 @@
       <ChatLanguage />
       <RagSwitch />
       <!-- Prompt Selector -->
-      <Select :model-value="promptStore.currentPrompt?.id" @update:model-value="setPrompt">
+      <Select :model-value="promptStore.currentPrompt?.id || ''" @update:model-value="onPromptSelect">
         <SelectTrigger class="w-[120px] h-8 text-xs truncate">
           <SelectValue :placeholder="t('record.chat.header.promptPlaceholder')" />
         </SelectTrigger>
@@ -17,7 +17,7 @@
       </Select>
 
       <!-- Model Selector -->
-      <Select :model-value="settingStore.primaryModel || ''" @update:model-value="setModel">
+      <Select :model-value="settingStore.primaryModel || ''" @update:model-value="onModelSelect">
         <SelectTrigger class="w-[140px] h-8 text-xs truncate">
           <SelectValue :placeholder="t('record.chat.header.modelPlaceholder')" />
         </SelectTrigger>
@@ -65,12 +65,16 @@ onMounted(() => {
   promptStore.initPromptData()
 })
 
-const setModel = (val: string | number) => {
-  settingStore.setPrimaryModel(val as string)
+const onModelSelect = (val: any) => {
+  if (typeof val === 'string') {
+    settingStore.setPrimaryModel(val)
+  }
 }
 
-const setPrompt = (val: string | number) => {
-  const prompt = promptStore.promptList.find((p: any) => p.id === val)
+const onPromptSelect = (val: any) => {
+  if (val === null || val === undefined) return
+  const idValue = val.toString()
+  const prompt = promptStore.promptList.find((p) => p.id === idValue)
   if (prompt) {
     promptStore.setCurrentPrompt(prompt)
   }

@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ESNext",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
 
-    /* Bundler mode */
+    /* 运行模式配置 */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
@@ -14,21 +14,38 @@
     "noEmit": true,
     "jsx": "preserve",
 
-    /* 路径别名配置 */
+    /* 路径配置 */
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
-    /* 添加 Node.js 类型支持（解决 path/__dirname 报错） */
-    "types": ["node", "vite/client", "vue"],
-    /* Linting */
+
+    /* 核心类型支持 */
+    "types": [
+      "node"
+    ],
+
+    /* 严格模式与 Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "allowSyntheticDefaultImports": true
+    "strictNullChecks": true,/*空值严格检查*/
+    "noUnusedLocals": true,/*没使用的局部变量*/
+    "noUnusedParameters": true,/*函数参数定义了但没使用*/
+    "noFallthroughCasesInSwitch": true,/*switch 语句不写 break 就穿透到下一个 case*/
+    "allowSyntheticDefaultImports": true,/*对没有 default export 的模块使用 default import*/
+    "esModuleInterop": true,/*让 CommonJS 模块和 ES 模块互相导入更顺滑*/
+    "forceConsistentCasingInFileNames": true /*强制文件名大小写必须统一，不允许大小写不匹配引入*/
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
-  "references": [{ "path": "./tsconfig.node.json" }],
-  "exclude": ["src-tauri/**/*"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue"
+  ],
+  "exclude": [
+    "node_modules",
+    "src-tauri/**/*"
+  ],
+  "references": [
+    { "path": "./tsconfig.node.json" }
+  ]
 }

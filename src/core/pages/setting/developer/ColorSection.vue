@@ -30,7 +30,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 
 /**
  * 颜色区块展示组件
@@ -48,7 +47,7 @@ interface Props {
   colors: ColorItem[]
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 /**
  * 获取 CSS 变量的当前值

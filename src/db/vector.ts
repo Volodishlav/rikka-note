@@ -1,5 +1,5 @@
-import { db } from './index';
-import { logger } from '@/utils/logger';
+import {db} from './index';
+import {logger} from '@/utils/logger';
 
 // 向量数据库表结构定义
 export interface VectorDocument {
@@ -13,7 +13,7 @@ export interface VectorDocument {
 
 // 初始化向量数据库表
 export async function initVectorDb() {
-  await db.execute(`
+  await db!.execute(`
     create table if not exists vector_documents (
       id integer primary key autoincrement,
       filename text not null,
@@ -26,7 +26,7 @@ export async function initVectorDb() {
   `);
   
   // 创建用于快速查找文件的索引
-  await db.execute(`
+  await db!.execute(`
     create index if not exists idx_vector_documents_filename 
     on vector_documents(filename)
   `);
@@ -34,28 +34,28 @@ export async function initVectorDb() {
 
 // 插入或更新向量文档
 export async function upsertVectorDocument(doc: Omit<VectorDocument, 'id'>) {
-  await db.execute(
+  await db!.execute(
     "insert into vector_documents (filename, chunk_id, content, embedding, updated_at) values ($1, $2, $3, $4, $5) on conflict(filename, chunk_id) do update set content = excluded.content, embedding = excluded.embedding, updated_at = excluded.updated_at",
     [doc.filename, doc.chunk_id, doc.content, doc.embedding, doc.updated_at]);
 }
 
 // 获取指定文件名的所有向量文档
 export async function getVectorDocumentsByFilename(filename: string) {
-  return await db.select<VectorDocument[]>(
+  return await db!.select<VectorDocument[]>(
     "select * from vector_documents where filename = $1 order by chunk_id",
     [filename]);
 }
 
 // 通过文件名删除向量文档
 export async function deleteVectorDocumentsByFilename(filename: string) {
-  await db.execute(
+  await db!.execute(
     "delete from vector_documents where filename = $1",
     [filename]);
 }
 
 // 检查文件是否已存在于向量数据库中
 export async function checkVectorDocumentExists(filename: string) {
-  const result = await db.select<{ count: number }[]>(
+  const result = await db!.select<{ count: number }[]>(
     "select count(*) as count from vector_documents where filename = $1",
     [filename]);
   
@@ -69,7 +69,7 @@ export async function getSimilarDocuments(
   threshold: number = 0.5
 ): Promise<{id: number, filename: string, content: string, similarity: number}[]> {
   // 获取所有文档向量
-  const docs = await db.select<VectorDocument[]>(`
+  const docs = await db!.select<VectorDocument[]>(`
     select id, filename, content, embedding from vector_documents
   `);
   
@@ -79,22 +79,22 @@ export async function getSimilarDocuments(
   }
   
   // 计算余弦相似度并排序
-  const results = docs.map(doc => {
+  return docs.map(doc => {
     let docEmbedding: number[];
     try {
-        docEmbedding = JSON.parse(doc.embedding) as number[];
+      docEmbedding = JSON.parse(doc.embedding) as number[];
     } catch (e) {
-        logger.rag.error(`Failed to parse embedding for doc ${doc.id}:`, e);
-        return null;
+      logger.rag.error(`Failed to parse embedding for doc ${doc.id}:`, e);
+      return null;
     }
-    
+
     if (!docEmbedding || docEmbedding.length !== queryEmbedding.length) {
-        logger.rag.warn(`Dimension mismatch for doc ${doc.id}: doc=${docEmbedding?.length}, query=${queryEmbedding.length}`);
-        return null;
+      logger.rag.warn(`Dimension mismatch for doc ${doc.id}: doc=${docEmbedding?.length}, query=${queryEmbedding.length}`);
+      return null;
     }
 
     const similarity = cosineSimilarity(queryEmbedding, docEmbedding);
-    
+
     return {
       id: doc.id,
       filename: doc.filename,
@@ -102,13 +102,11 @@ export async function getSimilarDocuments(
       similarity
     };
   })
-  .filter((doc): doc is {id: number, filename: string, content: string, similarity: number} => 
-    doc !== null && doc.similarity >= threshold
-  )
-  .sort((a, b) => b.similarity - a.similarity)
-  .slice(0, limit);
-  
-  return results;
+      .filter((doc): doc is { id: number, filename: string, content: string, similarity: number } =>
+          doc !== null && doc.similarity >= threshold
+      )
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, limit);
 }
 
 // 余弦相似度计算
@@ -135,21 +133,21 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
 
 // 清空向量数据库
 export async function clearVectorDb() {
-  await db.execute(`
+  await db!.execute(`
     delete from vector_documents
   `);
 }
 
 // 获取所有向量文档的文件名列表
 export async function getAllVectorDocumentFilenames() {
-  return await db.select<{filename: string}[]>(`
+  return await db!.select<{filename: string}[]>(`
     select distinct filename from vector_documents
   `);
 }
 
 // 获取向量文档总数
 export async function getVectorDocumentCount() {
-  const result = await db.select<{count: number}[]>(`
+  const result = await db!.select<{count: number}[]>(`
     select count(*) as count from vector_documents
   `);
   return result[0]?.count || 0;

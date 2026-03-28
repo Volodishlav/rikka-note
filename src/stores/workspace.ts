@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { tauriGet, tauriSet } from '@/utils/tauriStore'
-import { exists, writeTextFile, mkdir } from '@tauri-apps/plugin-fs'
+import { exists, writeTextFile } from '@tauri-apps/plugin-fs'
 import { logger } from '@/utils/logger'
 import { useI18n } from '@/hooks/useI18n'
 import { closeDb, initAllDatabases } from '@/db'

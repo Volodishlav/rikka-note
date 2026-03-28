@@ -259,21 +259,13 @@ import { computed, onMounted, ref } from 'vue'
  * - 'brush': 毛刷笔触装饰
  * - null: 无装饰物
  */
-const DECORATION_TYPES = {
-  GRAPHIC: 'graphic',
-  BRUSH: 'brush',
-  NONE: null
-}
-
 // 定义props：控制背景装饰显示类型
-// 注意：validator 中直接使用字符串字面量，避免引用外部变量导致的 hoist 问题
-const props = defineProps({
+defineProps({
   showBackground: {
     type: String,
     default: null, // 默认无装饰物
-    validator: (value) => {
+    validator: (value: any) => {
       // 验证传入的值必须是有效的装饰物类型
-      // 使用字符串字面量进行比较，不引用外部变量
       return value === null || value === 'graphic' || value === 'brush'
     }
   }

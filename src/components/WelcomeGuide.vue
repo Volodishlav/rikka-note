@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { FolderPlus, FolderOpen, Loader2, X } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { open } from '@tauri-apps/plugin-dialog'
@@ -74,7 +74,7 @@ const handleSelectFolder = async () => {
       title: t('workspace.toast.selectFolder')
     })
 
-    if (!selectedPath || typeof selectedPath !== 'string') {
+    if (!selectedPath) {
       return // 用户取消选择
     }
 

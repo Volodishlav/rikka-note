@@ -87,13 +87,6 @@
       >
         {{ t('article.contextMenu.rename') }}
       </ContextMenuItem>
-<!--      <ContextMenuItem-->
-<!--          :disabled="!item.sha"-->
-<!--          @click="handleDeleteSyncFile"-->
-<!--          class="text-red-900"-->
-<!--      >-->
-<!--        Delete from Sync-->
-<!--      </ContextMenuItem>-->
       <ContextMenuItem
           :disabled="!item.isLocale || !item.name"
           @click="handleDeleteFile"
@@ -155,7 +148,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger
 } from '@/components/ui/context-menu'
-import useClipboardStore from '@/stores/clipboard'
+import useClipboardStore, { type ClipboardItem } from '@/stores/clipboard'
 import {convertImageByWorkspace} from '@/lib/utils'
 import { useI18n } from '@/hooks/useI18n'
 import { logger } from '@/utils/logger'
@@ -172,7 +165,7 @@ const clipboardStore = useClipboardStore()
 const { t } = useI18n()
 const clipboardItem = computed(() => clipboardStore.clipboardItem)
 const clipboardOperation = computed(() => clipboardStore.clipboardOperation)
-const setClipboardItem = (item: any, op: 'copy' | 'cut' | 'none') => clipboardStore.setClipboardItem(item, op)
+const setClipboardItem = (item: ClipboardItem | null, op: 'copy' | 'cut' | 'none') => clipboardStore.setClipboardItem(item, op)
 
 const isEditing = ref(props.item.isEditing ?? false)
 const name = ref(props.item.name)
@@ -472,12 +465,6 @@ const handlePasteFile = async () => {
     show({ title: t('article.contextMenu.pasteFailed'), variant: 'error' })
   }
 }
-
-const handleDeleteSyncFile = async () => {
-  // 项目中已移除/不使用远程删除时，提示或在未来实现
-  show({ title: 'Remote delete not enabled in this build', variant: 'error' })
-}
-
 
 
 onMounted(() => {

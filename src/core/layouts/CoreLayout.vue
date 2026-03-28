@@ -13,8 +13,8 @@ import SearchPanel from '@/core/panels/explorer/SearchPanel.vue' // 搜索面板
 import SettingPage from '@/core/pages/setting/SettingPage.vue' // 设置页面（独占窗口）
 import Start from '@/shared/pages/start.vue'
 import ArtTitle from '@/shared/components/ArtTitle.vue'
-import { OcrCapture } from '@/components/Ocr'
-import OcrScreenSelector from '@/components/Ocr/OcrScreenSelector.vue'
+import { OcrCapture } from '@/core/pages/Ocr'
+import OcrScreenSelector from '@/core/pages/Ocr/OcrScreenSelector.vue'
 const layoutStore = useLayoutStore()
 const ocrCaptureRef = ref<any>(null)
 

@@ -13,7 +13,7 @@
           id="local-model-switch" 
           class="w-4 h-4 text-primary rounded border-input focus:ring-primary cursor-pointer"
           :checked="settingStore.useLocalEmbedding" 
-          @change="(e) => handleSwitchChange((e.target as HTMLInputElement).checked)" 
+          @change="onSwitchChange" 
         />
         <label for="local-model-switch" class="text-sm font-medium leading-none cursor-pointer">
           {{ t('settings.rag.localModelEnabled') }}
@@ -29,7 +29,7 @@
             <Bot class="w-4 h-4 text-primary" />
             {{ t('settings.rag.presetModel') }}
           </div>
-          <Select v-model="selectedModel" @update:model-value="onModelSelect">
+          <Select :model-value="selectedModel" @update:model-value="onModelSelect">
             <SelectTrigger>
               <SelectValue placeholder="选择预设模型" />
             </SelectTrigger>
@@ -137,7 +137,13 @@ const isFileExists = ref(false)
 const isServerRunning = ref(false)
 const isStarting = ref(false)
 
-let unlistenProgress: any = null
+interface ModelDownloadPayload {
+  filename: string
+  downloaded: number
+  total: number
+}
+
+let unlistenProgress: (() => void) | null = null
 
 const presetModels = [
   {
@@ -166,8 +172,8 @@ onMounted(async () => {
 
   await checkLocalFile()
 
-  unlistenProgress = await listen('model-download-progress', (event: any) => {
-    const payload = event.payload as { filename: string, downloaded: number, total: number }
+  unlistenProgress = await listen<ModelDownloadPayload>('model-download-progress', (event) => {
+    const payload = event.payload
     if (payload.filename === modelFilename.value) {
        downloadedBytes.value = payload.downloaded
        downloadTotal.value = payload.total || 1
@@ -206,8 +212,15 @@ const updatePort = async () => {
   }
 }
 
-const onModelSelect = (val: string) => {
-  const item = presetModels.find(m => m.filename === val)
+const onSwitchChange = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  handleSwitchChange(target.checked)
+}
+
+const onModelSelect = (val: any) => {
+  if (val === null || val === undefined || typeof val === 'boolean') return
+  const filename = val.toString()
+  const item = presetModels.find(m => m.filename === filename)
   if (item) {
     customUrl.value = item.url
     modelFilename.value = item.filename

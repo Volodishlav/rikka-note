@@ -16,7 +16,7 @@
               <Loader2 v-if="isTesting" class="h-4 w-4 animate-spin" />
               <span v-else>{{ t('settings.rag.test') }}</span>
             </Button>
-            <Select :model-value="settingStore.embeddingModel || ''" @update:model-value="(val: string | number) => settingStore.setEmbeddingModel(val as string)">
+            <Select :model-value="settingStore.embeddingModel || ''" @update:model-value="handleEmbeddingModelUpdate">
               <SelectTrigger class="w-[220px]">
                 <SelectValue :placeholder="t('settings.ai.noModelSelected')" />
               </SelectTrigger>
@@ -43,7 +43,7 @@
               <Loader2 v-if="isTestingRerank" class="h-4 w-4 animate-spin" />
               <span v-else>{{ t('settings.rag.test') }}</span>
             </Button>
-            <Select :model-value="settingStore.rerankModel || ''" @update:model-value="(val: string | number) => settingStore.setRerankModel(val as string)">
+            <Select :model-value="settingStore.rerankModel || ''" @update:model-value="handleRerankModelUpdate">
               <SelectTrigger class="w-[220px]">
                 <SelectValue :placeholder="t('settings.ai.noModelSelected')" />
               </SelectTrigger>
@@ -164,6 +164,15 @@ import { checkEmbeddingModelAvailable, checkRerankModelAvailable } from '@/lib/r
 const { t } = useI18n()
 const settingStore = useSettingStore()
 const vectorStore = useVectorStore()
+
+// 辅助函数：处理模型切换类型
+const handleEmbeddingModelUpdate = (val: any) => {
+  if (val) settingStore.setEmbeddingModel(val as string)
+}
+
+const handleRerankModelUpdate = (val: any) => {
+  if (val) settingStore.setRerankModel(val as string)
+}
 
 const chunkSize = ref(1000)
 const chunkOverlap = ref(200)

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {onMounted, ref, watch} from 'vue'
-import {Input} from '@/components/ui/input'
 import {Search} from 'lucide-vue-next'
 import {useI18n} from '@/hooks/useI18n'
 import useArticleStore from '@/stores/article'
@@ -13,7 +12,7 @@ const { t } = useI18n()
 const searchValue = ref('')
 const searchResult = ref<FuzzySearchResult[]>([])
 const articleStore = useArticleStore()
-const searchList = ref<Partial<ISearchItem>[]>([])
+const searchList = ref<ISearchItem[]>([])
 
 const extractTitleFromPath = (path: string): string => {
   if (!path) return ''
