@@ -1,18 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
-import { writeText } from '@tauri-apps/plugin-clipboard-manager';
-import { 
-  ScanText, 
-  Scan, 
-  Upload, 
-  Copy, 
-  Check, 
-  Loader2,
-  X
-} from 'lucide-vue-next';
-import { logger } from '@/utils/logger';
-import { useLayoutStore } from '@/stores/layout';
+import {ref} from 'vue';
+import {invoke} from '@tauri-apps/api/core';
+import {writeText} from '@tauri-apps/plugin-clipboard-manager';
+import {Check, Copy, Loader2, Scan, ScanText, Upload, X} from 'lucide-vue-next';
+import {logger} from '@/utils/logger';
+import {useLayoutStore} from '@/stores/layout';
 
 const layoutStore = useLayoutStore();
 
@@ -52,8 +44,7 @@ const handleSelectedImage = async (bytes: number[]) => {
   isProcessing.value = true;
   errorMsg.value = '';
   try {
-    const result = await invoke<string>('ocr_from_bytes', { data: bytes });
-    resultText.value = result;
+    resultText.value = await invoke<string>('ocr_from_bytes', {data: bytes});
   } catch (err: any) {
     errorMsg.value = `识别失败: ${err}`;
   } finally {
@@ -82,8 +73,7 @@ const handleFileUpload = async (event: Event) => {
       const bytes = new Uint8Array(arrayBuffer);
       // 调用后端字节识别命令
       try {
-        const result = await invoke<string>('ocr_from_bytes', { data: Array.from(bytes) });
-        resultText.value = result;
+        resultText.value = await invoke<string>('ocr_from_bytes', {data: Array.from(bytes)});
       } catch (err: any) {
         errorMsg.value = `识别错误: ${err}`;
       } finally {
