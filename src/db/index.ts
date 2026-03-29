@@ -8,15 +8,14 @@ import {logger} from "@/utils/logger.ts";
 let db: Awaited<ReturnType<typeof Database.load>> | null = null;
 let currentDbPath: string | null = null;
 
-// 初始化数据库（官方推荐的异步调用方式）
-export async function initDb() {
-    const workspace = await getWorkspacePath();
-    if (!workspace.isCustom) {
-        throw new Error('未激活任何笔记仓库，无法加载数据库');
-    }
-
+/**
+ * 初始化数据库
+ * @param workspacePath 工作区路径，由调用方提供。调用方应确保路径有效。
+ * @returns 数据库实例，如果初始化失败则返回 null
+ */
+export async function initDb(workspacePath: string) {
     // 注意：仓库标识 .rikka_note 是一个文件，不能把它当目录用！
-    const expectedDbPath = await join(workspace.path, '.rikka_note.db');
+    const expectedDbPath = await join(workspacePath, '.rikka_note.db');
 
     // 避免当前连接的同路径库重复初始化
     if (db && currentDbPath === expectedDbPath) {
@@ -63,17 +62,26 @@ export async function closeDb() {
 // 获取数据库实例（确保先初始化）
 export async function getDb() {
     if (!db) {
-        await initDb(); // 未初始化则自动初始化
+        // 自动初始化需要从 store 获取路径
+        const workspace = await getWorkspacePath();
+        if (!workspace.isCustom) {
+            logger.db.info('未激活任何笔记仓库，跳过数据库加载');
+            return null;
+        }
+        await initDb();
     }
-    return db!;
+    return db;
 }
 
 // 导出 db 和 currentDbPath 变量
 export { db, currentDbPath };
 
 // 初始化所有数据库表
+// 注意：调用此函数前必须先调用 initDb() 建立数据库连接
 export async function initAllDatabases() {
-    await getDb(); // 确保数据库已加载
+    if (!db) {
+        throw new Error('数据库未初始化，请先调用 initDb()');
+    }
 
     const { initChatsDb } = await import('./chats');
     const { initChatSessionsDb } = await import('./chat_sessions');
