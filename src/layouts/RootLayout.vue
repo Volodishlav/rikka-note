@@ -21,7 +21,7 @@ import { useI18n } from '@/hooks/useI18n'
 import dayjs from 'dayjs'
 import zh from 'dayjs/locale/zh-cn'
 import en from 'dayjs/locale/en'
-import WelcomeGuide from '@/components/WelcomeGuide.vue'
+import WelcomeGuide from '@/shared/components/WelcomeGuide.vue'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { logger } from '@/utils/logger'
 

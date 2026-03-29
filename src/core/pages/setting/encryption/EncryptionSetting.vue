@@ -141,7 +141,7 @@ import { Lock, LockOpen } from 'lucide-vue-next'
 import { useI18n } from '@/hooks/useI18n'
 import { useEncryptionStore } from '@/stores/encryption'
 import { useToast } from '@/composables/useToast'
-import PasswordDialog from '@/components/PasswordDialog.vue'
+import PasswordDialog from '@/core/pages/setting/encryption/PasswordDialog.vue'
 import { logger } from '@/utils/logger'
 
 const { t } = useI18n()

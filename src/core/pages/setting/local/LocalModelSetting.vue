@@ -1,178 +1,227 @@
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between">
-      <div class="space-y-0.5">
-        <h3 class="text-xl font-semibold tracking-tight">{{ t('settings.local.title') }}</h3>
-        <p class="text-sm text-muted-foreground">
+    <!-- Header: 标题、描述与主要控制 -->
+    <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b">
+      <div class="space-y-1.5 flex-1">
+        <h3 class="text-2xl font-bold tracking-tight text-foreground">{{ t('settings.local.title') }}</h3>
+        <p class="text-sm text-muted-foreground max-w-2xl leading-relaxed">
           {{ t('settings.rag.localModelDesc') }}
         </p>
       </div>
-      <div class="flex items-center space-x-2 bg-muted/50 px-3 py-1.5 rounded-full border">
-        <input 
-          type="checkbox" 
-          id="local-model-switch" 
-          class="w-4 h-4 text-primary rounded border-input focus:ring-primary cursor-pointer"
-          :checked="settingStore.useLocalEmbedding" 
-          @change="onSwitchChange" 
-        />
-        <label for="local-model-switch" class="text-sm font-medium leading-none cursor-pointer">
-          {{ t('settings.rag.localModelEnabled') }}
-        </label>
+      <div class="flex flex-wrap items-center gap-4 shrink-0">
+        <!-- 启用开关 (Switch 样式) -->
+        <div class="flex items-center gap-3 bg-muted/40 px-4 py-2 rounded-xl border border-border/50 hover:bg-muted/60 transition-colors shadow-sm">
+          <label class="relative inline-flex items-center cursor-pointer group">
+            <input 
+              type="checkbox" 
+              class="sr-only peer"
+              :checked="settingStore.useLocalEmbedding" 
+              @change="onSwitchChange" 
+            />
+            <div class="w-11 h-6 bg-muted-foreground/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary group-hover:opacity-90"></div>
+          </label>
+          <span class="text-sm font-medium text-foreground/90 select-none cursor-pointer" @click="handleSwitchToggle">
+            {{ t('settings.rag.localModelEnabled') }}
+          </span>
+        </div>
+
+        <!-- 服务控制按钮 -->
+        <div class="flex items-center gap-2">
+          <Button 
+            v-if="!isServerRunning" 
+            variant="default" 
+            @click="startServer" 
+            :disabled="!isFileExists || !isEngineExists || isStarting" 
+            class="h-10 px-5 shadow-sm transition-all active:scale-95"
+            :class="[
+              isStarting ? 'bg-primary/80' : 'bg-green-600 hover:bg-green-700 text-white'
+            ]"
+          >
+            <Loader2 v-if="isStarting" class="w-4 h-4 mr-2 animate-spin" />
+            <Play v-else class="w-4 h-4 mr-2 fill-current" /> 
+            {{ isStarting ? t('settings.rag.starting') : t('settings.rag.startServer') }}
+          </Button>
+          <Button 
+            v-else 
+            variant="destructive" 
+            @click="stopServer" 
+            class="h-10 px-5 shadow-sm active:scale-95"
+          >
+            <Square class="w-4 h-4 mr-2 fill-current" /> {{ t('settings.rag.stopServer') }}
+          </Button>
+        </div>
       </div>
     </div>
 
-    <!-- 顶层提示，告诉用户当前的状态含义 -->
-    <div v-if="settingStore.useLocalEmbedding && isEngineExists && !isServerRunning" class="p-3 rounded-lg border border-orange-200 bg-orange-50 text-orange-700 text-sm flex items-center gap-2 animate-in fade-in">
-      <div class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
-      {{ t('settings.rag.engineNotStartedWarning') }}
+    <!-- 状态面板: 信息反馈 -->
+    <div class="grid gap-3 animate-in fade-in duration-500">
+      <!-- 引擎未检测 -->
+      <div v-if="!isEngineExists && !isServerRunning" class="p-3.5 rounded-xl border border-amber-200/50 bg-amber-50/50 text-amber-700 text-sm flex items-center gap-3 backdrop-blur-sm">
+        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+          <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+        </div>
+        <p class="font-medium">{{ t('settings.rag.engineNotDetectedWarning') }}</p>
+      </div>
+
+      <!-- 服务运行中 -->
+      <div v-if="isServerRunning" class="p-3.5 rounded-xl border border-emerald-200/50 bg-emerald-50/50 text-emerald-700 text-sm flex items-center gap-3 backdrop-blur-sm">
+        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+          <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+        </div>
+        <div class="space-y-0.5">
+          <p class="font-bold">{{ t('settings.rag.connected') }}</p>
+          <p class="font-mono text-xs opacity-80">http://127.0.0.1:{{ localPort }}/v1/embeddings</p>
+        </div>
+      </div>
+
+      <!-- 引擎未启动 -->
+      <div v-if="settingStore.useLocalEmbedding && isEngineExists && !isServerRunning" class="p-3.5 rounded-xl border border-orange-200/50 bg-orange-50/50 text-orange-700 text-sm flex items-center gap-3 backdrop-blur-sm">
+        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+          <div class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
+        </div>
+        <p class="font-medium">{{ t('settings.rag.engineNotStartedWarning') }}</p>
+      </div>
     </div>
 
-    <div v-if="settingStore.useLocalEmbedding" class="space-y-6 pt-6 border-t animate-in fade-in slide-in-from-top-2 duration-300">
+    <!-- 配置面板 (仅启用时显示) -->
+    <div v-if="settingStore.useLocalEmbedding" class="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
       
-      <div class="grid gap-6 md:grid-cols-2">
-        <!-- 引擎选择 -->
-        <div class="space-y-4 p-4 border rounded-xl bg-card">
-          <div class="flex items-center gap-2 font-medium">
-            <Cpu class="w-4 h-4 text-primary" />
+      <div class="grid gap-6 grid-cols-1">
+        <!-- 引擎选择卡片 -->
+        <div class="flex flex-col space-y-4 p-5 border rounded-2xl bg-card shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center gap-3 font-semibold text-lg border-b pb-3 text-card-foreground">
+            <div class="p-2 rounded-lg bg-primary/10 text-primary">
+              <Cpu class="w-5 h-5" />
+            </div>
             {{ t('settings.rag.engineTitle') }}
           </div>
-          <div class="space-y-2">
-            <Label class="text-xs uppercase text-muted-foreground">{{ t('settings.rag.engineVersion') }}</Label>
-            <Select :model-value="selectedEngineName" @update:model-value="selectedEngineName = $event as string">
-              <SelectTrigger>
-                <SelectValue :placeholder="t('settings.rag.selectEngineVersion')" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="e in engineOptions" :key="e.name" :value="e.name">
-                  {{ e.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <div v-if="detectedGpu" class="text-xs text-muted-foreground mt-1 text-green-600/80">
-              <CheckCircle2 class="w-3 h-3 inline-block mr-1 mb-[2px]" /> 
-              {{ t('settings.rag.gpuDetectedRecommend', { gpu: detectedGpu }) }}
+
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground">{{ t('settings.rag.engineVersion') }}</Label>
+                <div v-if="detectedGpu" class="text-xs font-medium text-emerald-600 flex items-center bg-emerald-50 px-2 py-0.5 rounded-full">
+                  <CheckCircle2 class="w-3 h-3 mr-1" /> {{ t('settings.rag.gpuDetectedRecommend', { gpu: detectedGpu }) }}
+                </div>
+              </div>
+              <Select :model-value="selectedEngineName" @update:model-value="selectedEngineName = $event as string">
+                <SelectTrigger class="h-10">
+                  <SelectValue :placeholder="t('settings.rag.selectEngineVersion')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="e in engineOptions" :key="e.name" :value="e.name">
+                    {{ e.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           
-          <div class="pt-2">
-            <Button @click="downloadEngine" :disabled="isEngineDownloading || isEngineExists" variant="secondary" class="w-full">
+          <div class="flex items-center gap-3 pt-2">
+            <Button @click="downloadEngine" :disabled="isEngineDownloading || isEngineExists" variant="secondary" class="flex-1 h-10 font-medium shrink-0">
               <Download class="w-4 h-4 mr-2" /> 
               {{ isEngineExists ? t('settings.rag.engineReady') : t('settings.rag.downloadAndConfigEngine') }}
             </Button>
-            <div class="flex justify-end mt-2">
-               <Button variant="ghost" size="sm" @click="checkLocalLlama(true)" :disabled="isEngineDownloading" class="h-6 text-xs text-muted-foreground w-full flex">
-                 <RefreshCw class="w-3 h-3 mr-1" /> {{ t('settings.rag.testEnvironment') }}
-               </Button>
-            </div>
+            <Button variant="outline" @click="checkLocalLlama(true)" :disabled="isEngineDownloading" class="flex-1 h-10 text-muted-foreground hover:text-primary transition-colors shrink-0">
+              <RefreshCw class="w-4 h-4 mr-2" /> 
+              <span>{{ t('settings.rag.testEnvironment') }}</span>
+            </Button>
           </div>
         </div>
 
-        <!-- 模型选择 -->
-        <div class="space-y-4 p-4 border rounded-xl bg-card relative">
-          <div class="flex items-center gap-2 font-medium">
-            <Bot class="w-4 h-4 text-primary" />
+        <!-- 模型选择卡片 -->
+        <div class="flex flex-col space-y-4 p-5 border rounded-2xl bg-card shadow-sm hover:shadow-md transition-shadow relative">
+          <div class="flex items-center gap-3 font-semibold text-lg border-b pb-3 text-card-foreground">
+            <div class="p-2 rounded-lg bg-primary/10 text-primary">
+              <Bot class="w-5 h-5" />
+            </div>
             {{ t('settings.rag.dataModel') }}
           </div>
-          <div class="space-y-2">
-            <Label class="text-xs uppercase text-muted-foreground">{{ t('settings.rag.presetModel') }}</Label>
-            <Select :model-value="selectedModel" @update:model-value="onModelSelect">
-              <SelectTrigger>
-                <SelectValue placeholder="选择预设模型" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="m in presetModels" :key="m.filename" :value="m.filename">
-                  {{ m.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground">{{ t('settings.rag.presetModel') }}</Label>
+              <Select :model-value="selectedModel" @update:model-value="onModelSelect">
+                <SelectTrigger class="h-10">
+                  <SelectValue placeholder="选择预设模型" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="m in presetModels" :key="m.filename" :value="m.filename">
+                    {{ m.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div class="pt-2">
-             <Button @click="downloadModel" :disabled="isDownloading || isFileExists || !customUrl || !modelFilename" variant="secondary" class="w-full">
+
+          <div class="flex items-center gap-3 pt-2">
+             <Button @click="downloadModel" :disabled="isDownloading || isFileExists || !customUrl || !modelFilename" variant="secondary" class="flex-1 h-10 font-medium shrink-0">
               <Download class="w-4 h-4 mr-2" /> 
               {{ isFileExists ? t('settings.rag.fileExist') : t('settings.rag.downloadAndConfigModel') }}
             </Button>
-            <div class="flex justify-end mt-2">
-               <Button variant="ghost" size="sm" @click="checkLocalFile(true)" :disabled="isDownloading || !modelFilename" class="h-6 text-xs text-muted-foreground w-full flex">
-                 <RefreshCw class="w-3 h-3 mr-1" /> {{ t('settings.rag.testModelFile') }}
-               </Button>
-            </div>
+            <Button variant="outline" @click="checkLocalFile(true)" :disabled="isDownloading || !modelFilename" class="flex-1 h-10 text-muted-foreground hover:text-primary transition-colors shrink-0">
+              <RefreshCw class="w-4 h-4 mr-2" /> 
+              <span>{{ t('settings.rag.testModelFile') }}</span>
+            </Button>
           </div>
         </div>
-
       </div>
 
-      <!-- 专家配置项 -->
-      <div class="space-y-4 p-4 border rounded-xl bg-card">
-        <div class="flex items-center gap-2 font-medium">
-          <Settings2 class="w-4 h-4 text-primary" />
+      <!-- 专家配置项 (高级设置) -->
+      <div class="space-y-6 p-6 border rounded-2xl bg-card shadow-sm">
+        <div class="flex items-center gap-3 font-semibold text-lg border-b pb-4">
+          <div class="p-2 rounded-lg bg-primary/10 text-primary">
+            <Settings2 class="w-5 h-5" />
+          </div>
           {{ t('settings.rag.advancedParams') }}
         </div>
-        <div class="grid md:grid-cols-2 gap-4">
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div class="space-y-2">
-            <Label class="text-xs uppercase text-muted-foreground">{{ t('settings.rag.customUrl') }}</Label>
-            <Input v-model="customUrl" placeholder="https://..." :disabled="isDownloading" />
+            <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground">{{ t('settings.rag.customUrl') }}</Label>
+            <Input v-model="customUrl" placeholder="https://..." :disabled="isDownloading" class="h-10 border-muted-foreground/20 focus:border-primary" />
           </div>
           <div class="space-y-2">
-            <Label class="text-xs uppercase text-muted-foreground">{{ t('settings.rag.modelFile') }}</Label>
-            <Input v-model="modelFilename" placeholder="model.gguf" :disabled="isDownloading" />
+            <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground">{{ t('settings.rag.modelFile') }}</Label>
+            <Input v-model="modelFilename" placeholder="model.gguf" :disabled="isDownloading" class="h-10 border-muted-foreground/20 focus:border-primary" />
           </div>
           <div class="space-y-2">
-            <Label class="text-xs uppercase text-muted-foreground">{{ t('settings.rag.localPort') }}</Label>
-            <Input type="number" v-model="localPort" @change="updatePort" :disabled="isServerRunning" />
+            <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground">{{ t('settings.rag.localPort') }}</Label>
+            <Input type="number" v-model="localPort" @change="updatePort" :disabled="isServerRunning" class="h-10 border-muted-foreground/20 focus:border-primary" />
           </div>
         </div>
       </div>
 
-      <!-- 引擎进度条 -->
-      <div v-if="isEngineDownloading" class="space-y-2 p-4 border rounded-xl bg-muted/30">
-        <div class="flex justify-between text-sm">
-          <span class="flex items-center gap-2">
-            <Loader2 class="w-4 h-4 animate-spin text-primary" />
-            下载引擎中: {{ currentDownloadingEngineFile }}
-          </span>
-          <span v-if="engineDownloadTotal > 0" class="font-mono text-xs">
-            {{ (engineDownloadedBytes / 1024 / 1024).toFixed(2) }} MB / {{ (engineDownloadTotal / 1024 / 1024).toFixed(2) }} MB
-          </span>
+      <!-- 下载进度条组 -->
+      <div class="space-y-4">
+        <div v-if="isEngineDownloading" class="space-y-2.5 p-5 border rounded-2xl bg-muted/30 backdrop-blur-sm">
+          <div class="flex justify-between items-center text-sm">
+            <span class="flex items-center gap-2 font-medium">
+              <Loader2 class="w-4 h-4 animate-spin text-primary" />
+              下载引擎中: <span class="text-muted-foreground">{{ currentDownloadingEngineFile }}</span>
+            </span>
+            <span v-if="engineDownloadTotal > 0" class="font-mono text-xs text-primary font-bold">
+              {{ (engineDownloadedBytes / 1024 / 1024).toFixed(2) }} MB / {{ (engineDownloadTotal / 1024 / 1024).toFixed(2) }} MB
+            </span>
+          </div>
+          <div class="w-full h-2 bg-muted rounded-full overflow-hidden border">
+            <div class="h-full bg-primary transition-all duration-300 shadow-[0_0_10px_rgba(var(--primary),0.5)]" :style="{ width: `${engineDownloadProgress}%` }"></div>
+          </div>
         </div>
-        <div class="w-full h-2 bg-muted rounded-full overflow-hidden border">
-          <div class="h-full bg-primary transition-all duration-300" :style="{ width: `${engineDownloadProgress}%` }"></div>
-        </div>
-      </div>
 
-      <!-- 模型进度条 -->
-      <div v-if="isDownloading" class="space-y-2 p-4 border rounded-xl bg-muted/30">
-        <div class="flex justify-between text-sm">
-          <span class="flex items-center gap-2">
-            <Loader2 class="w-4 h-4 animate-spin text-primary" />
-            {{ t('settings.rag.downloading') }} (预估体积较大，请耐心等待)
-          </span>
-          <span v-if="downloadTotal > 0" class="font-mono text-xs">
-            {{ (downloadedBytes / 1024 / 1024).toFixed(2) }} MB / {{ (downloadTotal / 1024 / 1024).toFixed(2) }} MB
-          </span>
+        <div v-if="isDownloading" class="space-y-2.5 p-5 border rounded-2xl bg-muted/30 backdrop-blur-sm">
+          <div class="flex justify-between items-center text-sm">
+            <span class="flex items-center gap-2 font-medium">
+              <Loader2 class="w-4 h-4 animate-spin text-primary" />
+              模型下载中 (预估体积较大，请耐心等待)
+            </span>
+            <span v-if="downloadTotal > 0" class="font-mono text-xs text-primary font-bold">
+              {{ (downloadedBytes / 1024 / 1024).toFixed(2) }} MB / {{ (downloadTotal / 1024 / 1024).toFixed(2) }} MB
+            </span>
+          </div>
+          <div class="w-full h-2 bg-muted rounded-full overflow-hidden border">
+            <div class="h-full bg-primary transition-all duration-300 shadow-[0_0_10px_rgba(var(--primary),0.5)]" :style="{ width: `${downloadProgress}%` }"></div>
+          </div>
         </div>
-        <div class="w-full h-2 bg-muted rounded-full overflow-hidden border">
-          <div class="h-full bg-primary transition-all duration-300" :style="{ width: `${downloadProgress}%` }"></div>
-        </div>
-      </div>
-
-      <!-- 操作按钮 -->
-      <div class="flex items-center justify-end gap-3 p-4 border rounded-xl bg-card">
-        <Button v-if="!isServerRunning" variant="default" @click="startServer" :disabled="!isFileExists || !isEngineExists || isStarting" class="bg-green-600 hover:bg-green-700 text-white w-full md:w-auto">
-          <Play class="w-4 h-4 mr-2 fill-current" /> {{ isStarting ? t('settings.rag.starting') : t('settings.rag.startServer') }}
-        </Button>
-        <Button v-else variant="destructive" @click="stopServer" class="w-full md:w-auto">
-          <Square class="w-4 h-4 mr-2 fill-current" /> {{ t('settings.rag.stopServer') }}
-        </Button>
-      </div>
-      
-      <div v-if="!isEngineExists && !isServerRunning" class="p-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-700 text-sm flex items-center gap-2">
-        <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
-        {{ t('settings.rag.engineNotDetectedWarning') }}
-      </div>
-
-      <div v-if="isServerRunning" class="p-3 rounded-lg border border-green-200 bg-green-50 text-green-700 text-sm flex items-center gap-2">
-        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-        {{ t('settings.rag.connected') }}: http://127.0.0.1:{{ localPort }}/v1/embeddings
       </div>
     </div>
   </div>
@@ -187,7 +236,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast/use-toast'
-import { Download, Play, Square, RefreshCw, Bot, Settings2, Loader2, Cpu } from 'lucide-vue-next'
+import { Download, Play, Square, RefreshCw, Bot, Settings2, Loader2, Cpu, CheckCircle2 } from 'lucide-vue-next'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { logger } from '@/utils/logger'
@@ -357,6 +406,10 @@ const updatePort = async () => {
 const onSwitchChange = (e: Event) => {
   const target = e.target as HTMLInputElement
   handleSwitchChange(target.checked)
+}
+
+const handleSwitchToggle = () => {
+  handleSwitchChange(!settingStore.useLocalEmbedding)
 }
 
 const onModelSelect = (val: any) => {

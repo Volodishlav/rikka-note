@@ -140,7 +140,7 @@ import {useEncryptionStore} from '@/stores/encryption'
 import { getAbsoluteFilePath, getFilePathOptions } from '@/lib/workspace'
 import {useToast} from '@/composables/useToast'
 import FileIcon from './FileIcon.vue'
-import PasswordDialog from '@/components/PasswordDialog.vue'
+import PasswordDialog from '@/core/pages/setting/encryption/PasswordDialog.vue'
 import {
   ContextMenu,
   ContextMenuContent,
