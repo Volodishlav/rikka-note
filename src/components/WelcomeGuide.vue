@@ -1,5 +1,6 @@
 <template>
-  <div v-if="isVisible" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm text-foreground animate-in fade-in duration-300">
+  <Teleport to="body">
+    <div v-if="isVisible" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm text-foreground animate-in fade-in duration-300">
     <div class="relative max-w-md w-full p-8 shadow-2xl rounded-2xl bg-card border border-border text-center space-y-6">
       <Button variant="ghost" size="icon" class="absolute top-2 right-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted" @click="isVisible = false">
         <X class="w-4 h-4" />
@@ -23,7 +24,8 @@
 
       <p v-if="errorMsg" class="text-sm text-destructive mt-4 transition-all">{{ errorMsg }}</p>
     </div>
-  </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -87,12 +89,13 @@ const handleSelectFolder = async () => {
     const newWorkspace = await workspaceStore.addWorkspace(selectedPath, defaultName)
     await workspaceStore.switchWorkspace(newWorkspace.id)
     
-    // 隐藏窗口
-    isVisible.value = false
-    show({ title: t('workspace.toast.initSuccessTitle'), message: t('workspace.toast.initSuccessMsg'), variant: 'success' })
     
     // 通知文章 store 或其余组件刷新
     await articleStore.loadFileTree()
+    
+    // 最后再隐藏窗口，确保之前的所有 UI/Store 更新已稳定
+    isVisible.value = false
+    show({ title: t('workspace.toast.initSuccessTitle'), message: t('workspace.toast.initSuccessMsg'), variant: 'success' })
 
   } catch (err: any) {
     logger.general.error(err)

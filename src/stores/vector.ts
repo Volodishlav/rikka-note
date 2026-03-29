@@ -111,18 +111,6 @@ export const useVectorStore = defineStore('vector', () => {
       // Load document count
       documentCount.value = await getVectorDocumentCount();
       
-      // 如果已启用向量数据库且有嵌入模型，检查模型可用性
-      if (isVectorDbEnabled.value) {
-        const modelAvailable = await checkEmbeddingModel();
-        if (!modelAvailable) {
-          // 如果模型不可用，禁用向量数据库和RAG
-          await setVectorDbEnabled(false);
-          await setRagEnabled(false);
-        }
-      }
-
-      // 检查重排序模型是否可用
-      await checkRerankModel();
     } catch (error) {
       logger.rag.error('初始化向量数据库失败:', error);
     }

@@ -2,10 +2,10 @@
   <ThemeProvider>
     <TooltipProvider>
       <slot />
-      <!-- 全局Toast容器 -->
-      <Toaster />
-      <WelcomeGuide ref="welcomeGuideRef" />
     </TooltipProvider>
+    <!-- 全局Toast容器 -->
+    <Toaster />
+    <WelcomeGuide ref="welcomeGuideRef" />
   </ThemeProvider>
 </template>
 
