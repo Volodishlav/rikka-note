@@ -188,12 +188,15 @@ export async function fetchEmbedding(text: string, throwError = false): Promise<
       let baseURL, apiKey, model;
 
       if (useLocalEmbedding) {
-        logger.rag.debug("=== [DEBUG] Using Local Embedding Server in fetchEmbedding ===");
         const port = await store.get<number>('localEmbeddingPort') || 8080;
         const localModelStr = await store.get<string>('localEmbeddingModelStr') || 'local-model';
         baseURL = `http://127.0.0.1:${port}/v1`;
         apiKey = 'llama.cpp';
         model = localModelStr;
+        
+        logger.rag.info(`🚀 [向量核心] 命中本地 Embedding 引擎`);
+        logger.rag.info(`   - 本地端点: ${baseURL}`);
+        logger.rag.info(`   - 加载模型: ${model}`);
       } else {
         // 获取嵌入模型信息
         const modelInfo = await getEmbeddingModelInfo();
@@ -203,9 +206,14 @@ export async function fetchEmbedding(text: string, throwError = false): Promise<
         baseURL = modelInfo.baseURL;
         apiKey = modelInfo.apiKey;
         model = modelInfo.model;
+        
+        logger.rag.info(`☁️ [向量核心] 使用云侧远程 Embedding 服务`);
+        logger.rag.debug(`   - 远程提供商 URL: ${baseURL}`);
+        logger.rag.debug(`   - 请求使用模型: ${model}`);
       }
 
       if (!baseURL || !model) {
+        logger.rag.error('嵌入模型配置不完整', { baseURL, model });
         throw new Error('嵌入模型配置不完整');
       }
       
@@ -214,6 +222,8 @@ export async function fetchEmbedding(text: string, throwError = false): Promise<
       let attempt = 0;
       let response: any = null;
       let lastError: any = null;
+
+      logger.rag.debug(`开始发起 Embedding 请求，内容长度: ${text.length} 字符...`);
 
       while (attempt < maxRetries) {
         try {
@@ -231,18 +241,21 @@ export async function fetchEmbedding(text: string, throwError = false): Promise<
           });
           
           if (response.ok) {
+            logger.rag.debug(`✅ Embedding 获取成功 (Attempt: ${attempt + 1})`);
             break; // 成功则跳出重试循环
           } else {
              const errorData = await response.json().catch(() => ({}));
              lastError = new Error(`嵌入请求失败: ${response.status} ${errorData.error?.message || response.statusText}`);
+             logger.rag.warn(`❌ Embedding HTTP 错误: ${response.status}`, errorData);
           }
         } catch (e: any) {
           lastError = e;
+          logger.rag.warn(`❌ Embedding 网络/框架异常: ${e.message}`);
         }
 
         attempt++;
         if (attempt < maxRetries) {
-           logger.rag.debug(`=== [DEBUG] Local server not ready, retrying (${attempt}/${maxRetries}) in 2s...`);
+           logger.rag.info(`⏳ 引擎服务尚未完全就绪，正在发起重试 (${attempt}/${maxRetries})... 请稍候 2s`);
            await new Promise(resolve => setTimeout(resolve, 2000));
         }
       }
