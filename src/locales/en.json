@@ -104,7 +104,7 @@
       "workspaceNamePlaceholder": "Workspace Name",
       "confirmAddAndSwitch": "Confirm Add & Switch",
       "removeTitle": "Remove Workspace Record",
-      "removeDescHtml": "Are you sure you want to remove this workspace from the list?<br/>Note: This only clears the record in this app. <b>It will NOT delete any historical files or physical disk data.</b>",
+      "removeDesc": "Are you sure you want to remove this workspace from the list? Note: This only clears the record in this app. It will NOT delete any historical files or physical disk data.",
       "confirmRemove": "Confirm Remove"
     },
     "guide": {

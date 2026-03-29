@@ -104,7 +104,7 @@
       "workspaceNamePlaceholder": "仓库名称",
       "confirmAddAndSwitch": "确认添加并切换",
       "removeTitle": "移除仓库记录",
-      "removeDescHtml": "确定要从应用列表中移除该仓库吗？<br/>注意：在此处的移除仅清理应用的记录列表，<b>不会删除任何历史文件或本地物理磁盘资料</b>。",
+      "removeDesc": "确定要从应用列表中移除该仓库吗？注意：在此处的移除仅清理应用的记录列表，不会删除任何历史文件或本地物理磁盘资料。",
       "confirmRemove": "确认移除"
     },
     "guide": {

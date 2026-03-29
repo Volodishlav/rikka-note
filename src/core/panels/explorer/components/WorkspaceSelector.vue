@@ -131,8 +131,7 @@
       <DialogContent class="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{{ t('workspace.selector.removeTitle') }}</DialogTitle>
-          <DialogDescription v-html="t('workspace.selector.removeDescHtml')">
-          </DialogDescription>
+          <DialogDescription>{{ t('workspace.selector.removeDesc') }}</DialogDescription>
         </DialogHeader>
         <div class="my-2 bg-destructive/10 p-3 rounded-md border border-destructive/20 text-destructive text-sm" v-if="pendingRemoveWs">
           <span class="font-medium px-1">{{ pendingRemoveWs.name }}</span>
