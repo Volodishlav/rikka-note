@@ -40,25 +40,33 @@ export const useChatStore = defineStore('chat', () => {
 
     // 初始化整个聊天环境
     const init = async () => {
+        logger.assistant.debug('ChatStore.init() 开始执行...')
         const db = await getDb()
         if (!db) {
-            logger.db.warn('ChatStore: 数据库尚未就绪，跳过数据初始化')
+            logger.db.warn('ChatStore.init(): 数据库尚未就绪 (null)，跳过数据初始化')
             return
         }
+        logger.assistant.debug('ChatStore.init(): 数据库已就绪，准备拉取会话历史...')
 
         loading.value = true
         try {
             await fetchSessions()
+            logger.assistant.debug(`ChatStore.init(): 会话列表拉取完成, 数量: ${sessions.value.length}`)
             
             // 如果有会话，默认加载第一个（最近的）
             if (sessions.value.length > 0) {
+                logger.assistant.debug(`ChatStore.init(): 默认加载第一个会话 [ID: ${sessions.value[0].id}]`)
                 await switchSession(sessions.value[0].id)
             } else {
+                logger.assistant.debug('ChatStore.init(): 当前工作区没有会话历史')
                 currentSessionId.value = null
                 chats.value = []
             }
+        } catch (e) {
+            logger.assistant.error('ChatStore.init() 发生异常:', e)
         } finally {
             loading.value = false
+            logger.assistant.debug('ChatStore.init() 流程结束')
         }
     }
 
@@ -99,8 +107,10 @@ export const useChatStore = defineStore('chat', () => {
 
     // 切换会话
     const switchSession = async (id: number) => {
+        logger.assistant.debug(`ChatStore.switchSession(${id}): 开始加载聊天记录...`)
         currentSessionId.value = id
         chats.value = await getChats(id)
+        logger.assistant.debug(`ChatStore.switchSession(${id}): 记录加载完成, 数量: ${chats.value.length}`)
     }
 
     // 更新会话标题
@@ -211,10 +221,12 @@ export const useChatStore = defineStore('chat', () => {
     // 监听工作区状态，自动初始化
     const workspaceStore = useWorkspaceStore()
     watch(() => workspaceStore.activeWorkspace, async (newVal) => {
+        logger.assistant.debug('[ChatStore Watch] workspaceStore.activeWorkspace 变化:', newVal?.name || 'NULL')
         if (newVal) {
-            logger.assistant.debug('检测到工作区激活，正在初始化聊天...')
+            logger.assistant.debug('[ChatStore Watch] 准备执行 init()...')
             await init()
         } else {
+            logger.assistant.debug('[ChatStore Watch] 清空聊天状态 (新工作区为 NULL)')
             sessions.value = []
             chats.value = []
             currentSessionId.value = null

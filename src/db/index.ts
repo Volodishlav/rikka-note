@@ -18,8 +18,11 @@ export async function initDb(workspacePath: string) {
 
     // 避免当前连接的同路径库重复初始化
     if (db && currentDbPath === expectedDbPath) {
+        logger.db.debug('[DB] 数据库已在当前路径下就绪，跳过初始化:', expectedDbPath)
         return db;
     }
+
+    logger.db.debug('[DB] 开始初始化数据库连接, 目标路径:', expectedDbPath)
 
     // 若存在旧连接且路径不同（例如切换了仓库），则先断开旧连接
     if (db) {
@@ -28,12 +31,14 @@ export async function initDb(workspacePath: string) {
 
     try {
         // 使用绝对路径加载：Tauri plugin-sql v2 允许 sqlite: 后接绝对文件路径
+        logger.db.debug('[DB] 执行 Database.load...')
         db = await Database.load(`sqlite:${expectedDbPath}`);
         currentDbPath = expectedDbPath;
+        logger.db.debug('[DB] Database.load 成功，实例已挂载')
         return db;
     } catch (e: any) {
         const errorMsg = (e instanceof Error ? e.message : (typeof e === 'string' ? e : JSON.stringify(e))) || 'Unknown Error';
-        logger.general.error('数据库加载失败:', errorMsg)
+        logger.general.error('[DB] 数据库加载失败:', errorMsg)
         if (errorMsg.includes('plugin sql not found')) {
             throw new Error('SQL 插件未找到：请检查 main.rs 中是否用 Builder 注册插件');
         } else if (errorMsg.includes('not allowed')) {
@@ -60,6 +65,9 @@ export async function closeDb() {
 
 // 获取数据库实例（确保先调用 initDb 初始化）
 export async function getDb() {
+    if (!db) {
+        logger.db.warn('[DB] getDb() 被调用，但当前 db 实例为 null!')
+    }
     return db;
 }
 

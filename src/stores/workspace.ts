@@ -41,15 +41,16 @@ export const useWorkspaceStore = defineStore('workspace', () => {
           }
 
           if (isFolderValid) {
-            activeWorkspace.value = found
-            
-            // 初始化数据库连接
+            // 核心修复：先初始化数据库连接，再设置 activeWorkspace 状态
+            // 这样所有监听 activeWorkspace 的 watch 触发时，数据库已经就绪
             try {
               await initDb(found.path)
               await initAllDatabases()
             } catch (e) {
               logger.explorer.error('[Workspace] 自动加载仓库时初始化数据库失败:', e)
             }
+
+            activeWorkspace.value = found
             
             // 更新最后访问时间
             found.lastAccessed = Date.now()
@@ -140,6 +141,16 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       logger.explorer.warn('[Workspace] 切换工作区时锁定加密失败:', e)
     }
 
+    // 断开旧的数据库连接，并重新初始化对应新仓库的各类数据表
+    try {
+      await closeDb()
+      await initDb(found.path)
+      await initAllDatabases()
+    } catch (e) {
+      logger.explorer.warn('切换仓库时重置数据库失败', e)
+    }
+
+    // 数据库就绪后再设置状态
     activeWorkspace.value = found
     found.lastAccessed = Date.now()
     
@@ -153,18 +164,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     try {
       const articleStore = useArticleStore()
       articleStore.clearSelectedFolder()
-      logger.explorer.debug('[Workspace] 已清除旧仓库的选中文件夹状态')
     } catch (e) {
       logger.explorer.warn('[Workspace] 清除选中文件夹状态失败:', e)
-    }
-    
-    // 断开旧的数据库连接，并重新初始化对应新仓库的各类数据表
-    try {
-      await closeDb()
-      await initDb(found.path)
-      await initAllDatabases()
-    } catch (e) {
-      logger.explorer.warn('切换仓库时重置数据库失败', e)
     }
   }
 
