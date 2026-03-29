@@ -40,5 +40,3 @@ src-tauri/.cargo/
 .env.development.local
 .env.test.local
 .env.production.local
-doc/任务规划书_2.0.md
-doc/rag功能优化与改进.md

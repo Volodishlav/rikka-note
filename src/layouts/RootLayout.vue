@@ -21,8 +21,6 @@ import { useI18n } from '@/hooks/useI18n'
 import dayjs from 'dayjs'
 import zh from 'dayjs/locale/zh-cn'
 import en from 'dayjs/locale/en'
-import { initAllDatabases, initDb } from '@/db'
-import { useToast } from "@/composables/useToast"
 import WelcomeGuide from '@/components/WelcomeGuide.vue'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { logger } from '@/utils/logger'
@@ -31,7 +29,7 @@ const settingStore = useSettingStore()
 const vectorStore = useVectorStore()
 const encryptionStore = useEncryptionStore()
 const { locale } = useI18n()
-const toast = useToast()
+// const toast = useToast()
 const welcomeGuideRef = ref<InstanceType<typeof WelcomeGuide> | null>(null)
 
 onMounted(async () => {
@@ -53,25 +51,18 @@ onMounted(async () => {
     await welcomeGuideRef.value.checkVisibility()
   }
 
-  // 2. 仅当有激活的仓库时才加载对应的数据库
+  // 2. 仅当有激活的仓库时，初始化相关业务状态（数据库连接已在 workspaceStore.initWorkspaceData 中处理）
   const workspaceStore = useWorkspaceStore()
   if (workspaceStore.activeWorkspace) {
     try {
-      // 先初始化数据库连接，传入已确认有效的工作区路径
-      await initDb(workspaceStore.activeWorkspace.path);
-      // 然后初始化所有表
-      await initAllDatabases();
-      
       // 初始化向量数据库状态
       await vectorStore.initVectorDb()
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      logger.general.error('应用数据库初始化失败:', errorMsg);
-      toast.show({ title: '数据库初始化失败', message: errorMsg, variant: 'error' })
+      logger.general.error('业务初始化失败:', errorMsg);
     }
   } else {
-    // 用户初次启动应用时未激活仓库是正常情况，使用 info 级别记录
-    logger.general.info('未激活任何笔记仓库，跳过数据库初始化');
+    logger.general.info('未激活任何笔记仓库，跳过业务状态初始化');
   }
   
   logger.general.debug('TooltipProvider has been added to RootLayout')

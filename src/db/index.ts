@@ -1,6 +1,5 @@
 // src/db/index.ts
 import Database from '@tauri-apps/plugin-sql';
-import { getWorkspacePath } from '@/lib/workspace';
 import { join } from '@tauri-apps/api/path';
 import {logger} from "@/utils/logger.ts";
 
@@ -59,17 +58,8 @@ export async function closeDb() {
     }
 }
 
-// 获取数据库实例（确保先初始化）
+// 获取数据库实例（确保先调用 initDb 初始化）
 export async function getDb() {
-    if (!db) {
-        // 自动初始化需要从 store 获取路径
-        const workspace = await getWorkspacePath();
-        if (!workspace.isCustom) {
-            logger.db.info('未激活任何笔记仓库，跳过数据库加载');
-            return null;
-        }
-        await initDb();
-    }
     return db;
 }
 

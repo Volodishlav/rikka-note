@@ -4,7 +4,7 @@ import { tauriGet, tauriSet } from '@/utils/tauriStore'
 import { exists, writeTextFile } from '@tauri-apps/plugin-fs'
 import { logger } from '@/utils/logger'
 import { useI18n } from '@/hooks/useI18n'
-import { closeDb, initAllDatabases } from '@/db'
+import { closeDb, initAllDatabases, initDb } from '@/db'
 import { useArticleStore } from '@/stores/article'
 import { useEncryptionStore } from '@/stores/encryption'
 
@@ -42,6 +42,14 @@ export const useWorkspaceStore = defineStore('workspace', () => {
 
           if (isFolderValid) {
             activeWorkspace.value = found
+            
+            // 初始化数据库连接
+            try {
+              await initDb(found.path)
+              await initAllDatabases()
+            } catch (e) {
+              logger.explorer.error('[Workspace] 自动加载仓库时初始化数据库失败:', e)
+            }
             
             // 更新最后访问时间
             found.lastAccessed = Date.now()
@@ -153,6 +161,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     // 断开旧的数据库连接，并重新初始化对应新仓库的各类数据表
     try {
       await closeDb()
+      await initDb(found.path)
       await initAllDatabases()
     } catch (e) {
       logger.explorer.warn('切换仓库时重置数据库失败', e)

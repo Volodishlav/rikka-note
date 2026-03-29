@@ -1,23 +1,24 @@
 import {defineStore} from 'pinia'
-import {ref} from 'vue'
+import { ref, watch } from 'vue'
 import {
     type Chat,
     clearChatsBySessionId,
     deleteChat as deleteChatDb,
     getChats,
-    initChatsDb,
     insertChat,
     updateChat as updateChatDb
 } from '@/db/chats'
 import {
     type ChatSession,
-    initChatSessionsDb,
     insertChatSession,
     getChatSessions,
     updateChatSession,
     deleteChatSession,
     updateChatSessionTime
 } from '@/db/chat_sessions'
+import { getDb } from '@/db'
+import { logger } from '@/utils/logger'
+import { useWorkspaceStore } from '@/stores/workspace'
 
 export const useChatStore = defineStore('chat', () => {
     // 基础状态
@@ -39,11 +40,14 @@ export const useChatStore = defineStore('chat', () => {
 
     // 初始化整个聊天环境
     const init = async () => {
+        const db = await getDb()
+        if (!db) {
+            logger.db.warn('ChatStore: 数据库尚未就绪，跳过数据初始化')
+            return
+        }
+
         loading.value = true
         try {
-            await initChatsDb()
-            await initChatSessionsDb()
-            
             await fetchSessions()
             
             // 如果有会话，默认加载第一个（最近的）
@@ -203,6 +207,19 @@ export const useChatStore = defineStore('chat', () => {
     const toggleEditMode = (val?: boolean) => {
         isEditMode.value = val !== undefined ? val : !isEditMode.value
     }
+
+    // 监听工作区状态，自动初始化
+    const workspaceStore = useWorkspaceStore()
+    watch(() => workspaceStore.activeWorkspace, async (newVal) => {
+        if (newVal) {
+            logger.assistant.debug('检测到工作区激活，正在初始化聊天...')
+            await init()
+        } else {
+            sessions.value = []
+            chats.value = []
+            currentSessionId.value = null
+        }
+    }, { immediate: true })
 
     return {
         chats,
