@@ -65,6 +65,7 @@ fn main() {
             model_manager::start_llama_server,
             model_manager::stop_llama_server,
             model_manager::check_llama_server_status,
+            model_manager::get_system_gpu_info,
             ocr::ocr_from_bytes,
             ocr::ocr_from_screen,
             ocr::capture_main_screen,

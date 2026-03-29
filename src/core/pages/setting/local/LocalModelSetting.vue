@@ -48,6 +48,10 @@
                 </SelectItem>
               </SelectContent>
             </Select>
+            <div v-if="detectedGpu" class="text-xs text-muted-foreground mt-1 text-green-600/80">
+              <CheckCircle2 class="w-3 h-3 inline-block mr-1 mb-[2px]" /> 
+              {{ t('settings.rag.gpuDetectedRecommend', { gpu: detectedGpu }) }}
+            </div>
           </div>
           
           <div class="pt-2">
@@ -213,6 +217,7 @@ const downloadTotal = ref(0)
 const isFileExists = ref(false)
 const isServerRunning = ref(false)
 const isStarting = ref(false)
+const detectedGpu = ref('')
 
 interface ModelDownloadPayload {
   filename: string
@@ -286,6 +291,7 @@ onMounted(async () => {
     }
   }
 
+  await probeGpuAndRecommend()
   await checkLocalFile()
   await checkLocalLlama()
   await checkServerStatus()
@@ -369,6 +375,30 @@ watch(modelFilename, async (newVal: string) => {
     await checkLocalFile()
   }
 })
+
+const probeGpuAndRecommend = async () => {
+  try {
+    const gpus = await invoke<string[]>('get_system_gpu_info')
+    if (gpus && gpus.length > 0) {
+      let primary = gpus.find(g => g.toUpperCase().includes('NVIDIA'))
+      if (!primary) primary = gpus.find(g => g.toUpperCase().includes('AMD') || g.toUpperCase().includes('RADEON'))
+      if (!primary) primary = gpus[0]
+
+      detectedGpu.value = primary
+
+      const upper = primary.toUpperCase()
+      if (upper.includes('NVIDIA')) {
+        selectedEngineName.value = 'Windows x64 (CUDA 12.4) [Default]'
+      } else if (upper.includes('AMD') || upper.includes('RADEON')) {
+        selectedEngineName.value = 'Windows x64 (Vulkan)'
+      } else {
+        selectedEngineName.value = 'Windows x64 (CPU - Default)'
+      }
+    }
+  } catch (e) {
+    logger.ai.error('Failed to probe GPU info', e)
+  }
+}
 
 const checkServerStatus = async () => {
   try {
@@ -459,22 +489,42 @@ const downloadModel = async () => {
   }
 }
 
+let unlistenReady: (() => void) | null = null
+let unlistenError: (() => void) | null = null
+
 const startServer = async () => {
   isStarting.value = true
   try {
     logger.ai.info('Starting llama server:', { model: modelFilename.value, port: localPort.value })
+    
+    unlistenReady = await listen('llama-server-ready', () => {
+      isServerRunning.value = true
+      isStarting.value = false
+      logger.ai.info('Llama server ready signal received')
+      toast({ description: t('settings.rag.serverStarted') })
+      if (unlistenReady) { unlistenReady(); unlistenReady = null }
+      if (unlistenError) { unlistenError(); unlistenError = null }
+    })
+    
+    unlistenError = await listen('llama-server-error', (event: any) => {
+       isStarting.value = false
+       toast({ variant: 'destructive', description: `引擎装载异常: ${event.payload}` })
+       logger.ai.error('Llama server load error:', event.payload)
+       if (unlistenReady) { unlistenReady(); unlistenReady = null }
+       if (unlistenError) { unlistenError(); unlistenError = null }
+    })
+
     await invoke<string>('start_llama_server', {
        modelFilename: modelFilename.value,
        port: Number(localPort.value)
     })
-    isServerRunning.value = true
-    logger.ai.info('Llama server started successfully')
-    toast({ description: t('settings.rag.serverStarted') })
+    // NOTE: UI state is updated only through the event listeners or checkServerStatus polling now
   } catch(e: any) {
     logger.ai.error('Failed to start llama server:', e)
     toast({ variant: 'destructive', description: `启动失败: ${e}` })
-  } finally {
     isStarting.value = false
+    if (unlistenReady) { unlistenReady(); unlistenReady = null }
+    if (unlistenError) { unlistenError(); unlistenError = null }
   }
 }
 

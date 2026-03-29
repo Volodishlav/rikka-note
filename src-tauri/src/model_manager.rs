@@ -268,12 +268,20 @@ pub async fn start_llama_server(
     }
 
     if let Some(stderr) = child.stderr.take() {
+        let app_clone = app.clone();
         std::thread::spawn(move || {
             use std::io::{BufRead, BufReader};
             let reader = BufReader::new(stderr);
             for line in reader.lines() {
                 if let Ok(l) = line {
                     println!("[llama-server stderr] {}", l);
+                    // Hook into the logs to detect when it's fully started
+                    if l.contains("server is listening on http") {
+                        let _ = app_clone.emit("llama-server-ready", ());
+                    }
+                    if l.contains("out of memory") || l.contains("cannot allocate") {
+                        let _ = app_clone.emit("llama-server-error", l);
+                    }
                 }
             }
         });
@@ -325,4 +333,36 @@ pub async fn check_llama_server_status(
         }
     }
     Ok(false)
+}
+
+#[tauri::command]
+pub async fn get_system_gpu_info() -> Result<Vec<String>, String> {
+    // Only support Windows wmic for now
+    #[cfg(target_os = "windows")]
+    {
+        let output = std::process::Command::new("wmic")
+            .args(["path", "win32_VideoController", "get", "name"])
+            .output()
+            .map_err(|e| format!("wmic 执行失败: {}", e))?;
+
+        if output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let gpus: Vec<String> = stdout
+                .lines()
+                .skip(1) // Skip the "Name" header
+                .filter_map(|line| {
+                    let trimmed = line.trim();
+                    if trimmed.is_empty() {
+                        None
+                    } else {
+                        Some(trimmed.to_string())
+                    }
+                })
+                .collect();
+            return Ok(gpus);
+        }
+    }
+    
+    // Fallback or non-Windows
+    Ok(vec![])
 }

@@ -325,6 +325,7 @@
       "engineDownloadSuccessToast": "Deployment Configuration Complete",
       "engineDownloadSuccessDesc": "The inference engine is ready to start!",
       "configFailed": "Configuration Failed",
+      "gpuDetectedRecommend": "Detected your primary graphics hardware as {gpu}, automatically matched the most compatible engine.",
       "localPort": "Local Port",
       "downloading": "Downloading...",
       "checkFile": "Check File",
