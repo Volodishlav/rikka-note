@@ -261,21 +261,15 @@
       "autoAnalyzeDesc": "上传图片到笔记中后，自动调用 AI 提取图片内容描述并插入。",
       "modelLabel": "图像理解模型 (VLM)",
       "modelDesc": "用于分析图片内容并生成描述的模型",
-      "manualAnalyze": "提取图片描述",
       "status": {
         "analyzing": "正在分析视觉特征...",
         "analyzingDesc": "AI 正在理解图片内容，请稍候",
         "success": "视觉分析完成",
         "successDesc": "已将描述追加至图片下方",
-        "noImage": "未发现有效图片",
-        "noImageDesc": "请选中图片代码，或在笔记中插入至少一张图片后再试",
-        "failed": "请求失败",
-        "failedDesc": "无法从当前链接读取图片数据",
         "configError": "分析失败",
         "configErrorDesc": "请先在设置中选择图片分析模型"
       },
       "editor": {
-        "toolbar": "AI 图片分析",
         "prefix": "AI 视觉分析"
       },
       "prompt": "你是一个专业的视觉助手。请详细描述这张图片的内容，直接返回描述结果，不要包含任何引导性文字。"

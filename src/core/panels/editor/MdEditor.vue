@@ -10,23 +10,14 @@
         @click="updateSelection"
         @keyup="updateSelection"
         class="flex-1"
-    >
-      <template #defToolbars>
-        <NormalToolbar :title="t('settings.vision.editor.toolbar')" @onClick="handleVlmDesc">
-          <template #trigger>
-            <Sparkles class="h-4 w-4" />
-          </template>
-        </NormalToolbar>
-      </template>
-    </MdEditor>
+    />
   </div>
 </template>
 <script setup lang="ts">
 import {onMounted, onUnmounted, ref, watch} from 'vue';
-import {MdEditor, config, NormalToolbar} from 'md-editor-v3';
+import {MdEditor, config} from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 import {v4 as uuid} from 'uuid';
-import {Sparkles} from 'lucide-vue-next';
 import {useI18n} from '@/hooks/useI18n';
 
 // ============================================
@@ -120,7 +111,6 @@ const toolbars = [
   'code',
   'link',
   'image',
-  0,
   'table',
   'mermaid',
   'katex',
@@ -329,73 +319,6 @@ const triggerVlmAnalysis = async (base64: string, url: string) => {
         logger.vision.error('VLM identification failed:', err);
     } finally {
         isAnalyzing.value = false;
-    }
-};
-
-/**
- * 处理手动点击 VLM 按钮
- */
-const handleVlmDesc = async () => {
-    // 1. 获取当前选区
-    const selection = (editorRef.value?.getSelection() || '').trim();
-    let targetUrl = '';
-    
-    // 优先尝试从选区提取
-    if (selection) {
-        // 模式 A: 完整 Markdown 标签 ![]()
-        const mdMatch = selection.match(/!\[.*?\]\((.*?)\)/);
-        if (mdMatch && mdMatch[1]) {
-            targetUrl = mdMatch[1];
-        } 
-        // 模式 B: 选区本身看起来就是个 URL (http, asset, data)
-        else if (/^(https?:\/\/|asset:\/\/|data:image\/)/.test(selection)) {
-            targetUrl = selection;
-        }
-    }
-    
-    // 2. 如果还是没找到，尝试在当前文档全文找最后一项 (作为兜底)
-    if (!targetUrl) {
-        const allMatches = [...text.value.matchAll(/!\[.*?\]\((.*?)\)/g)];
-        if (allMatches.length > 0) {
-            // 取最后一张图
-            targetUrl = allMatches[allMatches.length - 1][1];
-            logger.vision.debug('No selection found, fallback to last image URL:', targetUrl);
-        }
-    }
-    
-    if (!targetUrl) {
-        toast({
-            title: t('settings.vision.status.noImage'),
-            description: t('settings.vision.status.noImageDesc'),
-            variant: "destructive"
-        });
-        return;
-    }
-
-    try {
-        logger.vision.info('Starting manual VLM analysis for Target URL:', targetUrl);
-        // 3. 将 url 转为 base64
-        // 注意：如果是 tauri 路径，我们可以直接 fetch
-        const response = await fetch(targetUrl);
-        const blob = await response.blob();
-        
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const base64 = e.target?.result as string;
-            if (base64) {
-                logger.vision.debug('Manual image blob converted to base64, triggering analysis.');
-                await triggerVlmAnalysis(base64, targetUrl);
-            }
-        };
-        reader.readAsDataURL(blob);
-        
-    } catch (err) {
-        logger.vision.error('Manual manual analysis failed:', err);
-        toast({
-            title: t('settings.vision.status.failed'),
-            description: t('settings.vision.status.failedDesc'),
-            variant: "destructive"
-        });
     }
 };
 </script>
