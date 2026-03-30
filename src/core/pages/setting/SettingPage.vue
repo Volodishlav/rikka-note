@@ -73,6 +73,7 @@
           v-if="activeTab.startsWith('developer')" 
           :active-tab="activeTab === 'developer:color' ? 'color' : 'debug'" 
         />
+        <VisionSetting v-if="activeTab === 'vision'" />
       </main>
     </div>
   </SidebarProvider>
@@ -83,7 +84,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from '@/hooks/useI18n'
 import { 
   BotMessageSquare, Drama, Settings, BookText, Code2, 
-  Shield, Laptop, ChevronRight 
+  Shield, Laptop, ChevronRight, Eye
 } from 'lucide-vue-next'
 import { 
   Sidebar, SidebarContent, SidebarHeader, SidebarProvider,
@@ -101,6 +102,7 @@ import PromptSetting from './prompt/PromptSetting.vue'
 import RagSetting from './rag/RagSetting.vue'
 import EncryptionSetting from './encryption/EncryptionSetting.vue'
 import DeveloperSetting from './developer/DeveloperSetting.vue'
+import VisionSetting from './vision/VisionSetting.vue'
 
 const { t } = useI18n()
 
@@ -145,6 +147,11 @@ const navItems = computed(() => [
     id: 'rag',
     label: t('settings.rag.title'),
     icon: BookText
+  },
+  {
+    id: 'vision',
+    label: t('settings.vision.title'),
+    icon: Eye
   },
   {
     id: 'encryption',

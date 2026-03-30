@@ -26,6 +26,15 @@ export const baseAiConfig: AiConfig[] = [
     modelType: 'chat'
   },
   {
+    key: 'siliconflow_vlm',
+    title: 'SiliconFlow VLM',
+    baseURL: 'https://api.siliconflow.cn/v1',
+    icon: 'https://s2.loli.net/2025/09/09/D8Al2raSvewN5xn.jpg',
+    apiKeyUrl: 'https://cloud.siliconflow.cn/i/O2ciJeZw',
+    model: 'THUDM/GLM-4.1V-9B-Thinking',
+    modelType: 'image'
+  },
+  {
     key: 'chatgpt',
     title: 'ChatGPT',
     baseURL: 'https://api.openai.com/v1',

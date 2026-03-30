@@ -254,6 +254,15 @@
         "save": "保存"
       }
     },
+    "vision": {
+      "title": "视觉识别",
+      "description": "配置图像分析与增强功能。",
+      "autoAnalyze": "开启图片自动分析",
+      "autoAnalyzeDesc": "上传图片到笔记中后，自动调用 AI 提取图片内容描述并插入。",
+      "modelLabel": "图像理解模型 (VLM)",
+      "modelDesc": "用于分析图片内容并生成描述的模型",
+      "manualAnalyze": "提取图片描述"
+    },
     "prompt": {
       "title": "Prompt 管理",
       "listTitle": "Prompts",

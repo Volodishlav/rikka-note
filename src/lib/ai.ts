@@ -587,10 +587,25 @@ export async function fetchAiDescByImage(base64: string) {
   try {
     // 获取AI设置
     const aiConfig = await getAISettings('imageMethodModel')
+    if (!aiConfig) {
+      toast({
+        title: '分析失败',
+        description: '请先在设置中选择图片分析模型',
+        variant: 'destructive',
+      })
+      return null
+    }
 
-    const descContent = `根据截图的内容，返回一条描述。`
+    const descContent = `你是一个专业的视觉助手。请详细描述这张图片的内容，直接返回描述结果，不要包含任何引导性文字。`
     
     const openai = await createOpenAIClient(aiConfig)
+    
+    // 确保 base64 格式正确 (OpenAI 要求包含 data:image/...;base64,前缀)
+    let imageUrl = base64
+    if (!base64.startsWith('data:image/')) {
+        imageUrl = `data:image/jpeg;base64,${base64}`
+    }
+
     const completion = await openai.chat.completions.create({
       model: aiConfig?.model || '',
       messages: [{
@@ -599,7 +614,7 @@ export async function fetchAiDescByImage(base64: string) {
           {
             type: 'image_url',
             image_url: {
-              url: base64
+              url: imageUrl
             }
           },
           {
@@ -608,13 +623,13 @@ export async function fetchAiDescByImage(base64: string) {
           }
         ]
       }],
-      temperature: aiConfig?.temperature || 1,
-      top_p: aiConfig?.topP || 1,
+      temperature: aiConfig?.temperature || 0.7,
+      top_p: aiConfig?.topP || 0.7,
     })
     
     return completion.choices[0].message.content || ''
   } catch (error) {
-    handleAIError(error, false)
+    handleAIError(error, true)
     return null
   }
 }

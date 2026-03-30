@@ -254,6 +254,15 @@
         "save": "Save"
       }
     },
+    "vision": {
+      "title": "Vision",
+      "description": "Configure image analysis and enhancement features.",
+      "autoAnalyze": "Auto Image Analysis",
+      "autoAnalyzeDesc": "Automatically analyze uploaded images using AI and insert descriptions.",
+      "modelLabel": "Vision Language Model (VLM)",
+      "modelDesc": "Model used to analyze image content and generate descriptions.",
+      "manualAnalyze": "Extract Image Description"
+    },
     "prompt": {
       "title": "Prompt Management",
       "listTitle": "Prompts",

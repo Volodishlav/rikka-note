@@ -31,11 +31,13 @@ export const useSettingStore = defineStore('setting', () => {
     const imageMethodModel = ref<string | null>(null)
     const translateModel = ref<string | null>(null)
     const placeholderModel = ref<string | null>(null)
+    const autoImageAnalyze = ref<boolean>(false)
 
     // Derived State (Filtered Models)
     const chatModels = computed(() => aiModelList.value.filter((m: AiConfig) => m.modelType === 'chat' || !m.modelType))
     const embeddingModels = computed(() => aiModelList.value.filter((m: AiConfig) => m.modelType === 'embedding'))
     const rerankModels = computed(() => aiModelList.value.filter((m: AiConfig) => m.modelType === 'rerank'))
+    const imageModels = computed(() => aiModelList.value.filter((m: AiConfig) => m.modelType === 'image'))
     
     // Backup Configs
     const primaryBackupMethod = ref<'github' | 'gitee' | 'gitlab' | null>(null)
@@ -111,6 +113,9 @@ export const useSettingStore = defineStore('setting', () => {
             
             const savedLocalEmbeddingPort = await tauriGet<number>('localEmbeddingPort')
             if (savedLocalEmbeddingPort) localEmbeddingPort.value = savedLocalEmbeddingPort
+
+            const savedAutoImageAnalyze = await tauriGet<boolean>('autoImageAnalyze')
+            if (savedAutoImageAnalyze !== undefined && savedAutoImageAnalyze !== null) autoImageAnalyze.value = savedAutoImageAnalyze
 
             const savedDevLogLevel = await tauriGet<string>('devLogLevel')
             if (savedDevLogLevel) devLogLevel.value = savedDevLogLevel as any
@@ -204,6 +209,11 @@ export const useSettingStore = defineStore('setting', () => {
         await tauriSet('placeholderModel', key)
     }
 
+    async function setAutoImageAnalyze(val: boolean) {
+        autoImageAnalyze.value = val
+        await tauriSet('autoImageAnalyze', val)
+    }
+
     async function setPrimaryBackupMethod(method: 'github' | 'gitee' | 'gitlab') {
         primaryBackupMethod.value = method
         await tauriSet('primaryBackupMethod', method)
@@ -251,6 +261,7 @@ export const useSettingStore = defineStore('setting', () => {
         chatModels,
         embeddingModels,
         rerankModels,
+        imageModels,
         primaryBackupMethod,
         // actions
         initSettingData,
@@ -275,6 +286,8 @@ export const useSettingStore = defineStore('setting', () => {
         devLogLevel,
         devLogModules,
         setDevLogLevel,
-        setDevLogModules
+        setDevLogModules,
+        autoImageAnalyze,
+        setAutoImageAnalyze
     }
 })

@@ -10,14 +10,23 @@
         @click="updateSelection"
         @keyup="updateSelection"
         class="flex-1"
-    />
+    >
+      <template #defToolbars>
+        <NormalToolbar title="AI 图片分析" @onClick="handleVlmDesc">
+          <template #trigger>
+            <Sparkles class="h-4 w-4" />
+          </template>
+        </NormalToolbar>
+      </template>
+    </MdEditor>
   </div>
 </template>
 <script setup lang="ts">
 import {onMounted, onUnmounted, ref, watch} from 'vue';
-import {MdEditor, config} from 'md-editor-v3';
+import {MdEditor, config, NormalToolbar} from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 import {v4 as uuid} from 'uuid';
+import {Sparkles} from 'lucide-vue-next';
 
 // ============================================
 // 配置 md-editor-v3 使用本地库，避免 CDN 加载被 Tracking Prevention 阻止
@@ -72,6 +81,9 @@ import {useChatStore} from '@/stores/chat';
 // 导入 TAURI 的 convertFileSrc API
 import {convertFileSrc} from '@tauri-apps/api/core';
 import { logger } from '@/utils/logger';
+import {useSettingStore} from '@/stores/setting';
+import {fetchAiDescByImage} from '@/lib/ai';
+import {toast} from '@/components/ui/toast/use-toast';
 // 编辑器内容
 const text = ref('# Hello md-editor-v3!\n\n这是一个测试文档。');
 
@@ -86,6 +98,8 @@ const isDark = ref(document.documentElement.classList.contains('dark'));
 
 // 文章存储
 const articleStore = useArticleStore();
+const settingStore = useSettingStore();
+const isAnalyzing = ref(false);
 
 // 工具栏配置
 const toolbars = [
@@ -104,6 +118,7 @@ const toolbars = [
   'code',
   'link',
   'image',
+  0,
   'table',
   'mermaid',
   'katex',
@@ -251,10 +266,114 @@ const onUploadImg = async (files: File[], callback: (urls: string[]) => void) =>
 
     // 5. 传入转换后的安全路径，用于编辑器预览和插入 MD 文本
     callback(safeImageUrls);
+
+    // 6. 如果开启了自动分析，对上传的图片执行 VLM 分析
+    if (settingStore.autoImageAnalyze) {
+      safeImageUrls.forEach((url, index) => {
+        // file 是原 File 对象，我们可以直接将其转为 base64 提高性能
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const base64 = e.target?.result as string;
+          if (base64) {
+            await triggerVlmAnalysis(base64, url);
+          }
+        };
+        reader.readAsDataURL(files[index]);
+      });
+    }
   } catch (error) {
     logger.editor.error('图片上传整体流程失败:', error);
     callback(files.map(() => 'error: upload process failed'));
   }
+};
+
+/**
+ * 触发 VLM 分析
+ * @param base64 图片 base64
+ * @param url 图片在文章中的路径标识 (用于定位替换)
+ */
+const triggerVlmAnalysis = async (base64: string, url: string) => {
+    isAnalyzing.value = true;
+    toast({
+        title: "🤖 正在分析视觉特征...",
+        description: "AI 正在理解图片内容，请稍候",
+    });
+
+    try {
+        const desc = await fetchAiDescByImage(base64);
+        if (desc) {
+            // 在文本中寻找对应的图片标记并追加描述
+            // 模式 1: 寻找空 alt 标签 ![undefined](url) 或 ![](url) 或 ![any](url)
+            // 我们更温和地追加一行引用
+            const escapedUrl = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const imgRegex = new RegExp(`!\\[(.*?)\\]\\(${escapedUrl}\\)`, 'g');
+            
+            if (imgRegex.test(text.value)) {
+                // 如果找到了，我们在图片下方插入引用
+                text.value = text.value.replace(imgRegex, (match) => {
+                    return `${match}\n\n> 💡 **AI 视觉分析**: ${desc.trim()}`;
+                });
+                toast({
+                    title: "视觉分析完成",
+                    description: "已将描述追加至图片下方",
+                });
+            }
+        }
+    } catch (err) {
+        logger.editor.error('VLM 自动分析失败:', err);
+    } finally {
+        isAnalyzing.value = false;
+    }
+};
+
+/**
+ * 处理手动点击 VLM 按钮
+ */
+const handleVlmDesc = async () => {
+    // 1. 获取当前选区
+    const selection = editorRef.value?.getSelection();
+    let targetUrl = '';
+    
+    if (selection) {
+        const match = selection.match(/!\[.*?\]\((.*?)\)/);
+        if (match && match[1]) {
+            targetUrl = match[1];
+        }
+    }
+    
+    // 2. 如果没选中，尝试通过正则在光标附近找上一张图（简单实现）
+    if (!targetUrl) {
+        toast({
+            title: "请先选中图片",
+            description: "请在编辑器中选中类似 ![alt](url) 的图片代码",
+            variant: "destructive"
+        });
+        return;
+    }
+
+    try {
+        // 3. 将 url 转为 base64
+        // 注意：如果是 tauri 路径，我们可以直接 fetch
+        const response = await fetch(targetUrl);
+        const blob = await response.blob();
+        
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64 = e.target?.result as string;
+            if (base64) {
+                await triggerVlmAnalysis(base64, targetUrl);
+            }
+        };
+        reader.readAsDataURL(blob);
+        
+    } catch (err) {
+        logger.editor.error('手动分析图片失败:', err);
+        toast({
+            title: "请求失败",
+            description: "无法从当前链接读取图片数据",
+            variant: "destructive"
+        });
+    }
 };
 </script>
 
