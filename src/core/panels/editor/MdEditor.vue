@@ -301,7 +301,8 @@ const onUploadImg = async (files: File[], callback: (urls: string[]) => void) =>
 
     // 6. 如果开启了自动分析，对上传的图片执行 VLM 分析
     if (settingStore.autoImageAnalyze) {
-      relativeImageUrls.forEach(async (relUrl, index) => {
+      for (const relUrl of relativeImageUrls) {
+        const index = relativeImageUrls.indexOf(relUrl);
           // VLM 分析仍需使用安全预览路径或 base64
           // 这里我们获取绝对路径供后面使用
           const fullPath = await join(imagesDir, relUrl.replace('images/', ''));
@@ -315,7 +316,7 @@ const onUploadImg = async (files: File[], callback: (urls: string[]) => void) =>
             }
           };
           reader.readAsDataURL(files[index]);
-      });
+      }
     }
   } catch (error) {
     logger.editor.error('图片上传整体流程失败:', error);
