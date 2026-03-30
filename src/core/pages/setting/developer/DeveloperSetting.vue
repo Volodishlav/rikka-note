@@ -1,18 +1,6 @@
 <template>
   <div class="space-y-6">
-    <!-- Tab Navigation -->
-    <div class="flex gap-2 p-1 bg-muted/50 rounded-lg w-fit mb-6">
-      <Button 
-        v-for="tab in tabs" 
-        :key="tab.id"
-        :variant="activeTab === tab.id ? 'secondary' : 'ghost'"
-        size="sm"
-        @click="activeTab = tab.id"
-        class="px-4"
-      >
-        {{ t(`settings.developer.tabs.${tab.id}`) }}
-      </Button>
-    </div>
+    <!-- 内容区域 -->
 
     <!-- Color Scheme Tab -->
     <div v-if="activeTab === 'color'" class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -149,7 +137,6 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '@/hooks/useI18n'
 import { useSettingStore } from '@/stores/setting'
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import {
   Select,
@@ -171,13 +158,12 @@ const handleLogLevelUpdate = (val: string | number | boolean | null | undefined 
   }
 }
 
+const props = defineProps<{
+  activeTab?: 'color' | 'debug'
+}>()
+
 // Tab Logic
-type TabId = 'color' | 'debug'
-const activeTab = ref<TabId>('color')
-const tabs: { id: TabId }[] = [
-  { id: 'color' },
-  { id: 'debug' }
-]
+const activeTab = computed(() => props.activeTab || 'color')
 
 // Log Level Options
 const levelOptions = computed(() => ({

@@ -13,7 +13,7 @@
 import {onMounted, ref, watch} from 'vue'
 import ThemeProvider from '@/components/ThemeProvider.vue'
 import { Toaster } from '@/components/ui/toast'
-import { TooltipProvider } from 'reka-ui'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { useSettingStore } from '@/stores/setting'
 import { useVectorStore } from '@/stores/vector'
 import { useEncryptionStore } from '@/stores/encryption'
