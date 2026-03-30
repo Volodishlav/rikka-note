@@ -331,21 +331,35 @@ const triggerVlmAnalysis = async (base64: string, url: string) => {
  */
 const handleVlmDesc = async () => {
     // 1. 获取当前选区
-    const selection = editorRef.value?.getSelection();
+    const selection = (editorRef.value?.getSelection() || '').trim();
     let targetUrl = '';
     
+    // 优先尝试从选区提取
     if (selection) {
-        const match = selection.match(/!\[.*?\]\((.*?)\)/);
-        if (match && match[1]) {
-            targetUrl = match[1];
+        // 模式 A: 完整 Markdown 标签 ![]()
+        const mdMatch = selection.match(/!\[.*?\]\((.*?)\)/);
+        if (mdMatch && mdMatch[1]) {
+            targetUrl = mdMatch[1];
+        } 
+        // 模式 B: 选区本身看起来就是个 URL (http, asset, data)
+        else if (/^(https?:\/\/|asset:\/\/|data:image\/)/.test(selection)) {
+            targetUrl = selection;
         }
     }
     
-    // 2. 如果没选中，尝试通过正则在光标附近找上一张图（简单实现）
+    // 2. 如果还是没找到，尝试在当前文档全文找最后一项 (作为兜底)
+    if (!targetUrl) {
+        const allMatches = [...text.value.matchAll(/!\[.*?\]\((.*?)\)/g)];
+        if (allMatches.length > 0) {
+            // 取最后一张图
+            targetUrl = allMatches[allMatches.length - 1][1];
+        }
+    }
+    
     if (!targetUrl) {
         toast({
-            title: "请先选中图片",
-            description: "请在编辑器中选中类似 ![alt](url) 的图片代码",
+            title: "未发现有效图片",
+            description: "请选中图片代码，或在笔记中插入至少一张图片后再试",
             variant: "destructive"
         });
         return;
