@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { FuzzySearchResult } from '@/lib/fuzzy-search'
-import { LocateFixed, MapPin } from 'lucide-vue-next'
+import { MapPin } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/useI18n'
 import useArticleStore from '@/stores/article'
 import { computed } from 'vue'
+import { logger } from '@/utils/logger'
 
 const { t } = useI18n()
 
@@ -51,30 +52,23 @@ const snippet = computed(() => {
 })
 
 const handleRouteTo = async () => {
-  if (props.item.matches && props.item.matches.length > 0 && props.item.matches[0].indices.length > 0) {
-    const matchPosition = props.item.matches[0].indices[0][0]
-    articleStore.setMatchPosition(matchPosition)
-  }
-  
   const filePath = props.item.item.path as string
   if (!filePath) return
+
+  logger.search.info('Navigating to article from search result:', {
+    path: filePath
+  })
 
   await articleStore.setActiveFilePath(filePath)
   
   const pathParts = filePath.split('/')
-  // Remove filename to get directory path
   if (pathParts.length > 1) {
     pathParts.pop()
-  } else {
-    // If it's just a file in root, pathParts might be empty or just filename
-    // If just filename, no parent folder to expand.
   }
   
   let currentPath = ''
   for (const part of pathParts) {
-      // Skip empty parts or filename if logic above didn't pop correctly (it did)
-      if (part === filePath) continue; // Safety check
-
+      if (part === filePath) continue;
       if (currentPath) {
         currentPath += '/' + part
       } else {
@@ -91,32 +85,35 @@ const handleRouteTo = async () => {
 </script>
 
 <template>
-  <div class="flex items-center justify-between p-4 border rounded overflow-hidden border-border hover:bg-muted/50 transition-colors">
-    <div class="flex flex-col gap-4 w-full">
-      <div class="flex flex-col flex-1 justify-between">
-        <div class="flex gap-2 mb-2 items-center">
-          <LocateFixed class="size-4 cursor-pointer text-primary hover:text-primary/80" @click="handleRouteTo" />
-          <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground hover:bg-primary/80">
-            {{ t('search.articleType') }}
-          </span>
-          <span class="font-medium">{{ item.item.title || t('search.noTitle') }}</span>
+  <div 
+    class="group flex flex-col p-4 border rounded-xl overflow-hidden border-border bg-card/40 hover:bg-muted/50 hover:border-brand-purple/50 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
+    @click="handleRouteTo"
+  >
+    <div class="flex flex-col gap-2 w-full text-left">
+      <!-- 标题与路径 -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <div class="flex flex-col">
+                <span class="text-sm font-semibold text-foreground group-hover:text-brand-purple transition-colors">
+                    {{ item.item.title || t('search.noTitle') }}
+                </span>
+                <div class="font-normal flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <MapPin class="size-2.5" />
+                    <span>{{ item.item.path }}</span>
+                </div>
+            </div>
         </div>
         
-        <div class="flex flex-col gap-1 flex-1 mb-4">
-          <div class="flex items-start gap-2">
-            <MapPin class="size-3 mt-1 flex-shrink-0 text-muted-foreground" />
-            <p class="text-sm overflow-hidden flex-1 search-highlight text-muted-foreground break-all" v-html="snippet"></p>
-          </div>
+        <div class="flex gap-2">
+            <span class="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground">
+                {{ t('search.matchesCount', { count: item.matches?.[0]?.indices.length || 0 }) }}
+            </span>
         </div>
-        
-        <div class="flex gap-2 items-center">
-          <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
-            {{ item.matches?.[0]?.indices.length || 0 }} {{ t('search.matchesCount') }}
-          </span>
-          <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
-            {{ item.item.path }}
-          </span>
-        </div>
+      </div>
+      
+      <!-- 片段预览 -->
+      <div class="relative pl-0">
+        <p class="text-xs leading-relaxed search-highlight text-muted-foreground/80 break-all line-clamp-3" v-html="snippet"></p>
       </div>
     </div>
   </div>
@@ -124,6 +121,6 @@ const handleRouteTo = async () => {
 
 <style scoped>
 :deep(.search-highlight i) {
-  @apply bg-yellow-200 dark:bg-yellow-900/50 not-italic rounded px-0.5 text-foreground font-medium;
+  @apply bg-brand-purple/20 text-brand-purple not-italic rounded px-1 font-bold shadow-sm;
 }
-</style>
+</style>

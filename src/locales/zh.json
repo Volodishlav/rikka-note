@@ -7,16 +7,20 @@
   "search": {
     "articleType": "文章",
     "noTitle": "无标题",
-    "matchesCount": "处匹配",
+    "matchesCount": "{count} 处匹配",
     "placeholder": "搜索...",
-    "resultsCount": "个结果",
-    "noResults": "没有找到结果"
+    "resultsCount": "共 {count} 个结果",
+    "noResults": "没有找到结果",
+    "caseSensitive": "区分大小写",
+    "wholeWord": "全字匹配",
+    "useRegexp": "正则表达式"
   },
   "common": {
     "settings": "设置",
     "save": "保存",
     "cancel": "取消",
-    "confirm": "确认"
+    "confirm": "确认",
+    "clickToJump": "点击跳转"
   },
   "editor": {
     "placeholder": "开始写作..."

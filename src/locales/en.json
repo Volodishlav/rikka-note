@@ -7,16 +7,20 @@
   "search": {
     "articleType": "Article",
     "noTitle": "No Title",
-    "matchesCount": "matches",
+    "matchesCount": "{count} matches",
     "placeholder": "Search...",
-    "resultsCount": "results",
-    "noResults": "No results found"
+    "resultsCount": "Total {count} results",
+    "noResults": "No results found",
+    "caseSensitive": "Match Case",
+    "wholeWord": "Match Whole Word",
+    "useRegexp": "Use Regular Expression"
   },
   "common": {
     "settings": "Settings",
     "save": "Save",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "clickToJump": "Click to Jump"
   },
   "editor": {
     "placeholder": "Start writing..."

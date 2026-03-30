@@ -9,7 +9,7 @@ import 'splitpanes/dist/splitpanes.css'
 import FileSidebar from '@/core/panels/explorer/FileSidebar.vue' // 左侧面板：文件和标签导航
 import MdEditor from '@/core/panels/editor/MdEditor.vue' // 中间面板：Markdown 编辑器
 import ChatPanel from '@/core/panels/assistant/ChatPanel.vue' // 右侧面板：AI 聊天
-import SearchPanel from '@/core/panels/explorer/SearchPanel.vue' // 搜索面板
+import SearchPanel from '@/core/pages/search/SearchPanel.vue' // 搜索面板
 import SettingPage from '@/core/pages/setting/SettingPage.vue' // 设置页面（独占窗口）
 import Start from '@/shared/pages/start.vue'
 import ArtTitle from '@/shared/components/ArtTitle.vue'
