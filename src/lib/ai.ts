@@ -4,6 +4,7 @@ import OpenAI from 'openai';
 import { AiConfig } from "@/lib/ai.types";
 import { fetch } from "@tauri-apps/plugin-http";
 import { logger } from "@/utils/logger";
+import { i18n } from '@/i18n';
 
 /**
  * 获取当前的prompt内容
@@ -589,14 +590,15 @@ export async function fetchAiDescByImage(base64: string) {
     const aiConfig = await getAISettings('imageMethodModel')
     if (!aiConfig) {
       toast({
-        title: '分析失败',
-        description: '请先在设置中选择图片分析模型',
+        title: i18n.global.t('settings.vision.status.configError'),
+        description: i18n.global.t('settings.vision.status.configErrorDesc'),
         variant: 'destructive',
       })
       return null
     }
 
-    const descContent = `你是一个专业的视觉助手。请详细描述这张图片的内容，直接返回描述结果，不要包含任何引导性文字。`
+    logger.vision.info('Invoking AI image model:', aiConfig.model)
+    const descContent = i18n.global.t('settings.vision.prompt')
     
     const openai = await createOpenAIClient(aiConfig)
     
@@ -605,6 +607,7 @@ export async function fetchAiDescByImage(base64: string) {
     if (!base64.startsWith('data:image/')) {
         imageUrl = `data:image/jpeg;base64,${base64}`
     }
+    logger.vision.debug('VLM Request payload prefix check done. Image URL length:', imageUrl.length)
 
     const completion = await openai.chat.completions.create({
       model: aiConfig?.model || '',
@@ -629,6 +632,7 @@ export async function fetchAiDescByImage(base64: string) {
     
     return completion.choices[0].message.content || ''
   } catch (error) {
+    logger.vision.error('VLM API call failed:', error)
     handleAIError(error, true)
     return null
   }

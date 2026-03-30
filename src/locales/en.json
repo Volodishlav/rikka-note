@@ -261,7 +261,24 @@
       "autoAnalyzeDesc": "Automatically analyze uploaded images using AI and insert descriptions.",
       "modelLabel": "Vision Language Model (VLM)",
       "modelDesc": "Model used to analyze image content and generate descriptions.",
-      "manualAnalyze": "Extract Image Description"
+      "manualAnalyze": "Extract Image Description",
+      "status": {
+        "analyzing": "Analyzing visual features...",
+        "analyzingDesc": "AI is understanding the image content, please wait",
+        "success": "Vision analysis complete",
+        "successDesc": "Description has been appended below the image",
+        "noImage": "No valid image found",
+        "noImageDesc": "Please select the image code or insert at least one image before trying",
+        "failed": "Request failed",
+        "failedDesc": "Unable to read image data from the current link",
+        "configError": "Analysis failed",
+        "configErrorDesc": "Please select an image analysis model in settings first"
+      },
+      "editor": {
+        "toolbar": "AI Image Analysis",
+        "prefix": "AI Vision Analysis"
+      },
+      "prompt": "You are a professional visual assistant. Please describe the content of this image in detail and return the description directly without any introductory text."
     },
     "prompt": {
       "title": "Prompt Management",
@@ -406,6 +423,7 @@
         "editor": "Editor",
         "db": "Database (Local)",
         "ai": "AI Core",
+        "vision": "Vision & OCR",
         "general": "General",
         "auth": "Auth & Encryption",
         "default": "Default/Other"

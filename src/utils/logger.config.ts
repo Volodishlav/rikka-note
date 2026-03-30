@@ -43,10 +43,10 @@ export const LOG_MODULES: LogModuleConfig[] = [
     files: ['fuzzy-search.ts', 'SearchPanel.vue']
   },
   {
-    id: 'ocr',
-    color: '#059669', // emerald
+    id: 'vision',
+    color: '#3b82f6', // blue
     defaultEnabled: true,
-    files: ['ocr.ts', 'OcrPanel.vue']
+    files: ['MdEditor.vue', 'ai.ts(vision)', 'VisionSetting.vue', 'ocr.ts', 'OcrCapture.vue', 'OcrPanel.vue']
   },
   {
     id: 'auth',

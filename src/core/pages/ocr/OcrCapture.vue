@@ -97,7 +97,7 @@ const copyToClipboard = async () => {
     isCopied.value = true;
     setTimeout(() => { isCopied.value = false; }, 2000);
   } catch (err) {
-    logger.ocr.error('复制失败', err);
+    logger.vision.error('复制失败', err);
   }
 };
 

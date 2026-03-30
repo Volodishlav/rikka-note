@@ -12,7 +12,7 @@
         class="flex-1"
     >
       <template #defToolbars>
-        <NormalToolbar title="AI 图片分析" @onClick="handleVlmDesc">
+        <NormalToolbar :title="t('settings.vision.editor.toolbar')" @onClick="handleVlmDesc">
           <template #trigger>
             <Sparkles class="h-4 w-4" />
           </template>
@@ -27,6 +27,7 @@ import {MdEditor, config, NormalToolbar} from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 import {v4 as uuid} from 'uuid';
 import {Sparkles} from 'lucide-vue-next';
+import {useI18n} from '@/hooks/useI18n';
 
 // ============================================
 // 配置 md-editor-v3 使用本地库，避免 CDN 加载被 Tracking Prevention 阻止
@@ -84,6 +85,7 @@ import { logger } from '@/utils/logger';
 import {useSettingStore} from '@/stores/setting';
 import {fetchAiDescByImage} from '@/lib/ai';
 import {toast} from '@/components/ui/toast/use-toast';
+const {t} = useI18n();
 // 编辑器内容
 const text = ref('# Hello md-editor-v3!\n\n这是一个测试文档。');
 
@@ -294,9 +296,11 @@ const onUploadImg = async (files: File[], callback: (urls: string[]) => void) =>
  */
 const triggerVlmAnalysis = async (base64: string, url: string) => {
     isAnalyzing.value = true;
+    logger.vision.info('Triggering VLM analysis for URL:', url);
+
     toast({
-        title: "🤖 正在分析视觉特征...",
-        description: "AI 正在理解图片内容，请稍候",
+        title: t('settings.vision.status.analyzing'),
+        description: t('settings.vision.status.analyzingDesc'),
     });
 
     try {
@@ -311,16 +315,18 @@ const triggerVlmAnalysis = async (base64: string, url: string) => {
             if (imgRegex.test(text.value)) {
                 // 如果找到了，我们在图片下方插入引用
                 text.value = text.value.replace(imgRegex, (match) => {
-                    return `${match}\n\n> 💡 **AI 视觉分析**: ${desc.trim()}`;
+                    return `${match}\n\n> 💡 **${t('settings.vision.editor.prefix')}**: ${desc.trim()}`;
                 });
+                logger.vision.info('VLM analysis success, description added to editor.');
+
                 toast({
-                    title: "视觉分析完成",
-                    description: "已将描述追加至图片下方",
+                    title: t('settings.vision.status.success'),
+                    description: t('settings.vision.status.successDesc'),
                 });
             }
         }
     } catch (err) {
-        logger.editor.error('VLM 自动分析失败:', err);
+        logger.vision.error('VLM identification failed:', err);
     } finally {
         isAnalyzing.value = false;
     }
@@ -353,19 +359,21 @@ const handleVlmDesc = async () => {
         if (allMatches.length > 0) {
             // 取最后一张图
             targetUrl = allMatches[allMatches.length - 1][1];
+            logger.vision.debug('No selection found, fallback to last image URL:', targetUrl);
         }
     }
     
     if (!targetUrl) {
         toast({
-            title: "未发现有效图片",
-            description: "请选中图片代码，或在笔记中插入至少一张图片后再试",
+            title: t('settings.vision.status.noImage'),
+            description: t('settings.vision.status.noImageDesc'),
             variant: "destructive"
         });
         return;
     }
 
     try {
+        logger.vision.info('Starting manual VLM analysis for Target URL:', targetUrl);
         // 3. 将 url 转为 base64
         // 注意：如果是 tauri 路径，我们可以直接 fetch
         const response = await fetch(targetUrl);
@@ -375,16 +383,17 @@ const handleVlmDesc = async () => {
         reader.onload = async (e) => {
             const base64 = e.target?.result as string;
             if (base64) {
+                logger.vision.debug('Manual image blob converted to base64, triggering analysis.');
                 await triggerVlmAnalysis(base64, targetUrl);
             }
         };
         reader.readAsDataURL(blob);
         
     } catch (err) {
-        logger.editor.error('手动分析图片失败:', err);
+        logger.vision.error('Manual manual analysis failed:', err);
         toast({
-            title: "请求失败",
-            description: "无法从当前链接读取图片数据",
+            title: t('settings.vision.status.failed'),
+            description: t('settings.vision.status.failedDesc'),
             variant: "destructive"
         });
     }
