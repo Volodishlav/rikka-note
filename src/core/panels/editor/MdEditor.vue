@@ -32,8 +32,38 @@ import * as prettier from 'prettier';
 import prettierPluginMarkdown from 'prettier/plugins/markdown';
 import hljs from 'highlight.js';
 
+import {getWorkspacePath} from '@/lib/workspace';
+
+// 缓存工作区路径，用于同步渲染器预览图片
+let cachedWorkspacePath = '';
+const updateWorkspaceCache = async () => {
+  const ws = await getWorkspacePath();
+  cachedWorkspacePath = ws.path;
+};
+
 // 配置编辑器使用本地库
 config({
+  markdownItConfig(md) {
+    const defaultRender = md.renderer.rules.image || function (tokens: any, idx: number, options: any, _env: any, self: any) {
+      return self.renderToken(tokens, idx, options);
+    };
+
+    md.renderer.rules.image = (tokens: any, idx: number, options: any, env: any, self: any) => {
+      const token = tokens[idx];
+      const srcIndex = token.attrIndex('src');
+      const src = token.attrs[srcIndex][1];
+
+      // 如果路径以 images/ 开头 且已有工作区缓存，则尝试转换为 Tauri 安全路径
+      if (src.startsWith('images/') && cachedWorkspacePath) {
+        // 拼接成绝对路径
+        const absolutePath = `${cachedWorkspacePath}/${src}`;
+        // 转换为 asset:// 安全路径
+        token.attrs[srcIndex][1] = convertFileSrc(absolutePath);
+      }
+
+      return defaultRender(tokens, idx, options, env, self);
+    };
+  },
   editorExtensions: {
     // 全屏功能
     screenfull: {
@@ -66,7 +96,7 @@ config({
     },
   },
 });
-import {appDataDir, join} from '@tauri-apps/api/path';
+import {join} from '@tauri-apps/api/path';
 import {exists, mkdir, writeFile} from '@tauri-apps/plugin-fs';
 import {useArticleStore} from '@/stores/article';
 import {useChatStore} from '@/stores/chat';
@@ -142,6 +172,9 @@ onMounted(() => {
     attributes: true,
     attributeFilter: ['class']
   });
+
+  // 更新工作区路径缓存
+  updateWorkspaceCache();
 
   // 读取活动文件
   if (articleStore.activeFilePath) {
@@ -220,35 +253,42 @@ onUnmounted(() => {
   observer.disconnect();
 });
 
-// 图片上传函数（核心改造：加入 convertFileSrc 转换）
+// 图片上传函数（核心改造：保存至工作区 images 目录）
 const onUploadImg = async (files: File[], callback: (urls: string[]) => void) => {
   try {
-    // 1. 获取应用数据目录并确保图片文件夹存在
-    const appDir = await appDataDir();
-    const imagesDir = await join(appDir, 'article', 'images');
+    // 1. 获取工作区路径并确保 images 文件夹存在
+    const workspace = await getWorkspacePath();
+    if (!workspace.path) {
+        toast({
+            title: t('common.error'),
+            description: '未检测到活跃仓库，请先选择或创建一个仓库。',
+            variant: 'destructive',
+        });
+        return;
+    }
+
+    const imagesDir = await join(workspace.path, 'images');
     if (!(await exists(imagesDir))) {
       await mkdir(imagesDir, { recursive: true });
     }
 
-    // 2. 并行处理所有图片，收集转换后的安全路径
-    const safeImageUrls: string[] = await Promise.all(
+    // 2. 并行处理所有图片
+    const relativeImageUrls: string[] = await Promise.all(
         files.map(async (file) => {
           try {
             // 生成唯一文件名，避免重复覆盖
             const fileExt = file.name.split('.').pop() || 'png';
             const fileName = `${uuid()}.${fileExt}`;
-            // 获取图片的本地持久化完整路径
+            // 拼接物理完整路径用于写入
             const fullPath = await join(imagesDir, fileName);
 
-            // 3. 将图片写入本地磁盘（原有逻辑不变）
+            // 3. 将图片写入本地磁盘
             const arrayBuffer = await file.arrayBuffer();
             const uint8Array = new Uint8Array(arrayBuffer);
             await writeFile(fullPath, uint8Array);
 
-            // 4. 核心：将本地 fullPath 转换为 TAURI webview 允许的安全路径（新增）
-            const safeUrl = convertFileSrc(fullPath);
-            // 路径格式归一化（可选，进一步保证兼容性）
-            return safeUrl.replace(/\\/g, '/');
+            // 4. 返回相对路径，保持 MD 文档的可移植性
+            return `images/${fileName}`;
           } catch (error) {
             logger.editor.error(`保存图片 ${file.name} 失败:`, error);
             return 'error: image save failed';
@@ -256,21 +296,25 @@ const onUploadImg = async (files: File[], callback: (urls: string[]) => void) =>
         })
     );
 
-    // 5. 传入转换后的安全路径，用于编辑器预览和插入 MD 文本
-    callback(safeImageUrls);
+    // 5. 传入转换后的相对路径，用于编辑器插入 MD 文本
+    callback(relativeImageUrls);
 
     // 6. 如果开启了自动分析，对上传的图片执行 VLM 分析
     if (settingStore.autoImageAnalyze) {
-      safeImageUrls.forEach((url, index) => {
-        // file 是原 File 对象，我们可以直接将其转为 base64 提高性能
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          const base64 = e.target?.result as string;
-          if (base64) {
-            await triggerVlmAnalysis(base64, url);
-          }
-        };
-        reader.readAsDataURL(files[index]);
+      relativeImageUrls.forEach(async (relUrl, index) => {
+          // VLM 分析仍需使用安全预览路径或 base64
+          // 这里我们获取绝对路径供后面使用
+          const fullPath = await join(imagesDir, relUrl.replace('images/', ''));
+          const safeUrl = convertFileSrc(fullPath);
+          
+          const reader = new FileReader();
+          reader.onload = async (e) => {
+            const base64 = e.target?.result as string;
+            if (base64) {
+              await triggerVlmAnalysis(base64, safeUrl);
+            }
+          };
+          reader.readAsDataURL(files[index]);
       });
     }
   } catch (error) {
