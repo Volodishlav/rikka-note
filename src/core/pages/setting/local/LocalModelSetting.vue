@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-6">
-    <!-- Header: 标题、描述与主要控制 -->
+    <!-- Header: 标题、描述 -->
     <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b">
       <div class="space-y-1.5 flex-1">
         <h3 class="text-2xl font-bold tracking-tight text-foreground">{{ t('settings.local.title') }}</h3>
@@ -8,51 +8,50 @@
           {{ t('settings.rag.localModelDesc') }}
         </p>
       </div>
-      <div class="flex flex-wrap items-center gap-4 shrink-0">
-        <!-- 启用开关 (Switch 样式) -->
-        <div class="flex items-center gap-3 bg-muted/40 px-4 py-2 rounded-xl border border-border/50 hover:bg-muted/60 transition-colors shadow-sm">
-          <label class="relative inline-flex items-center cursor-pointer group">
-            <input 
-              type="checkbox" 
+    </div>
+    <div class="flex flex-wrap items-center gap-4 shrink-0">
+      <!-- 启用开关 (Switch 样式) -->
+      <div class="flex items-center gap-3 bg-muted/40 px-4 py-2 rounded-xl border border-border/50 hover:bg-muted/60 transition-colors shadow-sm">
+        <label class="relative inline-flex items-center cursor-pointer group">
+          <input
+              type="checkbox"
               class="sr-only peer"
-              :checked="settingStore.useLocalEmbedding" 
-              @change="onSwitchChange" 
-            />
-            <div class="w-11 h-6 bg-muted-foreground/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary group-hover:opacity-90"></div>
-          </label>
-          <span class="text-sm font-medium text-foreground/90 select-none cursor-pointer" @click="handleSwitchToggle">
+              :checked="settingStore.useLocalEmbedding"
+              @change="onSwitchChange"
+          />
+          <div class="w-11 h-6 bg-muted-foreground/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary group-hover:opacity-90"></div>
+        </label>
+        <span class="text-sm font-medium text-foreground/90 select-none cursor-pointer" @click="handleSwitchToggle">
             {{ t('settings.rag.localModelEnabled') }}
           </span>
-        </div>
+      </div>
 
-        <!-- 服务控制按钮 -->
-        <div class="flex items-center gap-2">
-          <Button 
-            v-if="!isServerRunning" 
-            variant="default" 
-            @click="startServer" 
-            :disabled="!isFileExists || !isEngineExists || isStarting" 
+      <!-- 服务控制按钮 -->
+      <div class="flex items-center gap-2">
+        <Button
+            v-if="!isServerRunning"
+            variant="default"
+            @click="startServer"
+            :disabled="!isFileExists || !isEngineExists || isStarting"
             class="h-10 px-5 shadow-sm transition-all active:scale-95"
             :class="[
               isStarting ? 'bg-primary/80' : 'bg-green-600 hover:bg-green-700 text-white'
             ]"
-          >
-            <Loader2 v-if="isStarting" class="w-4 h-4 mr-2 animate-spin" />
-            <Play v-else class="w-4 h-4 mr-2 fill-current" /> 
-            {{ isStarting ? t('settings.rag.starting') : t('settings.rag.startServer') }}
-          </Button>
-          <Button 
-            v-else 
-            variant="destructive" 
-            @click="stopServer" 
+        >
+          <Loader2 v-if="isStarting" class="w-4 h-4 mr-2 animate-spin" />
+          <Play v-else class="w-4 h-4 mr-2 fill-current" />
+          {{ isStarting ? t('settings.rag.starting') : t('settings.rag.startServer') }}
+        </Button>
+        <Button
+            v-else
+            variant="destructive"
+            @click="stopServer"
             class="h-10 px-5 shadow-sm active:scale-95"
-          >
-            <Square class="w-4 h-4 mr-2 fill-current" /> {{ t('settings.rag.stopServer') }}
-          </Button>
-        </div>
+        >
+          <Square class="w-4 h-4 mr-2 fill-current" /> {{ t('settings.rag.stopServer') }}
+        </Button>
       </div>
     </div>
-
     <!-- 状态面板: 信息反馈 -->
     <div class="grid gap-3 animate-in fade-in duration-500">
       <!-- 引擎未检测 -->
