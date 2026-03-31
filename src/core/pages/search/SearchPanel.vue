@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {onMounted, ref, watch} from 'vue'
-import {Search, CaseSensitive, WholeWord, Regex, Brain, Loader2} from 'lucide-vue-next'
+import {onMounted, ref, watch, computed} from 'vue'
+import {Search, CaseSensitive, WholeWord, Regex, Brain, Loader2, ArrowUpDown} from 'lucide-vue-next'
 import {useI18n} from '@/hooks/useI18n'
 import useArticleStore from '@/stores/article'
 import {useVectorStore} from '@/stores/vector'
@@ -11,6 +11,13 @@ import {fetchEmbedding} from '@/lib/ai'
 import {getSimilarDocuments} from '@/db/vector'
 import SearchItem from '../../pages/search/SearchItem.vue'
 import { logger } from '@/utils/logger'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 const { t } = useI18n()
 
@@ -27,6 +34,7 @@ const isRegexp = ref(false)
 const isSemanticEnabled = ref(false)
 const isSearchingSemantic = ref(false)
 const vectorStore = useVectorStore()
+const currentSort = ref('relevance')
 
 const extractTitleFromPath = (path: string): string => {
   if (!path) return ''
@@ -43,10 +51,45 @@ const setSearchData = () => {
       searchType: 'article',
       title,
       id: `article-${index}-${item.path?.replace(/[^a-zA-Z0-9]/g, '-')}`,
-      path: item.path
+      path: item.path,
+      createdAt: item.createdAt,
+      modifiedAt: item.modifiedAt
     }
   })
 }
+
+// 计算排序后的结果
+const sortedResults = computed(() => {
+  const results = [...searchResult.value]
+  
+  if (currentSort.value === 'relevance') {
+    return results
+  }
+  
+  return results.sort((a, b) => {
+    const itemA = a.item as any
+    const itemB = b.item as any
+    
+    let result = 0
+    if (currentSort.value === 'name') {
+      result = (itemA.title || '').localeCompare(itemB.title || '')
+    } else if (currentSort.value === 'modified') {
+      const timeA = itemA.modifiedAt ? new Date(itemA.modifiedAt).getTime() : 0
+      const timeB = itemB.modifiedAt ? new Date(itemB.modifiedAt).getTime() : 0
+      result = timeB - timeA
+    } else if (currentSort.value === 'created') {
+      const timeA = itemA.createdAt ? new Date(itemA.createdAt).getTime() : 0
+      const timeB = itemB.createdAt ? new Date(itemB.createdAt).getTime() : 0
+      result = timeB - timeA
+    }
+    
+    // 如果排序结果相同，使用名称作为保底
+    if (result === 0) {
+      return (itemA.title || '').localeCompare(itemB.title || '')
+    }
+    return result
+  })
+})
 
 const search = async (value: string) => {
   if (!value) {
@@ -219,9 +262,28 @@ watch(() => articleStore.allArticle, () => {
             <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 {{ t('search.resultsCount', { count: searchResult.length }) }}
             </h3>
+            
+            <!-- 排序选择 -->
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] text-muted-foreground">{{ t('search.sortBy') }}:</span>
+              <Select v-model="currentSort">
+                <SelectTrigger class="h-7 w-[110px] text-[10px] bg-transparent border-none shadow-none focus:ring-0 px-2 hover:bg-muted/50 rounded-md transition-colors">
+                  <div class="flex items-center gap-1.5 overflow-hidden text-muted-foreground">
+                    <ArrowUpDown class="size-3 shrink-0 opacity-60" />
+                    <SelectValue />
+                  </div>
+                </SelectTrigger>
+                <SelectContent align="end" class="min-w-[120px]">
+                  <SelectItem value="relevance" class="text-xs cursor-pointer">{{ t('search.relevance') }}</SelectItem>
+                  <SelectItem value="name" class="text-xs cursor-pointer">{{ t('search.name') }}</SelectItem>
+                  <SelectItem value="modified" class="text-xs cursor-pointer">{{ t('search.modified') }}</SelectItem>
+                  <SelectItem value="created" class="text-xs cursor-pointer">{{ t('search.created') }}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
         </div>
         <SearchItem
-            v-for="item in searchResult"
+            v-for="item in sortedResults"
             :key="item.refIndex"
             :item="item"
         />

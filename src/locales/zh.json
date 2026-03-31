@@ -19,7 +19,12 @@
     "semanticMatch": "语义匹配",
     "semanticSearchDisabled": "向量数据库未启用",
     "semanticSearchDisabledDesc": "请在设置中启用向量数据库以使用语义搜索功能",
-    "semanticSearchError": "语义搜索失败，请检查模型配置"
+    "semanticSearchError": "语义搜索失败，请检查模型配置",
+    "sortBy": "排序方式",
+    "relevance": "相关度",
+    "name": "名称",
+    "modified": "最近更新",
+    "created": "最早创建"
   },
   "common": {
     "settings": "设置",

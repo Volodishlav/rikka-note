@@ -29,6 +29,8 @@ export interface DirTree extends DirEntry {
 export interface Article {
     article: string
     path: string
+    createdAt?: string
+    modifiedAt?: string
 }
 
 // tore
@@ -611,8 +613,18 @@ export const useArticleStore = defineStore('article', () => {
                     const relativePath = await join(basePath, file.name)
                     const fullPath = await join(dirPath, file.name)
                     const articleContent = await readTextFile(fullPath)
+                    
+                    // 获取文件属性时间 (对齐文件树逻辑)
+                    const fileStat = await stat(fullPath)
+                    const createdAt = fileStat.birthtime?.toISOString()
+                    const modifiedAt = fileStat.mtime?.toISOString()
 
-                    articles.push({ article: articleContent, path: relativePath })
+                    articles.push({ 
+                        article: articleContent, 
+                        path: relativePath,
+                        createdAt,
+                        modifiedAt
+                    })
                 }
 
                 // 递归处理子目录

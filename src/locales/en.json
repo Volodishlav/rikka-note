@@ -19,7 +19,12 @@
     "semanticMatch": "Semantic Match",
     "semanticSearchDisabled": "Vector DB not enabled",
     "semanticSearchDisabledDesc": "Please enable the Vector Database in settings to use semantic search",
-    "semanticSearchError": "Semantic search failed, please check model config"
+    "semanticSearchError": "Semantic search failed, please check model config",
+    "sortBy": "Sort By",
+    "relevance": "Relevance",
+    "name": "Name",
+    "modified": "Modified Time",
+    "created": "Created Time"
   },
   "common": {
     "settings": "Settings",

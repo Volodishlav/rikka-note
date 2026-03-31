@@ -10,7 +10,8 @@ export interface SearchItem {
   path?: string;
   searchType?: string;
   type?: string;
-  createdAt?: number;
+  createdAt?: string;
+  modifiedAt?: string;
   score?: number;
   matches?: MatchInfo;
 }
