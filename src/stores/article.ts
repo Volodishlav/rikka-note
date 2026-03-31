@@ -610,7 +610,7 @@ export const useArticleStore = defineStore('article', () => {
                 )
 
                 for (const file of files) {
-                    const relativePath = await join(basePath, file.name)
+                    const relativePath = (await join(basePath, file.name)).replace(/\\/g, '/')
                     const fullPath = await join(dirPath, file.name)
                     const articleContent = await readTextFile(fullPath)
                     

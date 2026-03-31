@@ -89,7 +89,8 @@ export async function toWorkspaceRelativePath(path: string): Promise<string> {
 
     if (workspace.isCustom && path.startsWith(workspace.path)) {
         const relativePath = path.substring(workspace.path.length)
-        return relativePath.startsWith('/') ? relativePath.substring(1) : relativePath
+        // 去除开头的路径分隔符 (同时处理 / 和 \)
+        return relativePath.replace(/^[\\/]/, '')
     }
 
     return path

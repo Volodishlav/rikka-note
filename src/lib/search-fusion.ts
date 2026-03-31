@@ -44,9 +44,14 @@ export function reciprocalRankFusion(
       if (rrfScores.has(item.id)) {
         const existing = rrfScores.get(item.id)!;
         existing.rrfScore += scoreToAdd;
+        // 如果是后来者（语义匹配），保留语义标识，避免被去重覆盖
+        if (item.data && item.data.isSemantic === true) {
+          existing.data.isSemantic = true;
+        }
       } else {
         rrfScores.set(item.id, {
-          data: item.data,
+          // 对 data 进行浅拷贝，防止直接修改原始对象影响到其他源
+          data: { ...item.data }, 
           rrfScore: scoreToAdd,
         });
       }

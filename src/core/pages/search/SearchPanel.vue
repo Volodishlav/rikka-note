@@ -9,6 +9,7 @@ import {advancedSearch} from '@/lib/search-utils'
 import {reciprocalRankFusion} from '@/lib/search-fusion'
 import {fetchEmbedding} from '@/lib/ai'
 import {getSimilarDocuments} from '@/db/vector'
+import {toWorkspaceRelativePath} from '@/lib/workspace'
 import SearchItem from '../../pages/search/SearchItem.vue'
 import { logger } from '@/utils/logger'
 import {
@@ -153,16 +154,28 @@ const search = async (value: string) => {
         
         if (similarDocs.length > 0) {
           // 将语意结果转换为 FuzzySearchResult 兼容格式
-          const semanticResults: FuzzySearchResult[] = similarDocs.map((doc, idx) => {
-            const originalItem = searchList.value.find(item => item.path === doc.filename)
+          const semanticResults: FuzzySearchResult[] = await Promise.all(similarDocs.map(async (doc, idx) => {
+            const relativePath = await toWorkspaceRelativePath(doc.filename)
+            // 规范化路径分隔符
+            const normalizedPath = relativePath.replace(/\\/g, '/')
+            
+            const originalItem = searchList.value.find(item => {
+                const itemPath = item.path?.replace(/\\/g, '/')
+                return itemPath === normalizedPath
+            })
+
             return {
-              item: originalItem || { title: doc.filename, path: doc.filename, article: doc.content } as any,
+              item: originalItem || { 
+                title: extractTitleFromPath(normalizedPath), 
+                path: normalizedPath, 
+                article: doc.content 
+              } as any,
               refIndex: 999 + idx,
               matches: [{ key: 'article', value: doc.content, indices: [] }],
               score: doc.similarity,
               isSemantic: true
             }
-          })
+          }))
 
           // 使用 RRF 融合两组结果
           const sources = [
