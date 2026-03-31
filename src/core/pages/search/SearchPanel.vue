@@ -277,7 +277,7 @@ watch(() => articleStore.allArticle, () => {
       <div v-if="searchResult.length === 0" class="flex flex-col items-center justify-center h-64 text-muted-foreground opacity-60">
         <span class="text-sm">{{ t('search.noResults') }}</span>
       </div>
-      <div v-else class="max-w-4xl mx-auto p-6 space-y-6">
+      <div v-else class="max-w-4xl mx-auto p-4 space-y-3">
         <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 {{ t('search.resultsCount', { count: searchResult.length }) }}
@@ -326,4 +326,4 @@ watch(() => articleStore.allArticle, () => {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.3);
 }
-</style>
+</style>

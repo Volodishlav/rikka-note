@@ -15,7 +15,7 @@
     "wholeWord": "Match Whole Word",
     "useRegexp": "Use Regular Expression",
     "useSemantic": "Semantic Search",
-    "useSemanticDesc": "Use AI vector models for semantic search, finding content with similar meanings but different words",
+    "useSemanticDesc": "semantic search",
     "semanticMatch": "Semantic Match",
     "semanticSearchDisabled": "Vector DB not enabled",
     "semanticSearchDisabledDesc": "Please enable the Vector Database in settings to use semantic search",

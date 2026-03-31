@@ -15,7 +15,7 @@
     "wholeWord": "全字匹配",
     "useRegexp": "正则表达式",
     "useSemantic": "语义搜索",
-    "useSemanticDesc": "利用 AI 向量模型进行语义关联搜索，搜出字面不匹配但意思相近的内容",
+    "useSemanticDesc": "语义搜索",
     "semanticMatch": "语义匹配",
     "semanticSearchDisabled": "向量数据库未启用",
     "semanticSearchDisabledDesc": "请在设置中启用向量数据库以使用语义搜索功能",

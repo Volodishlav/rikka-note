@@ -86,10 +86,10 @@ const handleRouteTo = async () => {
 
 <template>
   <div 
-    class="group flex flex-col p-4 border rounded-xl overflow-hidden border-border bg-card/40 hover:bg-muted/50 hover:border-brand-purple/50 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
+    class="group flex flex-col p-3 border rounded-xl overflow-hidden border-border bg-card/40 hover:bg-muted/50 hover:border-brand-purple/50 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
     @click="handleRouteTo"
   >
-    <div class="flex flex-col gap-2 w-full text-left">
+    <div class="flex flex-col gap-1 w-full text-left">
       <!-- 标题与路径 -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
@@ -127,4 +127,4 @@ const handleRouteTo = async () => {
 :deep(.search-highlight i) {
   @apply bg-brand-purple/20 text-brand-purple not-italic rounded px-1 font-bold shadow-sm;
 }
-</style>
+</style>
