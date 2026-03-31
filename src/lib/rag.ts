@@ -17,6 +17,7 @@ import { toast } from "@/components/ui/toast/use-toast";
 import { join } from "@tauri-apps/api/path";
 import { Store } from "@tauri-apps/plugin-store";
 import { logger } from "@/utils/logger";
+import { reciprocalRankFusion, FusionSource } from "./search-fusion";
 
 /**
  * 文本分块函数，用于将大文本分成小块
@@ -385,6 +386,7 @@ export interface RetrievedDoc {
   score: number;
   type?: string;
   keyword?: string;
+  item?: { path: string };
 }
 
 /**
@@ -397,7 +399,7 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
     const store = await Store.load('store.json');
     const resultCount = await store.get<number>('ragResultCount') || 5;
     const similarityThreshold = await store.get<number>('ragSimilarityThreshold') || 0.5;
-    const allContexts: { filename: string, content: string, score: number, keyword?: string, type?: string }[] = [];
+    const allContexts: { filename: string, content: string, score: number, keyword?: string, type?: string, item?: { path: string } }[] = [];
     const isMeaningfulQuery = query.trim().length > 2 && /[\u4e00-\u9fa5\u3040-\u30ffa-zA-Z0-9]/i.test(query);
 
     if (!isMeaningfulQuery) {
@@ -471,7 +473,8 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
                   content: content.substring(startIdx, endIdx),
                   score: finalScore,
                   keyword: keyword.text,
-                  type: 'fuzzy'
+                  type: 'fuzzy',
+                  item: { path: result.item.id || '' }
                 });
               }
             }
@@ -480,40 +483,32 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
       }
     }
 
-    // 注意：这里删除了原来的旧代码循环
-
     if (allContexts.length === 0) return [];
 
-    // 使用 RRF (Reciprocal Rank Fusion) 合并不同检索源的结果
-    // 1. 按 type 分组排序
+    // 使用 RRF 合并不同检索源的结果
     const vectorResults = allContexts.filter(c => c.type === 'vector').sort((a, b) => b.score - a.score);
     const fuzzyResults = allContexts.filter(c => c.type === 'fuzzy').sort((a, b) => b.score - a.score);
 
-    // 2. 计算 RRF 分数 (保留标准常量 k=60)
-    const k = 60;
-    const rrfScores = new Map<string, { ctx: any, rrfScore: number }>();
-
-    const processRank = (results: typeof allContexts) => {
-      results.forEach((ctx, index) => {
-        const identifier = `${ctx.filename}-${ctx.content.substring(0, 100)}`;
-        const rank = index + 1;
-        const scoreToAdd = 1 / (k + rank);
-        
-        if (rrfScores.has(identifier)) {
-          rrfScores.get(identifier)!.rrfScore += scoreToAdd;
-        } else {
-          rrfScores.set(identifier, { ctx, rrfScore: scoreToAdd });
+    const sources: FusionSource[] = [
+        {
+            name: 'fuzzy',
+            items: fuzzyResults.map((r) => ({
+                id: r.item?.path || r.filename, // 路径作为标识符
+                score: r.score,
+                data: { ...r, _source: 'fuzzy' }
+            }))
+        },
+        {
+            name: 'vector',
+            items: vectorResults.map((r) => ({
+                id: r.filename, // 语义结果可能来自同一文件，这里后续可能需要更细粒度
+                score: r.score,
+                data: { ...r, _source: 'vector' }
+            }))
         }
-      });
-    };
+    ];
 
-    processRank(vectorResults);
-    processRank(fuzzyResults);
-
-    // 3. 根据 RRF 分数排序并初步去重
-    let uniqueContexts = Array.from(rrfScores.values())
-      .sort((a, b) => b.rrfScore - a.rrfScore)
-      .map(item => item.ctx);
+    let uniqueContexts = reciprocalRankFusion(sources, 60, 20);
 
     // ==========================================
     // 核心改进 4：【精排阶段】对混合结果进行二次重排

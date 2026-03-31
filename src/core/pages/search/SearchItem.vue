@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { FuzzySearchResult } from '@/lib/fuzzy-search'
-import { MapPin } from 'lucide-vue-next'
+import { MapPin, Brain } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { useI18n } from '@/hooks/useI18n'
 import useArticleStore from '@/stores/article'
@@ -10,7 +10,7 @@ import { logger } from '@/utils/logger'
 const { t } = useI18n()
 
 const props = defineProps<{
-  item: FuzzySearchResult
+  item: FuzzySearchResult & { isSemantic?: boolean }
 }>()
 
 const router = useRouter()
@@ -105,6 +105,10 @@ const handleRouteTo = async () => {
         </div>
         
         <div class="flex gap-2">
+            <span v-if="item.isSemantic" class="inline-flex items-center gap-1 rounded-full bg-brand-cyan/10 px-2 py-0.5 text-[10px] font-medium text-brand-cyan">
+                <Brain class="size-2.5" />
+                {{ t('search.semanticMatch') }}
+            </span>
             <span class="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground">
                 {{ t('search.matchesCount', { count: item.matches?.[0]?.indices.length || 0 }) }}
             </span>
