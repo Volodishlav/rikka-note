@@ -86,10 +86,14 @@ export async function getGenericPathOptions(path: string, prefix?: string): Prom
  */
 export async function toWorkspaceRelativePath(path: string): Promise<string> {
     const workspace = await getWorkspacePath()
+    
+    // 统一处理路径分隔符并转为小写进行前缀比对
+    const normalizedPath = path.replace(/\\/g, '/')
+    const normalizedWorkspace = workspace.path.replace(/\\/g, '/')
 
-    if (workspace.isCustom && path.startsWith(workspace.path)) {
-        const relativePath = path.substring(workspace.path.length)
-        // 去除开头的路径分隔符 (同时处理 / 和 \)
+    if (workspace.isCustom && normalizedPath.toLowerCase().startsWith(normalizedWorkspace.toLowerCase())) {
+        const relativePath = normalizedPath.substring(normalizedWorkspace.length)
+        // 去除开头的路径分隔符
         return relativePath.replace(/^[\\/]/, '')
     }
 

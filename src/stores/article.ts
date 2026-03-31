@@ -168,6 +168,7 @@ export const useArticleStore = defineStore('article', () => {
                     if (a.createdAt && b.createdAt) {
                         result = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
                     } else {
+                        logger.explorer.debug(`[Sort] Missing createdAt: a=${a.name}(${a.createdAt}), b=${b.name}(${b.createdAt})`)
                         result = a.name.localeCompare(b.name)
                     }
                     break
@@ -206,24 +207,23 @@ export const useArticleStore = defineStore('article', () => {
         const workspace = await getWorkspacePath()
 
         for (const entry of tree) {
-            if (entry.isFile) {
-                const filePath = await join(basePath, entry.name)
-                try {
-                    let fileStat
-                    if (workspace.isCustom) {
-                        fileStat = await stat(filePath)
-                    } else {
-                        const relPath = await toWorkspaceRelativePath(filePath)
-                        const pathOptions = await getFilePathOptions(relPath)
-                        fileStat = await stat(pathOptions.path, { baseDir: pathOptions.baseDir })
-                    }
-                    entry.createdAt = fileStat.birthtime?.toISOString()
-                    entry.modifiedAt = fileStat.mtime?.toISOString()
-                } catch (error) {
-                    errorMsg.value = `获取文件统计信息失败(${filePath})：${(error as Error).message}`
-                    logger.explorer.error(`Error getting stats for ${filePath}:`, error)
+            const filePath = await join(basePath, entry.name)
+            try {
+                let fileStat
+                if (workspace.isCustom) {
+                    fileStat = await stat(filePath)
+                } else {
+                    const relPath = await toWorkspaceRelativePath(filePath)
+                    const pathOptions = await getFilePathOptions(relPath)
+                    fileStat = await stat(pathOptions.path, { baseDir: pathOptions.baseDir })
                 }
-            } else if (entry.isDirectory && entry.children) {
+                entry.createdAt = fileStat.birthtime?.toISOString()
+                entry.modifiedAt = fileStat.mtime?.toISOString()
+            } catch (error) {
+                logger.explorer.error(`Error getting stats for ${filePath}:`, error)
+            }
+
+            if (entry.isDirectory && entry.children) {
                 const dirPath = await join(basePath, entry.name)
                 await updateFileStats(dirPath, entry.children)
             }

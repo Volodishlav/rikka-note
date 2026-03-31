@@ -49,12 +49,9 @@ const setSearchData = () => {
     const title = extractTitleFromPath(item.path || '')
     return {
       ...item,
-      searchType: 'article',
+      searchType: 'article' as const,
       title,
       id: `article-${index}-${item.path?.replace(/[^a-zA-Z0-9]/g, '-')}`,
-      path: item.path,
-      createdAt: item.createdAt,
-      modifiedAt: item.modifiedAt
     }
   })
 }
@@ -133,7 +130,17 @@ const search = async (value: string) => {
 
     try {
       primaryResults = await fuzzySearch.searchParallel(value)
-      logger.search.debug(`Fuzzy search phase took ${Date.now() - startTime}ms. Found ${primaryResults.length} items.`);
+      logger.search.debug(`Fuzzy search phase took ${Date.now() - startTime}ms. Found ${primaryResults.length} items.`)
+
+      // 关键修复：从 searchList 回填被 Rust 桥接过程中丢失的元数据（如时间戳）
+      primaryResults = primaryResults.map(res => {
+        const itemPath = (res.item.path || '').replace(/\\/g, '/')
+        const originalItem = searchList.value.find(si => (si.path || '').replace(/\\/g, '/').toLowerCase() === itemPath.toLowerCase())
+        if (originalItem) {
+          return { ...res, item: originalItem }
+        }
+        return res
+      })
     } catch (error) {
       logger.search.error('Fuzzy search error:', error)
     }
@@ -155,13 +162,13 @@ const search = async (value: string) => {
         if (similarDocs.length > 0) {
           // 将语意结果转换为 FuzzySearchResult 兼容格式
           const semanticResults: FuzzySearchResult[] = await Promise.all(similarDocs.map(async (doc, idx) => {
-            const relativePath = await toWorkspaceRelativePath(doc.filename)
+            const rawRelativePath = await toWorkspaceRelativePath(doc.filename)
             // 规范化路径分隔符
-            const normalizedPath = relativePath.replace(/\\/g, '/')
+            const normalizedPath = rawRelativePath.replace(/\\/g, '/')
             
             const originalItem = searchList.value.find(item => {
-                const itemPath = item.path?.replace(/\\/g, '/')
-                return itemPath === normalizedPath
+                const itemPath = (item.path || '').replace(/\\/g, '/')
+                return itemPath.toLowerCase() === normalizedPath.toLowerCase()
             })
 
             return {
@@ -179,8 +186,8 @@ const search = async (value: string) => {
 
           // 使用 RRF 融合两组结果
           const sources = [
-            { name: 'primary', items: primaryResults.map(r => ({ id: r.item.path || '', score: r.score, data: r })), weight: 1.0 },
-            { name: 'semantic', items: semanticResults.map(r => ({ id: r.item.path || '', score: r.score, data: r })), weight: 0.8 }
+            { name: 'primary', items: primaryResults.map(r => ({ id: (r.item.path || '').replace(/\\/g, '/'), score: r.score, data: r })), weight: 1.0 },
+            { name: 'semantic', items: semanticResults.map(r => ({ id: (r.item.path || '').replace(/\\/g, '/'), score: r.score, data: r })), weight: 0.8 }
           ]
           
           searchResult.value = reciprocalRankFusion(sources, 60, 30)
