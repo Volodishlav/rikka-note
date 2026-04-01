@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h3 class="text-lg font-medium">{{ t('settings.prompt.listTitle') }}</h3>
@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { usePromptStore, Prompt } from '@/stores/prompt'
 import { Button } from '@/components/ui/button'
 import { Plus, Pencil, Trash2, CheckCircle2 } from 'lucide-vue-next'

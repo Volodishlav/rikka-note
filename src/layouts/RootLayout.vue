@@ -11,13 +11,13 @@
 
 <script setup lang="ts">
 import {onMounted, ref, watch} from 'vue'
-import ThemeProvider from '@/components/ThemeProvider.vue'
+import ThemeProvider from '@/components/providers/ThemeProvider.vue'
 import { Toaster } from '@/components/ui/toast'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useSettingStore } from '@/stores/setting'
 import { useVectorStore } from '@/stores/vector'
 import { useEncryptionStore } from '@/stores/encryption'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import dayjs from 'dayjs'
 import zh from 'dayjs/locale/zh-cn'
 import en from 'dayjs/locale/en'

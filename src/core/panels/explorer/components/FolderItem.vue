@@ -1,4 +1,4 @@
-// FolderItem.vue
+﻿// FolderItem.vue
 <template>
   <Collapsible :open="isExpanded">
 
@@ -99,7 +99,7 @@ import {
   ContextMenuTrigger
 } from '@/components/ui/context-menu'
 import {useToast} from '@/composables/useToast'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/utils/logger'
 
 interface Props {

@@ -1,4 +1,4 @@
-<!-- EncryptionSetting.vue - 设置页加密保护选项卡 -->
+﻿<!-- EncryptionSetting.vue - 设置页加密保护选项卡 -->
 <template>
   <div class="space-y-6">
     <!-- 加密状态 -->
@@ -138,7 +138,7 @@
 import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Lock, LockOpen } from 'lucide-vue-next'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { useEncryptionStore } from '@/stores/encryption'
 import { useToast } from '@/composables/useToast'
 import PasswordDialog from '@/core/pages/setting/encryption/PasswordDialog.vue'

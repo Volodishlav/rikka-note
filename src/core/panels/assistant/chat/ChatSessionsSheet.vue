@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <Sheet :open="isOpen" @update:open="emit('update:open', $event)">
     <!-- 1. 删除手动添加的 aria-describedby -->
     <SheetContent side="right" class="w-[300px] sm:w-[400px] flex flex-col p-0">
@@ -84,7 +84,7 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import { ask } from '@tauri-apps/plugin-dialog'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 
 defineProps<{
   isOpen: boolean

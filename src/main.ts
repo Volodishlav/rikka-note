@@ -2,7 +2,7 @@ import { createApp } from "vue";
 import { createPinia } from 'pinia'
 import App from "./App.vue";
 import './shared/globals.scss'
-import i18n from './i18n'
+import i18n from './locales'
 import dayjs from 'dayjs'
 import { initStores } from './stores'
 import router from './router'

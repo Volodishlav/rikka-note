@@ -107,7 +107,7 @@
 import { ref } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import { useVectorStore } from '@/stores/vector'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Send, FileText, X, AlertCircle, Wand2, Sparkles } from 'lucide-vue-next'

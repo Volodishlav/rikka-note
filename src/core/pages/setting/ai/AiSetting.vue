@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="space-y-8">
     <div class="flex items-center justify-between">
       <h3 class="text-xl font-semibold tracking-tight">{{ t('settings.ai.apiTitle') }}</h3>
@@ -155,7 +155,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { useSettingStore } from '@/stores/setting'
 import { AiConfig } from '@/lib/ai.types'
 import { Button } from '@/components/ui/button'

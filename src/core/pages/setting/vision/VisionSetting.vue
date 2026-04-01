@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { useSettingStore } from '@/stores/setting'
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'

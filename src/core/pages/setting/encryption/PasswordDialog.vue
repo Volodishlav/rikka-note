@@ -1,4 +1,4 @@
-<!-- PasswordDialog.vue - 可复用的密码输入对话框 -->
+﻿<!-- PasswordDialog.vue - 可复用的密码输入对话框 -->
 <template>
   <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center">
     <!-- 遮罩 -->
@@ -65,7 +65,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
 import { Button } from '@/components/ui/button'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 
 const { t } = useI18n()
 

@@ -150,7 +150,7 @@ import {
 } from '@/components/ui/context-menu'
 import useClipboardStore, { type ClipboardItem } from '@/stores/clipboard'
 import {convertImageByWorkspace} from '@/lib/utils'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/utils/logger'
 
 interface Props {

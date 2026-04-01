@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="space-y-6">
     <!-- 内容区域 -->
 
@@ -135,7 +135,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { useSettingStore } from '@/stores/setting'
 import { Separator } from '@/components/ui/separator'
 import {

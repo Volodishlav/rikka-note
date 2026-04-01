@@ -64,7 +64,7 @@ import { useChatStore } from '@/stores/chat';
 import { type Chat } from '@/db/chats';
 import { useArticleStore } from '@/stores/article';
 import { toast } from '@/components/ui/toast/use-toast';
-import { useI18n } from '@/hooks/useI18n';
+import { useI18n } from '@/composables/useI18n';
 import { logger } from '@/utils/logger';
 
 const props = defineProps<{

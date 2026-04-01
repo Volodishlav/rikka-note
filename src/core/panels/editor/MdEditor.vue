@@ -18,7 +18,7 @@ import {onMounted, onUnmounted, ref, watch} from 'vue';
 import {MdEditor, config} from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 import {v4 as uuid} from 'uuid';
-import {useI18n} from '@/hooks/useI18n';
+import {useI18n} from '@/composables/useI18n';
 
 // ============================================
 // 配置 md-editor-v3 使用本地库，避免 CDN 加载被 Tracking Prevention 阻止

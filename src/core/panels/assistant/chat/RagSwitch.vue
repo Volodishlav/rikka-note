@@ -36,7 +36,7 @@ import { useVectorStore } from '@/stores/vector'
 import { checkEmbeddingModelAvailable } from '@/lib/rag'
 import { toast } from '@/components/ui/toast/use-toast'
 import { storeToRefs } from 'pinia'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 
 const vectorStore = useVectorStore()
 const { isRagEnabled, isVectorDbEnabled } = storeToRefs(vectorStore)

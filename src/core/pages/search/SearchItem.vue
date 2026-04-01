@@ -2,7 +2,7 @@
 import { FuzzySearchResult } from '@/lib/fuzzy-search'
 import { MapPin, Brain } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import useArticleStore from '@/stores/article'
 import { computed } from 'vue'
 import { logger } from '@/utils/logger'

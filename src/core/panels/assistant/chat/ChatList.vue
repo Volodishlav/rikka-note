@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="relative flex-1 overflow-hidden">
     <div ref="scrollRef" class="h-full overflow-y-auto scroll-smooth" @scroll="onScroll">
       <div class="flex flex-col min-h-full">
@@ -43,7 +43,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, onMounted } from 'vue'
 import { useChatStore } from '@/stores/chat'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import MessageItem from './MessageItem.vue'
 import { Bot, ChevronDown } from 'lucide-vue-next'
 

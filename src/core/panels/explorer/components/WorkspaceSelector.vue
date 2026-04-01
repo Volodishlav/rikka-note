@@ -177,7 +177,7 @@ import { useWorkspaceStore, type WorkspaceItem } from '@/stores/workspace'
 import { useArticleStore } from '@/stores/article'
 import { useToast } from '@/composables/useToast'
 import { open } from '@tauri-apps/plugin-dialog'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 
 const { t } = useI18n()
 const workspaceStore = useWorkspaceStore()

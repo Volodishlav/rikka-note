@@ -65,7 +65,7 @@ export const useSettingStore = defineStore('setting', () => {
                 locale.value = savedLocale
                 // 初始化时也同步一次
                 try {
-                    const { setLocale: syncI18n } = await import('@/i18n')
+                    const { setLocale: syncI18n } = await import('@/locales')
                     syncI18n(savedLocale)
                 } catch {}
             }
@@ -146,7 +146,7 @@ export const useSettingStore = defineStore('setting', () => {
         
         // 同步更新 i18n 运行时和 dayjs (如果已初始化)
         try {
-            const { setLocale: syncI18n } = await import('@/i18n')
+            const { setLocale: syncI18n } = await import('@/locales')
             syncI18n(l)
         } catch (e) {
             logger.general.warn('Failed to sync i18n in store:', e)

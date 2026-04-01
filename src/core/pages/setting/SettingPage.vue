@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <SidebarProvider>
     <div class="flex h-full w-full bg-background text-foreground overflow-hidden">
       <!-- Sidebar -->
@@ -81,7 +81,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { 
   BotMessageSquare, Drama, Settings, BookText, Code2, 
   Shield, Laptop, ChevronRight, Eye

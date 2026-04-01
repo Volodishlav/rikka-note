@@ -148,7 +148,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useSettingStore } from '@/stores/setting'
 import { useVectorStore } from '@/stores/vector'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {onMounted, ref, watch, computed} from 'vue'
 import {Search, CaseSensitive, WholeWord, Regex, Brain, Loader2, ArrowUpDown} from 'lucide-vue-next'
-import {useI18n} from '@/hooks/useI18n'
+import {useI18n} from '@/composables/useI18n'
 import useArticleStore from '@/stores/article'
 import {useVectorStore} from '@/stores/vector'
 import {FuzzySearchResult, RustFuzzySearch, SearchItem as ISearchItem} from '@/lib/fuzzy-search'

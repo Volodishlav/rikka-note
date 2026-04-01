@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <Dialog :open="open" @update:open="$emit('update:open', $event)">
     <DialogContent class="sm:max-w-[500px]">
       <DialogHeader>
@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { AiConfig } from '@/lib/ai.types'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'

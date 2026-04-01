@@ -27,7 +27,7 @@ import { ref, onMounted } from 'vue'
 import { Store } from '@tauri-apps/plugin-store'
 import { Globe, Check } from 'lucide-vue-next'
 import { logger } from '@/utils/logger'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,

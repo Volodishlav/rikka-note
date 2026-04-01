@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 import { AiConfig } from "@/lib/ai.types";
 import { fetch } from "@tauri-apps/plugin-http";
 import { logger } from "@/utils/logger";
-import { i18n } from '@/i18n';
+import { i18n } from '@/locales';
 
 /**
  * 获取当前的prompt内容

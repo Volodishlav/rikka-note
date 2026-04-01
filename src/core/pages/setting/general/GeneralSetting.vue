@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="space-y-6">
     <!-- 主题设置 -->
     <div class="space-y-4">
@@ -39,7 +39,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { useTheme, ThemeKey } from '@/composables/useTheme'
 import { Button } from '@/components/ui/button'
 import { Sun, Moon, Monitor } from 'lucide-vue-next'

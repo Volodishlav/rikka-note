@@ -158,7 +158,7 @@ import {
 import { useArticleStore } from '@/stores/article'
 import { useVectorStore } from '@/stores/vector'
 import { useToast } from '@/composables/useToast'
-import { useI18n } from '@/hooks/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { appDataDir, join } from '@tauri-apps/api/path'
 import { exists, mkdir, writeTextFile } from '@tauri-apps/plugin-fs'
 import { getWorkspacePath } from '@/lib/workspace'
