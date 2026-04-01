@@ -38,17 +38,19 @@ const handleSplit = (direction: 'horizontal' | 'vertical') => {
 </script>
 
 <template>
-  <div data-tauri-drag-region class="flex-1 h-full px-4 overflow-hidden flex items-center justify-center">
+  <div data-tauri-drag-region class="flex-1 h-full px-4 flex items-center justify-center">
     <div data-tauri-drag-region v-if="!activeGroup || activeGroup.tabs.length === 0" class="text-muted-foreground text-xs opacity-50 italic">
       Rikka Note - 平静、纯粹的写作体验
     </div>
     
-    <div data-tauri-drag-region v-else class="flex items-center gap-1 max-w-full overflow-x-auto no-scrollbar h-full">
+    <div data-tauri-drag-region v-else class="flex items-end gap-1 max-w-full overflow-x-auto no-scrollbar h-full">
       <div
         v-for="tab in activeGroup.tabs"
         :key="tab.id"
-        class="group relative h-[28px] min-w-[80px] max-w-[180px] flex items-center px-3 rounded-md transition-all cursor-pointer border select-none"
-        :class="activeGroup.activeTabId === tab.id ? 'bg-secondary/80 border-border text-foreground shadow-sm' : 'border-transparent text-muted-foreground hover:bg-secondary/40'"
+        class="group relative min-w-[80px] max-w-[180px] flex items-center px-3 transition-[background-color,color,height,margin,border-radius] duration-200 ease-in-out cursor-pointer select-none"
+        :class="activeGroup.activeTabId === tab.id 
+          ? 'active-tab bg-secondary border-x border-t border-b-0 border-border text-foreground z-10 rounded-t-xl' 
+          : 'border-x border-y-0 border-foreground/40 text-muted-foreground hover:bg-secondary/40 rounded-none mb-[6px] h-[18px] pb-0'"
         @click="handleTabClick(tab.id)"
       >
         <ContextMenu>
@@ -90,5 +92,36 @@ const handleSplit = (direction: 'horizontal' | 'vertical') => {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.active-tab::before,
+.active-tab::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+}
+
+.active-tab::before {
+  left: -12px;
+  background: radial-gradient(circle at 0 0, transparent 12px, hsl(var(--border)) 12px, hsl(var(--border)) 13px, hsl(var(--secondary)) 13px);
+}
+
+.active-tab::after {
+  right: -12px;
+  background: radial-gradient(circle at 100% 0, transparent 12px, hsl(var(--border)) 12px, hsl(var(--border)) 13px, hsl(var(--secondary)) 13px);
+}
+
+/* 修复激活态下伪元素的背景色 - 使用 CSS 变量以兼容主题 */
+.active-tab {
+  background-color: hsl(var(--secondary));
+}
+
+/* 为了遮盖底部线条，让激活标签页稍微下沉 1px，并定义高度以覆盖容器 */
+.active-tab {
+  margin-bottom: -1px;
+  height: 30px;
 }
 </style>
