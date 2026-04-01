@@ -3,24 +3,30 @@
   <ContextMenu>
     <ContextMenuTrigger as-child>
       <div
-          class="flex items-center gap-1 px-2 py-1 text-sm cursor-pointer rounded"
+          :id="`file-item-${path.replace(/\//g, '-')}`"
+          class="group/file-item relative flex items-center gap-1 px-2 py-1 text-sm cursor-pointer rounded transition-colors duration-200 select-none"
           :class="[
-          path === activeFilePath ? 'bg-brand-purple/15 text-brand-purple font-medium' : 'hover:bg-accent text-foreground',
-          !isRoot && 'translate-x-5'
+          path === activeFilePath ? 'bg-brand-purple/10 text-brand-purple font-medium' : 'hover:bg-accent text-foreground'
         ]"
           draggable="true"
-          style="-webkit-user-drag: element; user-select: none;"
+          style="-webkit-user-drag: element;"
           @click="(e) => handleSelectFile(e)"
           @dragstart="handleDragStart"
       >
+        <!-- 活动指示条 -->
+        <div
+            class="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-brand-purple rounded-full transition-all duration-300 ease-in-out opacity-0"
+            :class="{ 'opacity-100 h-4 scale-y-100': path === activeFilePath, 'scale-y-0': path !== activeFilePath }"
+        />
+
         <!-- 编辑模式 -->
-        <div v-if="isEditing" class="flex gap-1 items-center w-full select-none">
-          <span :class="item.parent ? 'size-0' : 'size-4 ml-1'" />
+        <template v-if="isEditing">
+          <span class="size-4 flex-shrink-0" />
           <FileIcon :item="item" />
           <input
               ref="inputRef"
               v-model="name"
-              class="h-5 rounded-sm text-xs px-1 font-normal flex-1 mr-1"
+              class="h-5 rounded-sm text-xs px-1 font-normal flex-1 mr-1 bg-background"
               @blur="handleRename"
               @input="handleInputChange"
               @compositionstart="isComposing = true"
@@ -28,33 +34,26 @@
               @keydown.enter="handleRename"
               @keydown.escape="handleEditEnd"
           />
-        </div>
+        </template>
 
-        <!-- 显示模式 -->
+        <!-- 图片文件显示 -->
+        <template v-else-if="isImageFile">
+          <span class="size-4 flex-shrink-0" />
+          <Image class="size-4" />
+          <span class="text-xs flex-1 line-clamp-1">
+            {{ item.name }}
+          </span>
+        </template>
+
+        <!-- 普通文件显示 -->
         <template v-else>
-          <!-- 图片文件 -->
-          <div v-if="isImageFile" class="flex gap-1 items-center flex-1 select-none">
-            <span :class="item.parent ? 'size-0' : 'size-4 ml-1'" />
-            <Image class="size-4" />
-            <span
-                class="text-xs flex-1 line-clamp-1"
-            >
-              {{ item.name }}
-            </span>
-          </div>
-
-          <!-- 其他文件 -->
-          <div v-else class="flex gap-1 items-center flex-1 select-none">
-            <span :class="item.parent ? 'size-0' : 'size-4 ml-1'" />
-            <FileIcon :item="item" />
-            <span
-                class="text-xs flex-1 line-clamp-1"
-            >
-              {{ item.name }}
-            </span>
-            <!-- 加密文件锁图标 -->
-            <LockKeyhole v-if="fileIsEncrypted" class="size-3 text-brand-purple flex-shrink-0" />
-          </div>
+          <span class="size-4 flex-shrink-0" />
+          <FileIcon :item="item" />
+          <span class="text-xs flex-1 truncate min-w-0">
+            {{ item.name }}
+          </span>
+          <!-- 加密文件锁图标 -->
+          <LockKeyhole v-if="fileIsEncrypted" class="size-3 text-brand-purple flex-shrink-0" />
         </template>
       </div>
     </ContextMenuTrigger>
@@ -133,7 +132,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, nextTick, onMounted, ref} from 'vue'
+import {computed, nextTick, onMounted, ref, watch} from 'vue'
 import {ask} from '@tauri-apps/plugin-dialog'
 import {exists, readTextFile, remove, rename, writeTextFile} from '@tauri-apps/plugin-fs'
 import {openPath} from '@tauri-apps/plugin-opener'
@@ -179,9 +178,20 @@ const isComposing = ref(false)
 const inputRef = ref<HTMLInputElement>()
 
 // 计算属性
-const activeFilePath = computed(() => articleStore.activeFilePath)
+const activeFilePath = computed(() => layoutStore.activeFilePath)
 const path = computed(() => computePath(props.item))
-const isRoot = computed(() => path.value.split('/').length === 1)
+
+// 自动滚动到可视区域 (Reveal)
+watch(activeFilePath, (newVal) => {
+  if (newVal === path.value) {
+    nextTick(() => {
+      const el = document.getElementById(`file-item-${path.value.replace(/\//g, '-')}`)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }
+    })
+  }
+}, { immediate: true })
 const isImageFile = computed(() =>
     props.item.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i)
 )

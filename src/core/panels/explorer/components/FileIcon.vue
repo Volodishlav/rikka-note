@@ -1,8 +1,5 @@
-//FileIcon.vue
 <template>
-  <div class="flex items-center">
-    <component :is="iconComponent" class="size-4" />
-  </div>
+  <component :is="iconComponent" class="size-4 flex-shrink-0" />
 </template>
 
 <script setup lang="ts">

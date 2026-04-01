@@ -57,6 +57,14 @@ export const useWorkspaceLayoutStore = defineStore('workspaceLayout', () => {
     return findGroupById(rootNode.value, activeGroupId.value)
   })
 
+  // 获取当前激活的文章路径
+  const activeFilePath = computed(() => {
+    const group = activeGroup.value
+    if (!group || !group.activeTabId) return null
+    const tab = group.tabs.find(t => t.id === group.activeTabId)
+    return tab ? tab.path : null
+  })
+
   // 设置激活组
   function setActiveGroup(groupId: string) {
     logger.editor.debug(`[WorkspaceLayout] Setting active group: ${groupId}`)
@@ -206,6 +214,7 @@ export const useWorkspaceLayoutStore = defineStore('workspaceLayout', () => {
     rootNode,
     activeGroupId,
     activeGroup,
+    activeFilePath,
     setActiveGroup,
     openFile,
     closeTab,

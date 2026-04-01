@@ -68,7 +68,7 @@
     </ContextMenu>
 
     <CollapsibleContent>
-      <div class="pl-4 w-full border-l ml-2 border-border/40">
+      <div class="pl-4 border-l ml-2 border-border/40">
         <TreeItem
             v-for="child in item.children"
             :key="child.name"

@@ -18,15 +18,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { writeTextFile, writeFile } from '@tauri-apps/plugin-fs'
 import { useArticleStore } from '@/stores/article'
 import { useToast } from '@/composables/useToast'
 import { getFilePathOptions } from '@/lib/workspace'
+import { useWorkspaceLayoutStore } from '@/stores/workspaceLayout'
 import TreeItem from './TreeItem.vue'
 
 const isDragging = ref(false)
 const articleStore = useArticleStore()
+const layoutStore = useWorkspaceLayoutStore()
 const { show } = useToast()
 
 const fileTree = computed(() => articleStore.fileTree)
@@ -124,6 +126,23 @@ const handleDragLeave = (e: DragEvent) => {
 const handleClickOutside = () => {
   articleStore.clearSelectedFolder()
 }
+
+// 自动展开父文件夹逻辑 (Reveal in Sidebar)
+watch(() => layoutStore.activeFilePath, async (newPath) => {
+  if (!newPath) return
+  
+  const parts = newPath.split('/')
+  if (parts.length > 1) {
+    let currentPath = ''
+    // 依次展开父级目录
+    for (let i = 0; i < parts.length - 1; i++) {
+      currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i]
+      if (!articleStore.collapsibleList.includes(currentPath)) {
+        await articleStore.setCollapsibleListItem(currentPath, true)
+      }
+    }
+  }
+}, { immediate: true })
 
 // 初始化加载文件树
 onMounted(async () => {
