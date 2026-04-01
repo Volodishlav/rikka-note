@@ -97,7 +97,8 @@
       "encryptSuccess": "Encrypted successfully",
       "encryptFailed": "Encryption failed",
       "decryptSuccess": "Encryption removed",
-      "decryptFailed": "Failed to remove encryption"
+      "decryptFailed": "Failed to remove encryption",
+      "openInNewTab": "Open in New Tab"
     }
   },
   "workspace": {

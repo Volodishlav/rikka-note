@@ -7,7 +7,7 @@ import 'splitpanes/dist/splitpanes.css'
 
 // 引入将作为面板的组件
 import FileSidebar from '@/core/panels/explorer/FileSidebar.vue' // 左侧面板：文件和标签导航
-import MdEditor from '@/core/panels/editor/MdEditor.vue' // 中间面板：Markdown 编辑器
+import LayoutNode from '@/core/panels/editor/LayoutNode.vue' // 递归编辑器布局
 import ChatPanel from '@/core/panels/assistant/ChatPanel.vue' // 右侧面板：AI 聊天
 import SearchPanel from '@/core/pages/search/SearchPanel.vue' // 搜索面板
 import SettingPage from '@/core/pages/setting/SettingPage.vue' // 设置页面（独占窗口）
@@ -15,7 +15,10 @@ import Start from '@/shared/pages/start.vue'
 import ArtTitle from '@/shared/components/ArtTitle.vue'
 import { OcrCapture } from '@/core/pages/ocr'
 import OcrScreenSelector from '@/core/pages/ocr/OcrScreenSelector.vue'
+import { useWorkspaceLayoutStore } from '@/stores/workspaceLayout'
+
 const layoutStore = useLayoutStore()
+const workspaceLayoutStore = useWorkspaceLayoutStore()
 const ocrCaptureRef = ref<any>(null)
 
 /**
@@ -52,8 +55,8 @@ const handleSelectionDone = (bytes: number[]) => {
         <!-- 中间编辑器面板 -->
         <pane v-if="layoutStore.isEditorVisible" size="50" min-size="30">
           <div class="h-full w-full overflow-hidden flex flex-col">
-            <!-- w-full flex flex-col确保其子组件也能完美继承高度-->
-            <MdEditor/>
+            <!-- 接入递归布局引擎 -->
+            <LayoutNode :node="workspaceLayoutStore.rootNode" />
           </div>
         </pane>
 

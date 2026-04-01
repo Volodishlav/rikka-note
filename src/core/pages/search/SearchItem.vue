@@ -4,6 +4,7 @@ import { MapPin, Brain } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { useI18n } from '@/composables/useI18n'
 import useArticleStore from '@/stores/article'
+import { useWorkspaceLayoutStore } from '@/stores/workspaceLayout'
 import { computed } from 'vue'
 import { logger } from '@/utils/logger'
 
@@ -15,6 +16,7 @@ const props = defineProps<{
 
 const router = useRouter()
 const articleStore = useArticleStore()
+const layoutStore = useWorkspaceLayoutStore()
 
 const highlightMatches = (inputString: string, matches: [number, number][]): string[] => {
   const highlightedStringArray: string[] = [];
@@ -59,7 +61,8 @@ const handleRouteTo = async () => {
     path: filePath
   })
 
-  await articleStore.setActiveFilePath(filePath)
+  // 使用布局仓库打开文件（多标签支持）
+  await layoutStore.openFile(filePath)
   
   const pathParts = filePath.split('/')
   if (pathParts.length > 1) {

@@ -46,6 +46,7 @@ export const useArticleStore = defineStore('article', () => {
     const fileTreeLoading = ref(false)
     const collapsibleList = ref<string[]>([])
     const currentArticle = ref('')
+    const fileBuffers = ref<Record<string, string>>({}) // 新增：全局文件内容缓冲池
     const allArticle = ref<Article[]>([])
     const errorMsg = ref<string | null>(null)
     const selectedFolder = ref('') // 当前选中的文件夹路径
@@ -449,7 +450,7 @@ export const useArticleStore = defineStore('article', () => {
     }
 
     // 读取文章内容（集成加密支持）
-    async function readArticle(path: string, _sha?: string, isLocale = true) {
+    async function readArticle(path: string, _sha?: string, isLocale = true): Promise<string> {
         setLoading(true)
         errorMsg.value = null
         try {
@@ -460,7 +461,7 @@ export const useArticleStore = defineStore('article', () => {
 
                 if (!workspace.isCustom) {
                     currentArticle.value = ''
-                    return
+                    return ''
                 }
 
                 const fileExists = await exists(pathOptions.path)
@@ -476,83 +477,91 @@ export const useArticleStore = defineStore('article', () => {
                             // 后端未解锁，设置特殊标记让 UI 层弹出密码框
                             currentArticle.value = ''
                             errorMsg.value = '__ENCRYPTED_NEED_PASSWORD__'
-                            return
+                            return ''
                         }
                         // 后端已解锁，直接解密（无需传递密码）
                         try {
                             content = await encryptionStore.readEncryptedNote(path)
-                            currentArticle.value = content
                         } catch (e) {
-                            currentArticle.value = ''
                             errorMsg.value = `解密失败：${(e as Error).message}`
+                            return ''
                         }
                     } else {
                         // 普通文件：直接读取
                         content = await readTextFile(pathOptions.path)
+                    }
+                    
+                    // 同步到缓冲区和旧状态（兼容旧组件）
+                    fileBuffers.value[path] = content
+                    if (activeFilePath.value === path) {
                         currentArticle.value = content
                     }
+                    return content
                 } else {
-                    currentArticle.value = ''
                     errorMsg.value = `本地文件不存在：${path}`
+                    return ''
                 }
             }
+            return ''
         } catch (error) {
             errorMsg.value = `读取文章失败：${(error as Error).message}`
-            currentArticle.value = ''
             logger.explorer.error('[ArticleStore] readArticle error:', error)
+            return ''
         } finally {
             setLoading(false)
         }
     }
 
-    // 保存当前文章（集成加密支持）
-    async function saveCurrentArticle(content: string) {
-        // 基础检查：没有内容或没有活跃文件时不保存
-        if (!activeFilePath.value) return
+    // 更新单个文档的缓冲区内容
+    function updateFileBuffer(path: string, content: string) {
+        fileBuffers.value[path] = content
+        if (activeFilePath.value === path) {
+            currentArticle.value = content
+        }
+    }
+
+    // 保存指定文章（集成加密支持）
+    async function saveArticle(path: string, content: string) {
+        if (!path) return
 
         try {
-            const path = activeFilePath.value
             const workspace = await getWorkspacePath()
-            
             if (!workspace.isCustom) return
             
             const pathOptions = await getFilePathOptions(path)
-
-            // 1. 检查文件是否已存在（决定后续是否需要更新文件树状态）
             const isLocale = await exists(pathOptions.path)
 
-            // 2. 确保目录结构存在 (递归创建不存在的父文件夹)
+            // 确保目录结构存在
             if (path.includes('/')) {
                 let dir = ''
                 const dirPath = path.split('/')
                 for (let index = 0; index < dirPath.length - 1; index += 1) {
                     dir += `${dirPath[index]}/`
                     const dirOptions = await getFilePathOptions(dir)
-
-                    const dirExists = await exists(dirOptions.path)
-
-                    if (!dirExists) {
+                    if (!(await exists(dirOptions.path))) {
                         await mkdir(dirOptions.path)
                     }
                 }
             }
 
-            // 3. 检查是否为加密文件
             const encryptionStore = useEncryptionStore()
             const isEncrypted = encryptionStore.isEncrypted(path)
 
-            // 4. 保存文件内容到物理磁盘
+            // 写入磁盘
             await writeTextFile(pathOptions.path, content)
 
-            // 5. 如果是加密文件，保存后自动重新加密
+            // 加密处理
             if (isEncrypted && encryptionStore.isUnlocked) {
                 await encryptionStore.encryptNote(path)
             }
 
-            // 6. 更新内部状态
-            currentArticle.value = content
+            // 同步内部状态
+            fileBuffers.value[path] = content
+            if (activeFilePath.value === path) {
+                currentArticle.value = content
+            }
 
-            // 7. 如果是第一次保存该文件（从虚构变为真实），更新文件树 UI 状态
+            // 更新文件树（如果是新文件）
             if (!isLocale) {
                 const cacheTree = cloneDeep(fileTree.value)
                 const current = path.includes('/')
@@ -563,24 +572,16 @@ export const useArticleStore = defineStore('article', () => {
                     fileTree.value = cacheTree
                 }
             }
-
-            // 8. 向量数据库同步
-            if (path.endsWith('.md')) {
-                try {
-                    // 这里假设你有一个 vectorStore，如果没有请忽略或根据项目调整
-                    // const vectorStore = useVectorStore()
-                    // if (vectorStore.isVectorDbEnabled) {
-                    //     vectorStore.processDocument(path, content)
-                    // }
-                } catch (error) {
-                    logger.explorer.error('更新文档向量失败:', error)
-                }
-            }
-
         } catch (error) {
-            errorMsg.value = `自动保存失败：${(error as Error).message}`
-            logger.explorer.error('[ArticleStore] saveCurrentArticle error:', error)
+            errorMsg.value = `保存失败：${(error as Error).message}`
+            logger.explorer.error('[ArticleStore] saveArticle error:', error)
         }
+    }
+
+    // 保存当前激活的文章（保持向下兼容）
+    async function saveCurrentArticle(content: string) {
+        if (!activeFilePath.value) return
+        await saveArticle(activeFilePath.value, content)
     }
 
     // 加载所有文章（用于搜索）
@@ -731,6 +732,7 @@ export const useArticleStore = defineStore('article', () => {
         fileTreeLoading,
         collapsibleList,
         currentArticle,
+        fileBuffers,
         allArticle,
         errorMsg,
         selectedFolder,
@@ -757,6 +759,8 @@ export const useArticleStore = defineStore('article', () => {
         toggleAllFolders,
         clearCollapsibleList,
         readArticle,
+        updateFileBuffer,
+        saveArticle,
         setSelectedFolder,
         clearSelectedFolder,
         saveCurrentArticle,

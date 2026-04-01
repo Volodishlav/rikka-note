@@ -3,6 +3,7 @@ import {getCurrentWindow} from '@tauri-apps/api/window';
 import {onMounted, onUnmounted, ref} from 'vue';
 import ArtTitle from "@/shared/components/ArtTitle.vue";
 import { useLayoutStore } from '@/stores/layout';
+import EditorTabs from '@/core/panels/editor/EditorTabs.vue';
 import {ScanText} from "lucide-vue-next";
 import { logger } from '@/utils/logger';
 
@@ -104,6 +105,11 @@ onUnmounted(() => {
           <ArtTitle showBackground="brush" />
         </div>
       </div>
+    </div>
+
+    <!-- 中间标签页区域 (重要：禁止拖拽以便点击标签) -->
+    <div class="tabs-area overflow-hidden h-full flex items-center">
+      <EditorTabs />
     </div>
 
     <!-- 控制按钮组（使用Vue原生@click绑定） -->
@@ -242,7 +248,7 @@ onUnmounted(() => {
 <style scoped>
 .titlebar {
   height: 36px; /* 略微增加标题栏高度 */
-  @apply bg-background text-foreground select-none grid grid-cols-[auto_max-content] w-full;
+  @apply bg-background text-foreground select-none grid grid-cols-[max-content_1fr_max-content] w-full border-b border-border;
 }
 
 /* 优化拖拽区域，确保全屏可拖拽 */

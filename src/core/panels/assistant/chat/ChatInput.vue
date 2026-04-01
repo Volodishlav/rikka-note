@@ -118,6 +118,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { storeToRefs } from 'pinia'
 import { toast } from '@/components/ui/toast/use-toast'
 import { useArticleStore } from '@/stores/article'
+import { useWorkspaceLayoutStore } from '@/stores/workspaceLayout'
 
 const input = ref('')
 const isSending = ref(false)
@@ -128,6 +129,7 @@ const pendingContent = ref('')
 const chatStore = useChatStore()
 const vectorStore = useVectorStore()
 const articleStore = useArticleStore()
+const layoutStore = useWorkspaceLayoutStore()
 const { t } = useI18n()
 const { isRagEnabled, documentCount } = storeToRefs(vectorStore)
 
@@ -162,8 +164,7 @@ const navigateToDoc = async (filename: string) => {
     const match = articleStore.allArticle.find(a => a.path.endsWith(filename))
     
     if (match) {
-      await articleStore.setActiveFilePath(match.path)
-      await articleStore.readArticle(match.path)
+      await layoutStore.openFile(match.path)
       toast({
         title: '已跳转至笔记',
         description: `正在查看: ${filename}`,

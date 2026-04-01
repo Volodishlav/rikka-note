@@ -97,7 +97,8 @@
       "encryptSuccess": "加密成功",
       "encryptFailed": "加密失败",
       "decryptSuccess": "已解除加密",
-      "decryptFailed": "解除加密失败"
+      "decryptFailed": "解除加密失败",
+      "openInNewTab": "在新标签页中打开"
     }
   },
   "workspace": {

@@ -61,6 +61,10 @@
 
     <!-- 右键菜单 -->
     <ContextMenuContent>
+      <ContextMenuItem @click="handleOpenFileNewTab">
+        {{ t('article.contextMenu.openInNewTab') }}
+      </ContextMenuItem>
+      <ContextMenuSeparator />
       <ContextMenuItem @click="handleShowFileManager">
         {{ t('article.contextMenu.showInFileManager') }}
       </ContextMenuItem>
@@ -141,6 +145,7 @@ import { getAbsoluteFilePath, getFilePathOptions } from '@/lib/workspace'
 import {useToast} from '@/composables/useToast'
 import FileIcon from './FileIcon.vue'
 import PasswordDialog from '@/core/pages/setting/encryption/PasswordDialog.vue'
+import { useWorkspaceLayoutStore } from '@/stores/workspaceLayout'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -160,6 +165,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const articleStore = useArticleStore()
+const layoutStore = useWorkspaceLayoutStore()
 const { show } = useToast()
 const clipboardStore = useClipboardStore()
 const { t } = useI18n()
@@ -264,8 +270,8 @@ const handleSelectFile = async (e: Event) => {
       show({ title: 'Show image failed', variant: 'error' })
     }
   } else {
-    // 设置活动文件
-    await articleStore.setActiveFilePath(path.value)
+    // 使用布局仓库打开文件（默认复用当前页模式）
+    await layoutStore.openFile(path.value, { newTab: false })
 
     // 如果是加密文件且后端未解锁，弹出密码框
     if (fileIsEncrypted.value && !encryptionStore.isUnlocked) {
@@ -285,6 +291,10 @@ const handleSelectFile = async (e: Event) => {
       showPasswordDialog.value = true
     }
   }
+}
+
+const handleOpenFileNewTab = async () => {
+  await layoutStore.openFile(path.value, { newTab: true })
 }
 
 const handleStartRename = async () => {
