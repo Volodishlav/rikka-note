@@ -125,15 +125,10 @@ const setTabRef = (el: any, index: number) => {
 
 <template>
   <div ref="containerRef" data-tauri-drag-region class="flex-1 h-full flex items-center justify-center min-w-0 overflow-hidden">
-    <!-- 空状态 -->
-    <div data-tauri-drag-region v-if="!activeGroup || activeGroup.tabs.length === 0" class="flex-1 flex items-center justify-center text-muted-foreground text-xs opacity-50 italic">
-      Rikka Note - 平静、纯粹的写作体验
-    </div>
     
     <!-- 标签列表 + 更多按钮捆绑容器 -->
     <div 
-      v-else 
-      data-tauri-drag-region 
+      data-tauri-drag-region
       class="flex items-end gap-1 h-full no-scrollbar px-4"
       :class="overflowTabs.length > 0 ? 'justify-start w-full' : 'justify-center'"
     >
