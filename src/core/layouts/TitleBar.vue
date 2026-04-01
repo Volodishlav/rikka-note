@@ -96,19 +96,19 @@ onUnmounted(() => {
     <!-- 拖拽区域（包含应用图标和名称） -->
     <div data-tauri-drag-region class="drag-area">
       <!-- 应用信息区域 -->
-      <div class="app-info">
+      <div class="app-info" data-tauri-drag-region>
         <!-- 应用图标 -->
         <img src="@/assets/icon.png" alt="应用图标" class="app-icon" data-tauri-drag-region />
         <!-- 应用名称 -->
 <!--        <span class="app-name">rikka-note</span>-->
-        <div class="art-title-container" data-tauri-drag-region>
-          <ArtTitle showBackground="brush" />
+        <div class="art-title-container">
+          <ArtTitle showBackground="brush" data-tauri-drag-region/>
         </div>
       </div>
     </div>
 
-    <!-- 中间标签页区域 (重要：禁止拖拽以便点击标签) -->
-    <div class="tabs-area overflow-hidden h-full flex items-center">
+    <!-- 中间标签页区域 -->
+    <div data-tauri-drag-region class="tabs-area overflow-hidden h-full flex items-center">
       <EditorTabs />
     </div>
 

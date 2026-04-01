@@ -38,12 +38,12 @@ const handleSplit = (direction: 'horizontal' | 'vertical') => {
 </script>
 
 <template>
-  <div class="flex-1 h-full px-4 overflow-hidden flex items-center justify-center">
-    <div v-if="!activeGroup || activeGroup.tabs.length === 0" class="text-muted-foreground text-xs opacity-50 italic">
+  <div data-tauri-drag-region class="flex-1 h-full px-4 overflow-hidden flex items-center justify-center">
+    <div data-tauri-drag-region v-if="!activeGroup || activeGroup.tabs.length === 0" class="text-muted-foreground text-xs opacity-50 italic">
       Rikka Note - 平静、纯粹的写作体验
     </div>
     
-    <div v-else class="flex items-center gap-1 max-w-full overflow-x-auto no-scrollbar h-full">
+    <div data-tauri-drag-region v-else class="flex items-center gap-1 max-w-full overflow-x-auto no-scrollbar h-full">
       <div
         v-for="tab in activeGroup.tabs"
         :key="tab.id"

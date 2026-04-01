@@ -1,6 +1,7 @@
 <template>
-  <div class="art-title-wrapper">
+  <div class="art-title-wrapper" data-tauri-drag-region>
     <svg
+        data-tauri-drag-region
         width="1000"
         height="220"
         viewBox="0 0 900 200"
@@ -102,6 +103,7 @@
       <g v-if="showBackground === 'brush'" opacity="0.6" filter="url(#crayon-texture)">
         <!-- 加粗的主笔触：模拟毛刷效果 -->
         <path
+            data-tauri-drag-region
             d="M80 180 Q250 185, 450 175 T820 180"
             stroke="url(#g-pink-gradient)"
             stroke-width="20"
@@ -113,6 +115,7 @@
         />
         <!-- 叠加层笔触：调整宽度和位置，增强毛刷叠色质感 -->
         <path
+            data-tauri-drag-region
             d="M80 182 Q250 187, 450 177 T820 182"
             stroke="url(#g-pink-gradient)"
             stroke-width="10"
@@ -123,6 +126,7 @@
         />
         <!-- 额外增加一层极细的纹理笔触，强化毛刷质感 -->
         <path
+            data-tauri-drag-region
             d="M80 178 Q250 183, 450 173 T820 178"
             stroke="url(#g-orange-gradient)"
             stroke-width="4"
@@ -139,6 +143,7 @@
         <!-- RIKKA -->
         <!-- R: 橙色 - 使用 brand-orange -->
         <text
+            data-tauri-drag-region
             x="50" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="110"
@@ -151,6 +156,7 @@
 
         <!-- I: 紫色 - 使用 brand-purple -->
         <text
+            data-tauri-drag-region
             x="140" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="110"
@@ -163,6 +169,7 @@
 
         <!-- K: 粉色 - 使用 brand-pink -->
         <text
+            data-tauri-drag-region
             x="190" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="110"
@@ -175,6 +182,7 @@
 
         <!-- K: 粉色 - 使用 brand-pink -->
         <text
+            data-tauri-drag-region
             x="290" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="110"
@@ -187,6 +195,7 @@
 
         <!-- A: 青色 - 使用 brand-cyan -->
         <text
+            data-tauri-drag-region
             x="390" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="110"
@@ -200,6 +209,7 @@
         <!-- NOTE -->
         <!-- N: muted 填充, muted-foreground 描边 -->
         <text
+            data-tauri-drag-region
             x="535" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="110"
@@ -212,6 +222,7 @@
 
         <!-- O: muted 填充, muted-foreground 描边 -->
         <text
+            data-tauri-drag-region
             x="630" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="110"
@@ -224,6 +235,7 @@
 
         <!-- T: muted 填充, muted-foreground 描边 -->
         <text
+            data-tauri-drag-region
             x="725" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="110"
@@ -236,6 +248,7 @@
 
         <!-- E: muted 填充, muted-foreground 描边 -->
         <text
+            data-tauri-drag-region
             x="810" y="140"
             font-family="Arial Black, Helvetica, sans-serif"
             font-size="110"
