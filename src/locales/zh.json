@@ -242,11 +242,12 @@
       "chatRegion": "对话模型 (LLM)",
       "embeddingRegion": "向量模型 (Embedding)",
       "rerankRegion": "排序模型 (Rerank)",
+      "imageRegion": "视觉识别模型 (VLM)",
       "types": {
         "chat": "对话模型 (LLM)",
         "embedding": "向量模型 (Embedding)",
         "rerank": "排序模型 (Rerank)",
-        "image": "多模态/图片模型"
+        "image": "多模态/视觉模型 (VLM)"
       },
       "deleteConfirm": "确定要删除此模型配置吗？",
       "editDialog": {

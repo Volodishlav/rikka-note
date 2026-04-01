@@ -242,11 +242,12 @@
       "chatRegion": "Chat Models (LLM)",
       "embeddingRegion": "Embedding Models",
       "rerankRegion": "Rerank Models",
+      "imageRegion": "Vision Models (VLM)",
       "types": {
         "chat": "Chat (LLM)",
         "embedding": "Embedding",
         "rerank": "Rerank",
-        "image": "Image/Vision"
+        "image": "Multimodal/Vision (VLM)"
       },
       "deleteConfirm": "Are you sure you want to delete this model configuration?",
       "editDialog": {
