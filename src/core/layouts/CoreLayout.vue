@@ -16,6 +16,7 @@ import ArtTitle from '@/shared/components/ArtTitle.vue'
 import { OcrCapture } from '@/core/pages/ocr'
 import OcrScreenSelector from '@/core/pages/ocr/OcrScreenSelector.vue'
 import { useWorkspaceLayoutStore } from '@/stores/workspaceLayout'
+import { logger } from '@/utils/logger';
 
 const layoutStore = useLayoutStore()
 const workspaceLayoutStore = useWorkspaceLayoutStore()
@@ -26,6 +27,7 @@ const ocrCaptureRef = ref<any>(null)
  */
 const handleSelectionDone = (bytes: number[]) => {
   if (ocrCaptureRef.value) {
+    logger.vision.debug('CoreLayout.vue handleSelectionDone 选区完成时，由 OcrScreenSelector 调用');
     ocrCaptureRef.value.handleSelectedImage(bytes)
   }
 }

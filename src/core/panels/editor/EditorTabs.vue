@@ -39,12 +39,14 @@ const handleTabClick = (tabId: string) => {
 const handleCloseTab = (e: Event, tabId: string) => {
   e.stopPropagation();
   if (activeGroup.value) {
+    logger.editor.debug(`[EditorTabs] close tab: ${tabId}`);
     layoutStore.closeTab(tabId, activeGroup.value.id);
   }
 };
 
 const handleSplit = (direction: 'horizontal' | 'vertical') => {
   if (activeGroup.value) {
+    logger.editor.debug(`[EditorTabs] split tab`);
     layoutStore.split(activeGroup.value.id, direction);
   }
 };

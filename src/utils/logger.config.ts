@@ -22,7 +22,7 @@ export const LOG_MODULES: LogModuleConfig[] = [
     id: 'editor',
     color: '#ec4899', // pink
     defaultEnabled: true,
-    files: ['MdEditor.vue', 'EditorToolbar.vue']
+    files: ['MdEditor.vue', 'EditorTabs.vue','EditorToolbar.vue' ]
   },
   {
     id: 'ai',
@@ -46,7 +46,7 @@ export const LOG_MODULES: LogModuleConfig[] = [
     id: 'vision',
     color: '#3b82f6', // blue
     defaultEnabled: true,
-    files: ['MdEditor.vue', 'ai.ts(vision)', 'VisionSetting.vue', 'ocr.ts', 'OcrCapture.vue', 'OcrPanel.vue']
+    files: ['MdEditor.vue', 'ai.ts(vision)', 'VisionSetting.vue', 'ocr.ts', 'OcrCapture.vue', 'OcrPanel.vue','CoreLayout.vue']
   },
   {
     id: 'auth',
