@@ -3,6 +3,7 @@ import { useWorkspaceLayoutStore } from '@/stores/workspaceLayout';
 import MdEditor from './MdEditor.vue';
 import { computed } from 'vue';
 
+import ArtTitle from '@/shared/components/ArtTitle.vue';
 import { logger } from '@/utils/logger';
 
 const props = defineProps<{
@@ -38,13 +39,16 @@ const handleActivate = () => {
 <template>
   <div 
     class="h-full w-full relative flex flex-col overflow-hidden"
-    :class="{ 'ring-2 ring-primary/20 ring-inset': layoutStore.activeGroupId === groupId }"
+    :class="{ 
+      'ring-2 ring-primary/20 ring-inset': layoutStore.activeGroupId === groupId,
+      'bg-background': !!activeTab
+    }"
     @mousedown="handleActivate"
   >
-    <div v-if="!activeTab" class="flex-1 flex items-center justify-center bg-background/50 animate-in fade-in">
-        <div class="text-center space-y-4">
-            <img src="@/assets/icon.png" class="w-16 h-16 opacity-10 mx-auto grayscale" alt="Logo" />
-            <p class="text-muted-foreground text-sm opacity-50">在此区域打开文档 (Group: {{ groupId }} / Active: {{ group?.activeTabId || 'None' }})</p>
+    <div v-if="!activeTab" class="flex-1 flex items-center justify-center bg-transparent animate-in fade-in">
+        <div class="flex flex-col items-center space-y-2">
+            <img src="@/assets/icon.png" class="w-16 h-16 mb-2" alt="Logo" />
+            <ArtTitle class="w-full max-w-md scale-90" showBackground="graphic"/>
         </div>
     </div>
     <div v-else class="flex-1 w-full h-full relative overflow-hidden">

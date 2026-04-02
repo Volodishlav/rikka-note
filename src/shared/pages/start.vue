@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div class="canvas-bg-container w-full h-full">
     <canvas ref="canvasEl"></canvas>
   </div>
 </template>
@@ -498,23 +498,16 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
-body, html {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background-color: #ffffff; /* 纯白背景 */
-  width: 100vw;
-  height: 100vh;
-}
-#app {
+.canvas-bg-container {
   width: 100%;
   height: 100%;
+  overflow: hidden;
+  /* 移除 body, html 的全局强制白底，让组件自行负责背景 */
 }
 canvas {
   display: block;
   width: 100%;
   height: 100%;
-  /* 避免默认的触控行为干扰 */
   touch-action: none;
 }
 </style>
