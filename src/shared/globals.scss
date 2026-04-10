@@ -142,7 +142,7 @@
 
   :not(table) {
     &::-webkit-scrollbar {
-      @apply w-2 h-2;
+      @apply w-1.5 h-1.5;
     }
 
     &::-webkit-scrollbar-track {
@@ -151,6 +151,25 @@
 
     &::-webkit-scrollbar-thumb {
       @apply rounded-full bg-border border border-transparent bg-clip-padding;
+    }
+  }
+
+  /* 滚动条活动显示类：仅在滚动时或鼠标悬停在滚动条上时显示 */
+  .scrollbar-activity-show {
+    &::-webkit-scrollbar-thumb {
+      background-color: transparent;
+      /* 这里虽然 transition 对 webkit-scrollbar 支持有限，但有助于浏览器平滑切换类状态 */
+      transition: background-color 0.5s ease; 
+    }
+    
+    /* 处于滚动状态时显示 */
+    &.is-scrolling::-webkit-scrollbar-thumb {
+      @apply bg-border;
+    }
+
+    /* 鼠标直接停留在滚动条区域时也显示（方便拖拽） */
+    &::-webkit-scrollbar-thumb:hover {
+      @apply bg-muted-foreground/40;
     }
   }
 
