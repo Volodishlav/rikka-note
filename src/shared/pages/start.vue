@@ -5,11 +5,32 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useTheme } from '@/composables/useTheme'
+
+const { effectiveTheme } = useTheme()
+
 const config = {
   shapeCount: 15,   // 几何体数量
   splineCount: 5   // 扭曲流体线条数量
 }
+
+// 获取当主题色彩配置
+const getThemeColors = () => {
+  const isDark = effectiveTheme.value === 'dark'
+  return {
+    isDark,
+    // 背景色使用 globals.scss 中定义的变量对应值
+    // 拖影色 (带 alpha)
+    bgTrail: isDark ? 'rgba(17, 24, 39, 0.08)' : 'rgba(250, 250, 250, 0.08)',
+    // 纯背景底色
+    bgSolid: isDark ? '#111827' : '#fafafa',
+    // 形状配色参数
+    shapeLightness: isDark ? 60 : 65,
+    shapeAlpha: isDark ? 0.75 : 0.85
+  }
+}
+
 // 辅助函数：计算二次贝塞尔曲线上的点
 // P = (1-t)^2 * P0 + 2t(1-t) * P1 + t^2 * P2
 const getQuadraticBezierPoint = (t, p0, p1, p2) => {
@@ -129,7 +150,7 @@ class Wireframe3D {
     return [x3, y3, z2]
   }
 
-  draw(ctx) {
+  draw(ctx, theme) {
     ctx.lineWidth = 0.8
     const fov = 250 // 视场深度：值越大透视变形越小
 
@@ -159,8 +180,8 @@ class Wireframe3D {
       const hue2 = (this.hue + this.gradientOffset + (index + 2) * 15) % 360
 
       const gradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y)
-      gradient.addColorStop(0, `hsla(${hue1}, 85%, 65%, 0.85)`)
-      gradient.addColorStop(1, `hsla(${hue2}, 85%, 65%, 0.85)`)
+      gradient.addColorStop(0, `hsla(${hue1}, 85%, ${theme.shapeLightness}%, ${theme.shapeAlpha})`)
+      gradient.addColorStop(1, `hsla(${hue2}, 85%, ${theme.shapeLightness}%, ${theme.shapeAlpha})`)
 
       ctx.strokeStyle = gradient
       ctx.beginPath()
@@ -209,7 +230,7 @@ class GeometricShape {
     if (this.y < -this.size || this.y > height + this.size) this.vy *= -1
   }
 
-  draw(ctx) {
+  draw(ctx, theme) {
     ctx.save()
     ctx.translate(this.x, this.y)
     ctx.rotate(this.angle)
@@ -233,14 +254,14 @@ class GeometricShape {
         // 计算当前小段的 normalized 位置 (0 到 1)
         const p1 = i / numSamples
         const p2 = (i + 1) / numSamples
-        // 根据位置和偏移量计算流动色相
+        // 根据位置 and 偏移量计算流动色相
         const hue1 = (this.hue + this.gradientOffset + p1 * 360) % 360
         const hue2 = (this.hue + this.gradientOffset + p2 * 360) % 360
 
         // 创建微小的线性渐变，从前一个采样点到当前采样点
         const gradient = ctx.createLinearGradient(px1, py1, px2, py2)
-        gradient.addColorStop(0, `hsla(${hue1}, 85%, 55%, 0.8)`)
-        gradient.addColorStop(1, `hsla(${hue2}, 85%, 55%, 0.8)`)
+        gradient.addColorStop(0, `hsla(${hue1}, 85%, ${theme.shapeLightness - 10}%, ${theme.shapeAlpha})`)
+        gradient.addColorStop(1, `hsla(${hue2}, 85%, ${theme.shapeLightness - 10}%, ${theme.shapeAlpha})`)
 
         ctx.strokeStyle = gradient
         ctx.beginPath()
@@ -300,8 +321,8 @@ class GeometricShape {
           const hue2 = (this.hue + this.gradientOffset + p2 * 360) % 360
 
           const gradient = ctx.createLinearGradient(px1, py1, px2, py2)
-          gradient.addColorStop(0, `hsla(${hue1}, 85%, 55%, 0.8)`)
-          gradient.addColorStop(1, `hsla(${hue2}, 85%, 55%, 0.8)`)
+          gradient.addColorStop(0, `hsla(${hue1}, 85%, ${theme.shapeLightness - 10}%, ${theme.shapeAlpha})`)
+          gradient.addColorStop(1, `hsla(${hue2}, 85%, ${theme.shapeLightness - 10}%, ${theme.shapeAlpha})`)
 
           ctx.strokeStyle = gradient
           ctx.beginPath()
@@ -348,7 +369,7 @@ class FluidSpline {
     })
   }
 
-  draw(ctx) {
+  draw(ctx, theme) {
     ctx.lineWidth = 1.2 // 稍微加粗一点点，让流动色彩更显眼
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
@@ -404,7 +425,7 @@ class FluidSpline {
         ctx.moveTo(prevPoint.x, prevPoint.y)
         ctx.lineTo(currentPoint.x, currentPoint.y)
         // 使用单色实线绘制微小线段，避免渐变对象带来的性能损耗
-        ctx.strokeStyle = `hsla(${currentHue}, 90%, 60%, 0.8)`
+        ctx.strokeStyle = `hsla(${currentHue}, 90%, ${theme.shapeLightness - 5}%, ${theme.shapeAlpha})`
         ctx.stroke()
 
         prevPoint = currentPoint
@@ -450,41 +471,40 @@ const initElements = () => {
     elements.push(new FluidSpline(width, height))
   }
 }
-//2D几何体初始化
-// const initElements = () => {
-//   elements = []
-//
-//   // 使用配置变量
-//   for (let i = 0; i < config.shapeCount; i++) {
-//     elements.push(new GeometricShape(width, height))
-//   }
-//
-//   for (let i = 0; i < config.splineCount; i++) {
-//     elements.push(new FluidSpline(width, height))
-//   }
-// }
+
 const animate = () => {
-  // 核心拖影效果：不使用 clearRect，而是覆盖一层带有一定透明度的白色矩形
+  const theme = getThemeColors()
+  // 核心拖影效果：不使用 clearRect，而是覆盖一层带有一定透明度的背景矩形
   // alpha 控制拖影长短，0.08 会留下优雅且逐渐消失的渐变轨迹
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.08)'
+  ctx.fillStyle = theme.bgTrail
   ctx.fillRect(0, 0, width, height)
 
   // 更新并绘制每一个元素
   elements.forEach(el => {
     el.update(width, height)
-    el.draw(ctx)
+    el.draw(ctx, theme)
   })
 
   animationFrameId = requestAnimationFrame(animate)
 }
+
+// 监听主题变化，刷新画布底色，防止残留上一主题的痕迹
+watch(effectiveTheme, () => {
+  if (ctx) {
+    const theme = getThemeColors()
+    ctx.fillStyle = theme.bgSolid
+    ctx.fillRect(0, 0, width, height)
+  }
+})
 
 // Vue 生命周期
 onMounted(() => {
   resize()
   initElements()
 
-  // 初始纯白背景铺底
-  ctx.fillStyle = '#ffffff'
+  // 初始背景铺底
+  const theme = getThemeColors()
+  ctx.fillStyle = theme.bgSolid
   ctx.fillRect(0, 0, width, height)
 
   animate()
@@ -502,7 +522,6 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  /* 移除 body, html 的全局强制白底，让组件自行负责背景 */
 }
 canvas {
   display: block;
