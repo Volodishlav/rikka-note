@@ -234,6 +234,11 @@
         "topRight": "右上",
         "bottomLeft": "左下",
         "bottomRight": "右下"
+      },
+      "editor": {
+        "title": "编辑器",
+        "emptyBackground": "显示空状态动态背景",
+        "emptyBackgroundDesc": "在未打开任何笔记时，是否显示带有动画的动态背景图案。"
       }
     },
     "local": {

@@ -234,6 +234,11 @@
         "topRight": "Top Right",
         "bottomLeft": "Bottom Left",
         "bottomRight": "Bottom Right"
+      },
+      "editor": {
+        "title": "Editor",
+        "emptyBackground": "Show Dynamic Background on Empty State",
+        "emptyBackgroundDesc": "Whether to show the animated dynamic background pattern when no note is opened."
       }
     },
     "local": {

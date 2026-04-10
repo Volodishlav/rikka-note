@@ -14,6 +14,7 @@ export const useSettingStore = defineStore('setting', () => {
     const locale = ref<string>('zh')
     const uiScale = ref<number>(100)
     const toastPosition = ref<ToastPosition>('bottom-right')
+    const showEditorBackground = ref<boolean>(true)
 
 
     // 系统偏好状态
@@ -81,6 +82,9 @@ export const useSettingStore = defineStore('setting', () => {
             const savedToastPosition = await tauriGet<ToastPosition>('toastPosition')
             if (savedToastPosition) toastPosition.value = savedToastPosition
 
+            const savedShowEditorBackground = await tauriGet<boolean>('showEditorBackground')
+            logger.general.debug(`[settingStore] initSettingData: savedShowEditorBackground from Tauri: ${savedShowEditorBackground}`)
+            if (savedShowEditorBackground !== undefined && savedShowEditorBackground !== null) showEditorBackground.value = savedShowEditorBackground
 
             // AI Models
             const savedAiModelList = await tauriGet<AiConfig[]>('aiModelList')
@@ -172,6 +176,11 @@ export const useSettingStore = defineStore('setting', () => {
         await tauriSet('toastPosition', p)
     }
 
+    async function setShowEditorBackground(val: boolean) {
+        logger.general.debug(`[settingStore] setShowEditorBackground called with: ${val}`)
+        showEditorBackground.value = val
+        await tauriSet('showEditorBackground', val)
+    }
 
     // AI Actions
     async function setAiModelList(list: AiConfig[]) {
@@ -267,6 +276,7 @@ export const useSettingStore = defineStore('setting', () => {
         locale,
         uiScale,
         toastPosition,
+        showEditorBackground,
         aiModelList,
 
         primaryModel,
@@ -286,6 +296,7 @@ export const useSettingStore = defineStore('setting', () => {
         setLocale,
         setUiScale,
         setToastPosition,
+        setShowEditorBackground,
         setAiModelList,
 
         updateAiModel,
