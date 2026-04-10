@@ -4,12 +4,24 @@ import type { HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { ToastViewport } from "reka-ui"
 import { cn } from "@/lib/utils"
+import { useSettingStore } from "@/stores/setting"
+import { storeToRefs } from "pinia"
 
 const props = defineProps<ToastViewportProps & { class?: HTMLAttributes["class"] }>()
 
 const delegatedProps = reactiveOmit(props, "class")
+
+const settingStore = useSettingStore()
+const { toastPosition } = storeToRefs(settingStore)
+
+const positionClasses = {
+  'top-left': 'top-[36px] left-0 flex-col-reverse',
+  'top-right': 'top-[36px] right-0 flex-col-reverse',
+  'bottom-left': 'bottom-0 left-0 flex-col',
+  'bottom-right': 'bottom-0 right-0 flex-col',
+}
 </script>
 
 <template>
-  <ToastViewport v-bind="delegatedProps" :class="cn('fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]', props.class)" />
+  <ToastViewport v-bind="delegatedProps" :class="cn('fixed z-[100] flex max-h-screen w-full p-4 md:max-w-[420px]', positionClasses[toastPosition], props.class)" />
 </template>

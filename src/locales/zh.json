@@ -226,6 +226,14 @@
         "description": "选择应用程序的显示语言。",
         "zh": "中文",
         "en": "English"
+      },
+      "toast": {
+        "title": "通知位置",
+        "description": "选择通知在应用内弹出的位置。",
+        "topLeft": "左上",
+        "topRight": "右上",
+        "bottomLeft": "左下",
+        "bottomRight": "右下"
       }
     },
     "local": {

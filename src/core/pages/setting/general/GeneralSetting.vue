@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="space-y-6">
     <!-- 主题设置 -->
     <div class="space-y-4">
@@ -34,20 +34,50 @@
         </Button>
       </div>
     </div>
+
+    <!-- 通知位置设置 -->
+    <div class="space-y-4">
+      <h3 class="text-lg font-medium">{{ t('settings.general.toast.title') }}</h3>
+      <p class="text-sm text-muted-foreground">{{ t('settings.general.toast.description') }}</p>
+      <div class="flex gap-2">
+        <Button
+          v-for="posOption in toastPositionOptions"
+          :key="posOption.value"
+          :variant="toastPosition === posOption.value ? 'secondary' : 'outline'"
+          @click="setToastPosition(posOption.value as any)"
+          class="flex items-center gap-2"
+        >
+
+          {{ posOption.label }}
+        </Button>
+      </div>
+    </div>
   </div>
+
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from '@/composables/useI18n'
 import { useTheme, ThemeKey } from '@/composables/useTheme'
+import { useSettingStore } from '@/stores/setting'
+import { storeToRefs } from 'pinia'
 import { Button } from '@/components/ui/button'
 import { Sun, Moon, Monitor } from 'lucide-vue-next'
 
+
+
+
 const { t, locale, changeLocale } = useI18n()
 const { theme, setTheme } = useTheme()
+const settingStore = useSettingStore()
+const { toastPosition } = storeToRefs(settingStore)
+const { setToastPosition } = settingStore
 
 const currentLocale = computed(() => locale.value)
+
+
+
 
 const themeOptions = computed(() => [
   {
@@ -77,4 +107,24 @@ const languageOptions = computed(() => [
     label: 'English'
   }
 ])
+
+const toastPositionOptions = computed(() => [
+  {
+    value: 'top-left',
+    label: t('settings.general.toast.topLeft')
+  },
+  {
+    value: 'top-right',
+    label: t('settings.general.toast.topRight')
+  },
+  {
+    value: 'bottom-left',
+    label: t('settings.general.toast.bottomLeft')
+  },
+  {
+    value: 'bottom-right',
+    label: t('settings.general.toast.bottomRight')
+  }
+])
+
 </script>

@@ -226,6 +226,14 @@
         "description": "Select the display language of the application.",
         "zh": "中文",
         "en": "English"
+      },
+      "toast": {
+        "title": "Notification Position",
+        "description": "Choose where the notifications appear in the app.",
+        "topLeft": "Top Left",
+        "topRight": "Top Right",
+        "bottomLeft": "Bottom Left",
+        "bottomRight": "Bottom Right"
       }
     },
     "local": {

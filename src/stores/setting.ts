@@ -5,11 +5,16 @@ import { AiConfig, baseAiConfig } from '@/lib/ai.types'
 import { LOG_MODULES } from '@/utils/logger.config'
 import { logger } from '@/utils/logger'
 
+export type ToastPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+
+
 export const useSettingStore = defineStore('setting', () => {
     // state
     const theme = ref<'light' | 'dark' | 'system'>('system')
     const locale = ref<string>('zh')
     const uiScale = ref<number>(100)
+    const toastPosition = ref<ToastPosition>('bottom-right')
+
 
     // 系统偏好状态
     const preferDarkQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
@@ -72,6 +77,10 @@ export const useSettingStore = defineStore('setting', () => {
 
             const savedUiScale = await tauriGet<number>('uiScale')
             if (savedUiScale) uiScale.value = savedUiScale
+
+            const savedToastPosition = await tauriGet<ToastPosition>('toastPosition')
+            if (savedToastPosition) toastPosition.value = savedToastPosition
+
 
             // AI Models
             const savedAiModelList = await tauriGet<AiConfig[]>('aiModelList')
@@ -157,6 +166,12 @@ export const useSettingStore = defineStore('setting', () => {
         uiScale.value = s
         await tauriSet('uiScale', s)
     }
+
+    async function setToastPosition(p: ToastPosition) {
+        toastPosition.value = p
+        await tauriSet('toastPosition', p)
+    }
+
 
     // AI Actions
     async function setAiModelList(list: AiConfig[]) {
@@ -251,7 +266,9 @@ export const useSettingStore = defineStore('setting', () => {
         effectiveTheme,
         locale,
         uiScale,
+        toastPosition,
         aiModelList,
+
         primaryModel,
         embeddingModel,
         rerankModel,
@@ -268,7 +285,9 @@ export const useSettingStore = defineStore('setting', () => {
         setTheme,
         setLocale,
         setUiScale,
+        setToastPosition,
         setAiModelList,
+
         updateAiModel,
         setPrimaryModel,
         setEmbeddingModel,
