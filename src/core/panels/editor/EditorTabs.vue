@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { useWorkspaceLayoutStore } from '@/stores/workspaceLayout';
-import { X, Split, Layout, ChevronDown } from 'lucide-vue-next';
+import { X, ChevronDown } from 'lucide-vue-next';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-  ContextMenuSeparator
 } from '@/components/ui/context-menu';
 import {
   DropdownMenu,
@@ -44,12 +43,6 @@ const handleCloseTab = (e: Event, tabId: string) => {
   }
 };
 
-const handleSplit = (direction: 'horizontal' | 'vertical') => {
-  if (activeGroup.value) {
-    logger.editor.debug(`[EditorTabs] split tab`);
-    layoutStore.split(activeGroup.value.id, direction);
-  }
-};
 
 // 计算可见和溢出的标签
 const tabVisibility = computed(() => {
@@ -152,15 +145,6 @@ const setTabRef = (el: any, index: number) => {
             <span class="truncate text-[11px] font-medium">{{ tab.title }}</span>
           </ContextMenuTrigger>
           <ContextMenuContent>
-            <ContextMenuItem @select="handleSplit('vertical')">
-              <Split class="mr-2 h-4 w-4" />
-              向右分屏
-            </ContextMenuItem>
-            <ContextMenuItem @select="handleSplit('horizontal')">
-              <Layout class="mr-2 h-4 w-4" />
-              向下分屏
-            </ContextMenuItem>
-            <ContextMenuSeparator />
             <ContextMenuItem @select="handleCloseTab($event, tab.id)">
               <X class="mr-2 h-4 w-4" />
               关闭标签页

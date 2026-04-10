@@ -4,8 +4,6 @@ import { v4 as uuid } from 'uuid'
 import { basename } from '@tauri-apps/api/path'
 import { logger } from '@/utils/logger'
 
-export type LayoutDirection = 'horizontal' | 'vertical'
-
 export interface Tab {
   id: string
   path: string
@@ -19,94 +17,48 @@ export interface EditorGroup {
   activeTabId: string | null
 }
 
-export interface SplitNode {
-  type: 'split'
-  id: string
-  direction: LayoutDirection
-  children: LayoutNode[]
-}
-
-export type LayoutNode = EditorGroup | SplitNode
+export type LayoutNode = EditorGroup
 
 export const useWorkspaceLayoutStore = defineStore('workspaceLayout', () => {
-  // 根节点，初始为一个空的编辑器组
-  const rootNode = ref<LayoutNode>({
+  // 根节点，固定为一个编辑器组
+  const rootNode = ref<EditorGroup>({
     type: 'group',
     id: uuid(),
     tabs: [],
     activeTabId: null
   })
 
-  // 当前激活的编辑器组 ID
-  const activeGroupId = ref<string>(rootNode.value.id)
+  // 获取当前激活的组 (现在只有一个组，所以直接返回 rootNode)
+  const activeGroup = computed(() => rootNode.value)
 
-  // 递归查找特定的编辑器组
-  function findGroupById(node: LayoutNode, id: string): EditorGroup | null {
-    if (node.type === 'group') {
-      return node.id === id ? (node as EditorGroup) : null
-    }
-    for (const child of node.children) {
-      const found = findGroupById(child, id)
-      if (found) return found
-    }
-    return null
-  }
-
-  // 获取当前激活的组
-  const activeGroup = computed(() => {
-    return findGroupById(rootNode.value, activeGroupId.value)
-  })
+  // 为了兼容旧代码，保留 activeGroupId 但它现在始终指向 rootNode.id
+  const activeGroupId = computed(() => rootNode.value.id)
 
   // 获取当前激活的文章路径
   const activeFilePath = computed(() => {
-    const group = activeGroup.value
-    if (!group || !group.activeTabId) return null
+    const group = rootNode.value
+    if (!group.activeTabId) return null
     const tab = group.tabs.find(t => t.id === group.activeTabId)
     return tab ? tab.path : null
   })
 
   // 设置激活组
-  function setActiveGroup(groupId: string) {
-    logger.editor.debug(`[WorkspaceLayout] Setting active group: ${groupId}`)
-    activeGroupId.value = groupId
+  function setActiveGroup(_groupId: string) {
+    // 只有一个组，无需操作
   }
 
   // 打开文件
-  async function openFile(path: string, options?: { newTab?: boolean, targetGroupId?: string }) {
+  async function openFile(path: string, options?: { newTab?: boolean }) {
     const newTab = options?.newTab ?? false
-    const groupId = options?.targetGroupId || activeGroupId.value
-    logger.editor.debug(`[WorkspaceLayout] openFile: ${path} (newTab: ${newTab}) in group: ${groupId}`)
+    logger.editor.debug(`[WorkspaceLayout] openFile: ${path} (newTab: ${newTab})`)
     
-    let group = findGroupById(rootNode.value, groupId)
-    
-    // 如果找不到指定的组，或者根节点不是组且没找到，默认用第一个找到的组
-    if (!group) {
-        logger.editor.warn(`[WorkspaceLayout] Group ${groupId} not found, searching for first available group`)
-        const firstGroup = (function findFirstGroup(node: LayoutNode): EditorGroup | null {
-            if (node.type === 'group') return node;
-            for (const child of node.children) {
-                const g = findFirstGroup(child);
-                if (g) return g;
-            }
-            return null;
-        })(rootNode.value);
-        
-        if (firstGroup) {
-            group = firstGroup;
-            activeGroupId.value = group.id;
-            logger.editor.debug(`[WorkspaceLayout] Found fallback group: ${group.id}`)
-        } else {
-            logger.editor.error(`[WorkspaceLayout] No editor group available in tree!`)
-            return; 
-        }
-    }
+    const group = rootNode.value
 
     // 检查文件是否已经在该组的标签页中
     const existingTab = group.tabs.find(t => t.path === path)
     if (existingTab) {
       logger.editor.debug(`[WorkspaceLayout] File already open in tab: ${existingTab.id}, switching to it`)
       group.activeTabId = existingTab.id
-      activeGroupId.value = group.id
       return
     }
 
@@ -117,7 +69,7 @@ export const useWorkspaceLayoutStore = defineStore('workspaceLayout', () => {
         const title = await basename(path)
         const oldId = group.tabs[activeIndex].id
         const replacementTab: Tab = {
-          id: uuid(), // 更换 ID 以强制编辑器组件完全重挂载（解决 MD 编辑器状态残留问题）
+          id: uuid(),
           path,
           title
         }
@@ -138,16 +90,12 @@ export const useWorkspaceLayoutStore = defineStore('workspaceLayout', () => {
 
     group.tabs.push(newTabObj)
     group.activeTabId = newTabObj.id
-    activeGroupId.value = group.id
     logger.editor.debug(`[WorkspaceLayout] Opened new tab ${newTabObj.id} for path ${path}`)
   }
 
   // 关闭标签页
-  function closeTab(tabId: string, groupId: string) {
-    logger.editor.debug(`[WorkspaceLayout] closeTab: ${tabId} from group ${groupId}`)
-    const group = findGroupById(rootNode.value, groupId)
-    if (!group) return
-
+  function closeTab(tabId: string, _groupId: string) {
+    const group = rootNode.value
     const index = group.tabs.findIndex(t => t.id === tabId)
     if (index === -1) return
 
@@ -163,51 +111,9 @@ export const useWorkspaceLayoutStore = defineStore('workspaceLayout', () => {
     }
   }
 
-  // 进行分屏
-  async function split(groupId: string, direction: LayoutDirection) {
-    logger.editor.debug(`[WorkspaceLayout] split: group ${groupId} direction ${direction}`)
-    
-    function replaceNode(current: LayoutNode, targetId: string, newNode: LayoutNode): boolean {
-      if (current.id === targetId) return true
-      
-      if (current.type === 'split') {
-        const index = current.children.findIndex(c => c.id === targetId)
-        if (index !== -1) {
-          current.children[index] = newNode
-          return true
-        }
-        for (const child of current.children) {
-          if (replaceNode(child, targetId, newNode)) return true
-        }
-      }
-      return false
-    }
-
-    const group = findGroupById(rootNode.value, groupId)
-    if (!group) return
-
-    const newGroupId = uuid()
-    const newGroup: EditorGroup = {
-      type: 'group',
-      id: newGroupId,
-      tabs: [...group.tabs],
-      activeTabId: group.activeTabId
-    }
-
-    const splitNode: SplitNode = {
-      type: 'split',
-      id: uuid(),
-      direction,
-      children: [{ ...group }, newGroup]
-    }
-
-    if (rootNode.value.id === groupId) {
-      rootNode.value = splitNode
-    } else {
-      replaceNode(rootNode.value, groupId, splitNode)
-    }
-
-    activeGroupId.value = newGroupId
+  // 为了兼容旧代码提供 findGroupById
+  function findGroupById(_node: any, _id: string): EditorGroup {
+    return rootNode.value
   }
 
   return {
@@ -218,7 +124,6 @@ export const useWorkspaceLayoutStore = defineStore('workspaceLayout', () => {
     setActiveGroup,
     openFile,
     closeTab,
-    split,
     findGroupById
   }
 })
