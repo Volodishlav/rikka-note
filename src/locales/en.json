@@ -234,11 +234,45 @@
         "topRight": "Top Right",
         "bottomLeft": "Bottom Left",
         "bottomRight": "Bottom Right"
-      },
-      "editor": {
-        "title": "Editor",
-        "emptyBackground": "Show Dynamic Background on Empty State",
-        "emptyBackgroundDesc": "Whether to show the animated dynamic background pattern when no note is opened."
+      }
+    },
+    "editor": {
+      "title": "Editor",
+      "emptyBackground": "Show Dynamic Background on Empty State",
+      "emptyBackgroundDesc": "Whether to show the animated dynamic background pattern when no note is opened.",
+      "toolbar": {
+        "title": "Toolbar Configuration",
+        "description": "Select the toolbar items to be displayed at the top of the editor.",
+        "items": {
+          "bold": "Bold",
+          "italic": "Italic",
+          "underline": "Underline",
+          "strikethrough": "Strikethrough",
+          "title": "Title",
+          "sub": "Subscript",
+          "sup": "Superscript",
+          "quote": "Quote",
+          "unorderedList": "Unordered List",
+          "orderedList": "Ordered List",
+          "task": "Task List",
+          "codeRow": "Inline Code",
+          "code": "Code Block",
+          "link": "Link",
+          "image": "Image",
+          "table": "Table",
+          "mermaid": "Mermaid",
+          "katex": "KaTeX",
+          "revoke": "Undo",
+          "next": "Redo",
+          "save": "Save",
+          "prettier": "Format",
+          "pageFullscreen": "Page Fullscreen",
+          "fullscreen": "Fullscreen",
+          "preview": "Real-time Preview",
+          "previewOnly": "Preview Only",
+          "htmlPreview": "HTML Preview",
+          "catalog": "Catalog"
+        }
       }
     },
     "local": {

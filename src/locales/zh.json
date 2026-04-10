@@ -234,11 +234,45 @@
         "topRight": "右上",
         "bottomLeft": "左下",
         "bottomRight": "右下"
-      },
-      "editor": {
-        "title": "编辑器",
-        "emptyBackground": "显示空状态动态背景",
-        "emptyBackgroundDesc": "在未打开任何笔记时，是否显示带有动画的动态背景图案。"
+      }
+    },
+    "editor": {
+      "title": "编辑器",
+      "emptyBackground": "显示空状态动态背景",
+      "emptyBackgroundDesc": "在未打开任何笔记时，是否显示带有动画的动态背景图案。",
+      "toolbar": {
+        "title": "工具栏配置",
+        "description": "选择在编辑器顶部显示的工具栏项目。",
+        "items": {
+          "bold": "加粗",
+          "italic": "斜体",
+          "underline": "下划线",
+          "strikethrough": "中划线",
+          "title": "标题",
+          "sub": "下标",
+          "sup": "上标",
+          "quote": "引用",
+          "unorderedList": "无序列表",
+          "orderedList": "有序列表",
+          "task": "任务列表",
+          "codeRow": "行内代码",
+          "code": "代码块",
+          "link": "链接",
+          "image": "图片",
+          "table": "表格",
+          "mermaid": "Mermaid",
+          "katex": "KaTeX",
+          "revoke": "撤销",
+          "next": "重做",
+          "save": "保存",
+          "prettier": "格式化",
+          "pageFullscreen": "页面全屏",
+          "fullscreen": "全屏",
+          "preview": "实时预览",
+          "previewOnly": "仅预览",
+          "htmlPreview": "HTML 预览",
+          "catalog": "目录"
+        }
       }
     },
     "local": {

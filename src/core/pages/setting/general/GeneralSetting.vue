@@ -52,17 +52,6 @@
         </Button>
       </div>
     </div>
-    <!-- 编辑器设置 -->
-    <div class="space-y-4">
-      <h3 class="text-lg font-medium">{{ t('settings.general.editor.title') }}</h3>
-      <div class="flex items-center justify-between border rounded-lg p-4 bg-muted/50">
-        <div class="space-y-0.5">
-          <label class="text-sm font-medium">{{ t('settings.general.editor.emptyBackground') }}</label>
-          <p class="text-[13px] text-muted-foreground">{{ t('settings.general.editor.emptyBackgroundDesc') }}</p>
-        </div>
-        <Switch v-model="editorBgModel" />
-      </div>
-    </div>
   </div>
 
 </template>
@@ -84,21 +73,11 @@ import { logger } from '@/utils/logger'
 const { t, locale, changeLocale } = useI18n()
 const { theme, setTheme } = useTheme()
 const settingStore = useSettingStore()
-const { toastPosition, showEditorBackground } = storeToRefs(settingStore)
-const { setToastPosition, setShowEditorBackground } = settingStore
+const { toastPosition } = storeToRefs(settingStore)
+const { setToastPosition } = settingStore
 
 const currentLocale = computed(() => locale.value)
 
-const editorBgModel = computed({
-  get: () => {
-    logger.general.debug(`[GeneralSetting] editorBgModel get() called, current store value: ${showEditorBackground.value}`)
-    return showEditorBackground.value
-  },
-  set: (val) => {
-    logger.general.debug(`[GeneralSetting] editorBgModel set() called with value: ${val}`)
-    setShowEditorBackground(val)
-  }
-})
 
 
 

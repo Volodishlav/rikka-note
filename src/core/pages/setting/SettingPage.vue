@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <SidebarProvider>
     <div class="flex h-full w-full bg-background text-foreground overflow-hidden">
       <!-- Sidebar -->
@@ -74,6 +74,7 @@
           :active-tab="activeTab === 'developer:color' ? 'color' : 'debug'" 
         />
         <VisionSetting v-if="activeTab === 'vision'" />
+        <EditorSetting v-if="activeTab === 'editor'" />
       </main>
     </div>
   </SidebarProvider>
@@ -84,7 +85,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from '@/composables/useI18n'
 import { 
   BotMessageSquare, Drama, Settings, BookText, Code2, 
-  Shield, Laptop, ChevronRight, Eye
+  Shield, Laptop, ChevronRight, Eye, PencilLine
 } from 'lucide-vue-next'
 import { 
   Sidebar, SidebarContent, SidebarHeader, SidebarProvider,
@@ -103,6 +104,7 @@ import RagSetting from './rag/RagSetting.vue'
 import EncryptionSetting from './encryption/EncryptionSetting.vue'
 import DeveloperSetting from './developer/DeveloperSetting.vue'
 import VisionSetting from './vision/VisionSetting.vue'
+import EditorSetting from './editor/EditorSetting.vue'
 
 const { t } = useI18n()
 
@@ -127,6 +129,11 @@ const navItems = computed(() => [
     id: 'general',
     label: t('settings.general.title'),
     icon: Settings
+  },
+  {
+    id: 'editor',
+    label: t('settings.editor.title'),
+    icon: PencilLine
   },
   {
     id: 'local',

@@ -15,6 +15,12 @@ export const useSettingStore = defineStore('setting', () => {
     const uiScale = ref<number>(100)
     const toastPosition = ref<ToastPosition>('bottom-right')
     const showEditorBackground = ref<boolean>(true)
+    const editorToolbar = ref<string[]>([
+        'bold', 'italic', 'underline', 'strikethrough', 'title', 'sub', 'sup', 'quote',
+        'unorderedList', 'orderedList', 'task', 'codeRow', 'code', 'link', 'image',
+        'table', 'mermaid', 'katex', 'revoke', 'next', 'save', 'prettier',
+        'pageFullscreen', 'fullscreen', 'preview', 'previewOnly', 'htmlPreview', 'catalog'
+    ])
 
 
     // 系统偏好状态
@@ -83,8 +89,12 @@ export const useSettingStore = defineStore('setting', () => {
             if (savedToastPosition) toastPosition.value = savedToastPosition
 
             const savedShowEditorBackground = await tauriGet<boolean>('showEditorBackground')
-            logger.general.debug(`[settingStore] initSettingData: savedShowEditorBackground from Tauri: ${savedShowEditorBackground}`)
             if (savedShowEditorBackground !== undefined && savedShowEditorBackground !== null) showEditorBackground.value = savedShowEditorBackground
+
+            const savedEditorToolbar = await tauriGet<string[]>('editorToolbar')
+            if (savedEditorToolbar !== undefined && savedEditorToolbar !== null) {
+                editorToolbar.value = savedEditorToolbar
+            }
 
             // AI Models
             const savedAiModelList = await tauriGet<AiConfig[]>('aiModelList')
@@ -182,6 +192,11 @@ export const useSettingStore = defineStore('setting', () => {
         await tauriSet('showEditorBackground', val)
     }
 
+    async function setEditorToolbar(val: string[]) {
+        editorToolbar.value = val
+        await tauriSet('editorToolbar', val)
+    }
+
     // AI Actions
     async function setAiModelList(list: AiConfig[]) {
         aiModelList.value = list
@@ -277,6 +292,7 @@ export const useSettingStore = defineStore('setting', () => {
         uiScale,
         toastPosition,
         showEditorBackground,
+        editorToolbar,
         aiModelList,
 
         primaryModel,
@@ -297,6 +313,7 @@ export const useSettingStore = defineStore('setting', () => {
         setUiScale,
         setToastPosition,
         setShowEditorBackground,
+        setEditorToolbar,
         setAiModelList,
 
         updateAiModel,

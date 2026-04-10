@@ -104,12 +104,7 @@ const editorId = computed(() => `md-editor-${(props.id || uuid()).substring(0, 8
 const isDark = ref(document.documentElement.classList.contains('dark'));
 const isAnalyzing = ref(false);
 
-const toolbars = [
-  'bold', 'italic', 'underline', 'strikethrough', 'title', 'sub', 'sup', 'quote',
-  'unorderedList', 'orderedList', 'task', 'codeRow', 'code', 'link', 'image',
-  'table', 'mermaid', 'katex', 'revoke', 'next', 'save', 'prettier',
-  'pageFullscreen', 'fullscreen', 'preview', 'previewOnly', 'htmlPreview', 'catalog'
-] as any;
+const toolbars = computed(() => [...settingStore.editorToolbar] as any);
 
 const observer = new MutationObserver((mutations) => {
   mutations.forEach((mutation) => {
