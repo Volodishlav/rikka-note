@@ -63,7 +63,7 @@ import { Check, History, Undo2 } from 'lucide-vue-next';
 import { useChatStore } from '@/stores/chat';
 import { type Chat } from '@/db/chats';
 import { useArticleStore } from '@/stores/article';
-import { toast } from '@/components/ui/toast/use-toast';
+import { useToast } from '@/composables/useToast';
 import { useI18n } from '@/composables/useI18n';
 import { logger } from '@/utils/logger';
 
@@ -78,6 +78,7 @@ const props = defineProps<{
 const chatStore = useChatStore();
 const articleStore = useArticleStore();
 const { t } = useI18n();
+const { success, error } = useToast();
 
 // 简单的行 DIFF 逻辑
 const diffLines = computed(() => {
@@ -134,11 +135,7 @@ const handleApply = async () => {
             if (originalFull.includes(target)) {
                 finalContent = originalFull.replace(target, props.proposed);
             } else {
-                toast({
-                    variant: 'destructive',
-                    title: '应用失败',
-                    description: '未能在文档中找到对应的原始文本片段。'
-                });
+                error('未能在文档中找到对应的原始文本片段。', '应用失败');
                 return;
             }
         }
@@ -146,17 +143,10 @@ const handleApply = async () => {
         await articleStore.saveCurrentArticle(finalContent);
         await updateMessageMetadata('applied');
         
-        toast({
-            title: '修改已应用',
-            description: '笔记已成功更新。'
-        });
+        success('笔记已成功更新。', '修改已应用');
     } catch (err) {
         logger.assistant.error('Failed to apply edit:', err);
-        toast({
-            variant: 'destructive',
-            title: '应用失败',
-            description: '写入文件时发生错误。'
-        });
+        error('写入文件时发生错误。', '应用失败');
     }
 };
 
@@ -174,11 +164,7 @@ const handleUndo = async () => {
             if (currentFull.includes(appliedText)) {
                 finalContent = currentFull.replace(appliedText, props.original);
             } else {
-                toast({
-                    variant: 'destructive',
-                    title: '回退失败',
-                    description: '已应用的文本内容在编辑器中已被手动修改或删除。'
-                });
+                error('已应用的文本内容在编辑器中已被手动修改或删除。', '回退失败');
                 return;
             }
         }
@@ -186,17 +172,10 @@ const handleUndo = async () => {
         await articleStore.saveCurrentArticle(finalContent);
         await updateMessageMetadata('suggestion');
         
-        toast({
-            title: '已回退修改',
-            description: '笔记内容已恢复。'
-        });
+        success('笔记内容已恢复。', '已回退修改');
     } catch (err) {
         logger.assistant.error('Failed to undo edit:', err);
-        toast({
-            variant: 'destructive',
-            title: '回退失败',
-            description: '操作过程中发生错误。'
-        });
+        error('操作过程中发生错误。', '回退失败');
     }
 };
 

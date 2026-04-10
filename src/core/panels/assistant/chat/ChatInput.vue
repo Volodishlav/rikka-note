@@ -116,7 +116,7 @@ import { getRetrievedDocs, type RetrievedDoc } from '@/lib/rag'
 import { logger } from '@/utils/logger'
 import { invoke } from '@tauri-apps/api/core'
 import { storeToRefs } from 'pinia'
-import { toast } from '@/components/ui/toast/use-toast'
+import { useToast } from '@/composables/useToast'
 import { useArticleStore } from '@/stores/article'
 import { useWorkspaceLayoutStore } from '@/stores/workspaceLayout'
 
@@ -131,6 +131,7 @@ const vectorStore = useVectorStore()
 const articleStore = useArticleStore()
 const layoutStore = useWorkspaceLayoutStore()
 const { t } = useI18n()
+const { info, error } = useToast()
 const { isRagEnabled, documentCount } = storeToRefs(vectorStore)
 
 const handleEnter = (e: KeyboardEvent) => {
@@ -165,16 +166,9 @@ const navigateToDoc = async (filename: string) => {
     
     if (match) {
       await layoutStore.openFile(match.path)
-      toast({
-        title: '已跳转至笔记',
-        description: `正在查看: ${filename}`,
-      })
+      info(`正在查看: ${filename}`, '已跳转至笔记')
     } else {
-      toast({
-        variant: 'destructive',
-        title: '跳转失败',
-        description: `未能在当前工作区找到文件: ${filename}`,
-      })
+      error(`未能在当前工作区找到文件: ${filename}`, '跳转失败')
     }
   } catch (err) {
     logger.assistant.error('Navigation failed:', err)
@@ -321,11 +315,7 @@ ${content.trim()}
     }
   } catch (e) {
     logger.assistant.error('Failed to perform send message', e)
-    toast({
-      variant: 'destructive',
-      title: '发送失败',
-      description: '请求 AI 时发生错误，请重试'
-    })
+    error('请求 AI 时发生错误，请重试', '发送失败')
   } finally {
     isSending.value = false
     input.value = ''

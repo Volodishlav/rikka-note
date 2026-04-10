@@ -157,13 +157,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ChartScatter, ListOrdered, RefreshCw, Trash2, Loader2 } from 'lucide-vue-next'
 import { Store } from '@tauri-apps/plugin-store'
 import { clearVectorDb, initVectorDb } from '@/db/vector'
-import { toast } from '@/components/ui/toast/use-toast'
+import { useToast } from '@/composables/useToast'
 import { ask } from '@tauri-apps/plugin-dialog'
 import { checkEmbeddingModelAvailable, checkRerankModelAvailable } from '@/lib/rag'
 
 const { t } = useI18n()
 const settingStore = useSettingStore()
 const vectorStore = useVectorStore()
+const { success, error, info } = useToast()
 
 // 辅助函数：处理模型切换类型
 const handleEmbeddingModelUpdate = (val: any) => {
@@ -234,7 +235,7 @@ const resetDefaults = async () => {
   await store.set('ragSimilarityThreshold', 0.7)
   await store.save()
   
-  toast({ description: t('settings.rag.resetSuccess') })
+  info(t('settings.rag.resetSuccess'))
 }
 
 const clearVector = async () => {
@@ -248,7 +249,7 @@ const clearVector = async () => {
     await initVectorDb()
     // Reset vector store count if needed
     vectorStore.documentCount = 0
-    toast({ description: t('settings.rag.deleteSuccess') })
+    info(t('settings.rag.deleteSuccess'))
   }
 }
 
@@ -259,12 +260,9 @@ const testEmbedding = async () => {
   isTesting.value = false
   
   if (result === true) {
-    toast({ description: t('settings.rag.testSuccess'), variant: 'success' })
+    success(t('settings.rag.testSuccess'))
   } else {
-    toast({ 
-      description: typeof result === 'string' ? result : t('settings.rag.testFailed'), 
-      variant: 'destructive' 
-    })
+    error(typeof result === 'string' ? result : t('settings.rag.testFailed'))
   }
 }
 
@@ -274,12 +272,9 @@ const testRerank = async () => {
   isTestingRerank.value = false
   
   if (result) {
-    toast({ description: t('settings.rag.testSuccess'), variant: 'success' })
+    success(t('settings.rag.testSuccess'))
   } else {
-    toast({ 
-      description: t('settings.rag.testFailed'), 
-      variant: 'destructive' 
-    })
+    error(t('settings.rag.testFailed'))
   }
 }
 

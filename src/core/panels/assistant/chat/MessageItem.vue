@@ -47,7 +47,7 @@ import { Button } from '@/components/ui/button'
 import { Copy } from 'lucide-vue-next'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
-import { useToast } from '@/components/ui/toast/use-toast'
+import { useToast } from '@/composables/useToast'
 import { useI18n } from '@/composables/useI18n'
 import { useChatStore } from '@/stores/chat'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
@@ -59,7 +59,7 @@ const props = defineProps<{
   message: Chat
 }>()
 
-const { toast } = useToast()
+const { success } = useToast()
 const { t } = useI18n()
 const chatStore = useChatStore()
 
@@ -136,7 +136,7 @@ const copyContent = async () => {
   if (props.message.content) {
     try {
       await writeText(props.message.content)
-      toast({ description: t('record.chat.message.copiedToClipboard') })
+      success(t('record.chat.message.copiedToClipboard'))
     } catch (e) {
       logger.assistant.error('Copy failed', e)
     }

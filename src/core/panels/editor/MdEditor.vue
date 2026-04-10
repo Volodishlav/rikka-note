@@ -89,12 +89,13 @@ import {convertFileSrc} from '@tauri-apps/api/core';
 import { logger } from '@/utils/logger';
 import {useSettingStore} from '@/stores/setting';
 import {fetchAiDescByImage} from '@/lib/ai';
-import {toast} from '@/components/ui/toast/use-toast';
+import { useToast } from '@/composables/useToast';
 
 const {t} = useI18n();
 const articleStore = useArticleStore();
 const chatStore = useChatStore();
 const settingStore = useSettingStore();
+const { info, success, error: toastError } = useToast();
 
 // 编辑器内容：初始化从缓冲区取值，或读取文件
 const text = ref('');
@@ -185,7 +186,7 @@ const onUploadImg = async (files: File[], callback: (urls: string[]) => void) =>
   try {
     const workspace = await getWorkspacePath();
     if (!workspace.path) {
-        toast({ title: t('common.error'), description: '未检测到活跃仓库。', variant: 'destructive' });
+        toastError('未检测到活跃仓库。', t('common.error'));
         return;
     }
 
@@ -233,7 +234,7 @@ const onUploadImg = async (files: File[], callback: (urls: string[]) => void) =>
 
 const triggerVlmAnalysis = async (base64: string, url: string) => {
     isAnalyzing.value = true;
-    toast({ title: t('settings.vision.status.analyzing'), description: t('settings.vision.status.analyzingDesc') });
+    info(t('settings.vision.status.analyzingDesc'), t('settings.vision.status.analyzing'));
     try {
         const desc = await fetchAiDescByImage(base64);
         if (desc) {
@@ -243,7 +244,7 @@ const triggerVlmAnalysis = async (base64: string, url: string) => {
                 text.value = text.value.replace(imgRegex, (match) => {
                     return `${match}\n\n> 💡 **${t('settings.vision.editor.prefix')}**: ${desc.trim()}`;
                 });
-                toast({ title: t('settings.vision.status.success'), description: t('settings.vision.status.successDesc') });
+                success(t('settings.vision.status.successDesc'), t('settings.vision.status.success'));
             }
         }
     } catch (err) {

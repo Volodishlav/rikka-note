@@ -51,6 +51,7 @@ async function validateAIService(baseURL: string | undefined): Promise<string | 
       title: 'AI 错误',
       description: '请先设置 AI 地址',
       variant: 'destructive',
+      duration: 1500,
     })
     return null
   }
@@ -72,6 +73,7 @@ export function handleAIError(error: any, showToast = true): string | null {
     toast({
       description: errorMessage || 'AI错误',
       variant: 'destructive',
+      duration: 1500,
     })
   }
   
@@ -593,6 +595,7 @@ export async function fetchAiDescByImage(base64: string) {
         title: i18n.global.t('settings.vision.status.configError'),
         description: i18n.global.t('settings.vision.status.configErrorDesc'),
         variant: 'destructive',
+        duration: 1500,
       })
       return null
     }

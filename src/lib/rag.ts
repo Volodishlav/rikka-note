@@ -595,5 +595,6 @@ export function showVectorProcessingToast(message: string) {
   toast({
     title: '向量数据库更新',
     description: message,
+    duration: 1500,
   });
 }

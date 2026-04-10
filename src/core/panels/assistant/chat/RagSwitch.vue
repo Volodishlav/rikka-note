@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/tooltip'
 import { useVectorStore } from '@/stores/vector'
 import { checkEmbeddingModelAvailable } from '@/lib/rag'
-import { toast } from '@/components/ui/toast/use-toast'
+import { useToast } from '@/composables/useToast'
 import { storeToRefs } from 'pinia'
 import { useI18n } from '@/composables/useI18n'
 
@@ -42,6 +42,7 @@ const vectorStore = useVectorStore()
 const { isRagEnabled, isVectorDbEnabled } = storeToRefs(vectorStore)
 const loading = ref(false)
 const { t } = useI18n()
+const { error } = useToast()
 
 const handleClick = async () => {
   if (isRagEnabled.value) {
@@ -54,10 +55,7 @@ const handleClick = async () => {
     loading.value = false
     
     if (result !== true) {
-      toast({
-        variant: "destructive",
-        description: typeof result === 'string' ? result : t('record.chat.rag.embeddingModelNotAvailable')
-      })
+      error(typeof result === 'string' ? result : t('record.chat.rag.embeddingModelNotAvailable'))
       return
     }
     

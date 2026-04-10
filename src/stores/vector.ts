@@ -9,7 +9,7 @@ import {
 } from '@/lib/rag';
 import { checkRerankModelAvailable } from '@/lib/ai';
 import { Store } from "@tauri-apps/plugin-store";
-import { toast } from "@/components/ui/toast/use-toast";
+import { useToast } from "@/composables/useToast";
 import {logger} from "@/utils/logger.ts";
 
 export const useVectorStore = defineStore('vector', () => {
@@ -20,6 +20,7 @@ export const useVectorStore = defineStore('vector', () => {
   const lastProcessTime = ref<number | null>(null);
   const hasRerankModel = ref(false);
   const documentCount = ref(0);
+  const { success, error, info } = useToast();
 
   // 检查嵌入模型可用性
   const checkEmbeddingModel = async () => {
@@ -60,11 +61,7 @@ export const useVectorStore = defineStore('vector', () => {
       if (enabled) {
         const modelAvailable = await checkEmbeddingModel();
         if (!modelAvailable) {
-          toast({
-            title: '向量数据库',
-            description: '未配置嵌入模型或模型不可用，请在AI设置中配置嵌入模型',
-            variant: 'destructive',
-          });
+          error('未配置嵌入模型或模型不可用，请在AI设置中配置嵌入模型', '向量数据库');
 
           // 自动禁用
           await store.set('isVectorDbEnabled', false);
@@ -124,11 +121,7 @@ export const useVectorStore = defineStore('vector', () => {
       // 检查嵌入模型是否可用
       const modelAvailable = await checkEmbeddingModel();
       if (!modelAvailable) {
-        toast({
-          title: '向量处理',
-          description: '未配置嵌入模型或模型不可用，请在AI设置中配置嵌入模型',
-          variant: 'destructive',
-        });
+        error('未配置嵌入模型或模型不可用，请在AI设置中配置嵌入模型', '向量处理');
         return;
       }
 
@@ -136,10 +129,7 @@ export const useVectorStore = defineStore('vector', () => {
       isProcessing.value = true;
 
       // 显示处理开始的提示
-      toast({
-        title: '向量处理',
-        description: '开始处理文档向量，这可能需要一些时间...',
-      });
+      info('开始处理文档向量，这可能需要一些时间...', '向量处理');
 
       // 处理所有文档
       const result = await processAllMarkdownFiles();
@@ -155,19 +145,12 @@ export const useVectorStore = defineStore('vector', () => {
       documentCount.value = result.success; // Note: result might not return total count in exact same structure, need to verify
 
       // 显示处理结果
-      toast({
-        title: '向量处理完成',
-        description: `成功处理 ${result.success} 个文档，失败 ${result.failed} 个文档。`,
-      });
+      success(`成功处理 ${result.success} 个文档，失败 ${result.failed} 个文档。`, '向量处理完成');
     } catch (error) {
       logger.rag.error('处理文档向量失败:', error);
       isProcessing.value = false;
 
-      toast({
-        title: '向量处理失败',
-        description: '处理文档向量时发生错误，请查看控制台日志',
-        variant: 'destructive',
-      });
+      error('处理文档向量时发生错误，请查看控制台日志', '向量处理失败');
     }
   };
 

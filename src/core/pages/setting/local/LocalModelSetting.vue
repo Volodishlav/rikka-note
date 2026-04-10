@@ -230,7 +230,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { toast } from '@/components/ui/toast/use-toast'
+import { useToast } from '@/composables/useToast'
 import { Switch } from '@/components/ui/switch'
 import { Download, Play, Square, RefreshCw, Bot, Settings2, Loader2, Cpu, CheckCircle2 } from 'lucide-vue-next'
 import { invoke } from '@tauri-apps/api/core'
@@ -239,6 +239,7 @@ import { logger } from '@/utils/logger'
 
 const { t } = useI18n()
 const settingStore = useSettingStore()
+const { success, error, info } = useToast()
 
 const localPort = ref(8080)
 const selectedModel = ref('qwen3-embedding-0.6b-q8_0.gguf')
@@ -355,7 +356,7 @@ onMounted(async () => {
          isDownloading.value = false
          isFileExists.value = true
          downloadProgress.value = 100
-         toast({ title: t('settings.rag.downloadComplete'), description: `${modelFilename.value} ${t('settings.rag.downloadSuccess')}` })
+         success(`${modelFilename.value} ${t('settings.rag.downloadSuccess')}`, t('settings.rag.downloadComplete'))
        }
     }
   })
@@ -384,11 +385,11 @@ onUnmounted(() => {
 const handleSwitchChange = async (val: boolean) => {
   await settingStore.setUseLocalEmbedding(val)
   if (val) {
-     toast({ description: t('settings.rag.localPriorityEnabled') })
+     info(t('settings.rag.localPriorityEnabled'))
      await checkLocalFile()
      await checkLocalLlama()
   } else {
-     toast({ description: t('settings.rag.cloudFallback') })
+     info(t('settings.rag.cloudFallback'))
   }
 }
 
@@ -457,14 +458,14 @@ const checkLocalFile = async (showToast: boolean = false) => {
     isFileExists.value = exists
     if (showToast) {
       if (exists) {
-        toast({ description: t('settings.rag.fileExist') })
+        info(t('settings.rag.fileExist'))
       } else {
-        toast({ variant: 'destructive', description: t('settings.rag.fileNotExist') })
+        error(t('settings.rag.fileNotExist'))
       }
     }
   } catch(e) {
     if (showToast) {
-      toast({ variant: 'destructive', description: `${e}` })
+      error(`${e}`)
     }
   }
 }
@@ -475,14 +476,14 @@ const checkLocalLlama = async (showToast: boolean = false) => {
     isEngineExists.value = exists
     if (showToast) {
       if (exists) {
-        toast({ description: t('settings.rag.engineReadyToast') })
+        info(t('settings.rag.engineReadyToast'))
       } else {
-        toast({ variant: 'destructive', description: t('settings.rag.engineNotFoundToast') })
+        error(t('settings.rag.engineNotFoundToast'))
       }
     }
   } catch(e) {
     if (showToast) {
-      toast({ variant: 'destructive', description: `${e}` })
+      error(`${e}`)
     }
   }
 }
@@ -498,14 +499,14 @@ const downloadEngine = async () => {
   
   try {
     logger.ai.info('Starting engine download:', { urls: targetEngine.urls })
-    toast({ title: t('settings.rag.engineDownloadStartToast'), description: t('settings.rag.engineDownloadStartDesc') })
+    info(t('settings.rag.engineDownloadStartDesc'), t('settings.rag.engineDownloadStartToast'))
     await invoke<string>('download_and_extract_llama_cpp', { urls: targetEngine.urls })
     isEngineExists.value = true
     logger.ai.info('Engine download & extraction successful')
-    toast({ title: t('settings.rag.engineDownloadSuccessToast'), description: t('settings.rag.engineDownloadSuccessDesc') })
+    success(t('settings.rag.engineDownloadSuccessDesc'), t('settings.rag.engineDownloadSuccessToast'))
   } catch (e: any) {
     logger.ai.error('Engine download failed:', e)
-    toast({ variant: 'destructive', title: t('settings.rag.configFailed'), description: `${e}` })
+    error(`${e}`, t('settings.rag.configFailed'))
   } finally {
     isEngineDownloading.value = false
   }
@@ -524,7 +525,7 @@ const downloadModel = async () => {
     logger.ai.info('Model download started/scheduled successfuly')
   } catch (e: any) {
     logger.ai.error('Model download failed:', e)
-    toast({ variant: 'destructive', description: `下载失败: ${e}` })
+    error(`下载失败: ${e}`)
   } finally {
     isDownloading.value = false
   }
@@ -542,14 +543,14 @@ const startServer = async () => {
       isServerRunning.value = true
       isStarting.value = false
       logger.ai.info('Llama server ready signal received')
-      toast({ description: t('settings.rag.serverStarted') })
+      success(t('settings.rag.serverStarted'))
       if (unlistenReady) { unlistenReady(); unlistenReady = null }
       if (unlistenError) { unlistenError(); unlistenError = null }
     })
     
     unlistenError = await listen('llama-server-error', (event: any) => {
        isStarting.value = false
-       toast({ variant: 'destructive', description: `引擎装载异常: ${event.payload}` })
+       error(`引擎装载异常: ${event.payload}`)
        logger.ai.error('Llama server load error:', event.payload)
        if (unlistenReady) { unlistenReady(); unlistenReady = null }
        if (unlistenError) { unlistenError(); unlistenError = null }
@@ -562,7 +563,7 @@ const startServer = async () => {
     // NOTE: UI state is updated only through the event listeners or checkServerStatus polling now
   } catch(e: any) {
     logger.ai.error('Failed to start llama server:', e)
-    toast({ variant: 'destructive', description: `启动失败: ${e}` })
+    error(`启动失败: ${e}`)
     isStarting.value = false
     if (unlistenReady) { unlistenReady(); unlistenReady = null }
     if (unlistenError) { unlistenError(); unlistenError = null }
@@ -573,7 +574,7 @@ const stopServer = async () => {
   try {
     await invoke<string>('stop_llama_server')
     isServerRunning.value = false
-    toast({ description: t('settings.rag.serverStopped') })
+    info(t('settings.rag.serverStopped'))
   } catch(e) {
     logger.ai.error('Stop err', e)
   }
