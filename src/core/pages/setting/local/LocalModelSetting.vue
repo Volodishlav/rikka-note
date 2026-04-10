@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="space-y-6">
     <!-- Header: 标题、描述 -->
     <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b">
@@ -12,18 +12,14 @@
     <div class="flex flex-wrap items-center gap-4 shrink-0">
       <!-- 启用开关 (Switch 样式) -->
       <div class="flex items-center gap-3 bg-muted/40 px-4 py-2 rounded-xl border border-border/50 hover:bg-muted/60 transition-colors shadow-sm">
-        <label class="relative inline-flex items-center cursor-pointer group">
-          <input
-              type="checkbox"
-              class="sr-only peer"
-              :checked="settingStore.useLocalEmbedding"
-              @change="onSwitchChange"
-          />
-          <div class="w-11 h-6 bg-muted-foreground/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary group-hover:opacity-90"></div>
-        </label>
-        <span class="text-sm font-medium text-foreground/90 select-none cursor-pointer" @click="handleSwitchToggle">
-            {{ t('settings.rag.localModelEnabled') }}
-          </span>
+        <Switch
+            id="local-embedding-switch"
+            :model-value="settingStore.useLocalEmbedding"
+            @update:model-value="handleSwitchChange"
+        />
+        <Label for="local-embedding-switch" class="text-sm font-medium text-foreground/90 select-none cursor-pointer">
+          {{ t('settings.rag.localModelEnabled') }}
+        </Label>
       </div>
 
       <!-- 服务控制按钮 -->
@@ -235,6 +231,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast/use-toast'
+import { Switch } from '@/components/ui/switch'
 import { Download, Play, Square, RefreshCw, Bot, Settings2, Loader2, Cpu, CheckCircle2 } from 'lucide-vue-next'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
@@ -402,14 +399,6 @@ const updatePort = async () => {
   }
 }
 
-const onSwitchChange = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  handleSwitchChange(target.checked)
-}
-
-const handleSwitchToggle = () => {
-  handleSwitchChange(!settingStore.useLocalEmbedding)
-}
 
 const onModelSelect = (val: any) => {
   if (val === null || val === undefined || typeof val === 'boolean') return
