@@ -17,9 +17,18 @@ import { OcrCapture } from '@/core/pages/ocr'
 import OcrScreenSelector from '@/core/pages/ocr/OcrScreenSelector.vue'
 import { useWorkspaceLayoutStore } from '@/stores/workspaceLayout'
 import { logger } from '@/utils/logger';
+import { computed } from 'vue';
 
 const layoutStore = useLayoutStore()
 const workspaceLayoutStore = useWorkspaceLayoutStore()
+
+// 当设置页面开启，或编辑器与侧边栏同时开启时，背景实际上已被完全遮挡
+const isBackgroundCovered = computed(() => {
+  if (layoutStore.isSettingPageVisible) return true;
+  // 如果左侧/右侧边栏和编辑器同时打开，背景已无暴露空间
+  return layoutStore.isEditorVisible && (layoutStore.isLeftSidebarVisible || layoutStore.isRightSidebarVisible);
+})
+
 const ocrCaptureRef = ref<any>(null)
 
 /**
@@ -39,7 +48,7 @@ const handleSelectionDone = (bytes: number[]) => {
     <title-bar></title-bar>
     <div class="flex-1 overflow-hidden relative bg-background">
       <!-- 1. 全局底层背景动画 -->
-      <Start class="absolute inset-0 z-0" />
+      <Start class="absolute inset-0 z-0" :paused="isBackgroundCovered" />
       
       <!-- 2. 全局径向渐变模糊遮罩 (控制模糊层级在动画之上) -->
       <div
