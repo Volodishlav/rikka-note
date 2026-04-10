@@ -109,7 +109,7 @@ onUnmounted(() => {
 
     <!-- 中间标签页区域 -->
     <div data-tauri-drag-region class="tabs-area h-full flex items-center min-w-0 overflow-hidden">
-      <EditorTabs />
+      <EditorTabs v-if="!layoutStore.isSettingPageVisible" />
     </div>
 
     <!-- 控制按钮组（使用Vue原生@click绑定） -->
