@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {getCurrentWindow} from '@tauri-apps/api/window';
-import {onMounted, onUnmounted, ref} from 'vue';
+import {onMounted, onUnmounted, ref, computed} from 'vue';
 import ArtTitle from "@/shared/components/ArtTitle.vue";
 import { useLayoutStore } from '@/stores/layout';
 import EditorTabs from '@/core/panels/editor/EditorTabs.vue';
@@ -13,6 +13,12 @@ const layoutStore = useLayoutStore();
 const appWindow = getCurrentWindow();
 // 响应式跟踪窗口最大化状态
 const isMaximized = ref(false);
+// 检查是否有任何主面板可见（左侧、编辑器、右侧）
+const isAnyPanelVisible = computed(() =>
+    layoutStore.isLeftSidebarVisible ||
+    layoutStore.isEditorVisible ||
+    layoutStore.isRightSidebarVisible
+);
 // 存储监听器引用，用于组件卸载时清理
 let maximizeListener: (() => void) | null = null;
 let unmaximizeListener: (() => void) | null = null;
@@ -109,7 +115,7 @@ onUnmounted(() => {
 
     <!-- 中间标签页区域 -->
     <div data-tauri-drag-region class="tabs-area h-full flex items-center min-w-0 overflow-hidden">
-      <EditorTabs v-if="!layoutStore.isSettingPageVisible" />
+      <EditorTabs v-if="!layoutStore.isSettingPageVisible && isAnyPanelVisible" />
     </div>
 
     <!-- 控制按钮组（使用Vue原生@click绑定） -->
