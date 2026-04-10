@@ -200,6 +200,30 @@
   ol {
     @apply list-decimal;
   }
+
+  /* Toast 列表动画 */
+  .toast-list-move,
+  .toast-list-enter-active,
+  .toast-list-leave-active {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .toast-list-enter-from {
+    opacity: 0;
+    transform: translateY(100%); /* 默认从轴向进入，会被 Toast 自身的 tailwind 动画覆盖或结合 */
+  }
+
+  .toast-list-leave-to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  /* 使得离开的元素脱离文档流，从而触发 move 动画 */
+  .toast-list-leave-active {
+    position: absolute;
+    width: 100%;
+    max-width: inherit;
+  }
 }
 
 /**
