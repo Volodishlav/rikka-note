@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="space-y-6">
     <!-- 内容区域 -->
 
@@ -130,6 +130,11 @@
         </div>
       </div>
     </div>
+
+    <!-- RAG Evaluation Tab -->
+    <div v-if="activeTab === 'evaluation'" class="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <RagEvaluation />
+    </div>
   </div>
 </template>
 
@@ -146,6 +151,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import ColorSection from './ColorSection.vue'
+import RagEvaluation from './RagEvaluation.vue'
 import { LOG_MODULES } from '@/utils/logger.config'
 
 const { t } = useI18n()
@@ -159,7 +165,7 @@ const handleLogLevelUpdate = (val: string | number | boolean | null | undefined 
 }
 
 const props = defineProps<{
-  activeTab?: 'color' | 'debug'
+  activeTab?: 'color' | 'debug' | 'evaluation'
 }>()
 
 // Tab Logic

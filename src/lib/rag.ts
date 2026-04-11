@@ -598,3 +598,48 @@ export function showVectorProcessingToast(message: string) {
     duration: 1500,
   });
 }
+
+/**
+ * 检索性能指标
+ */
+export interface RetrievalMetrics {
+  totalLatencyMs: number
+  vectorCount: number
+  fuzzyCount: number
+  rerankApplied: boolean
+}
+
+/**
+ * 带性能指标采集的检索包装函数
+ * 内部调用 getRetrievedDocs() 并附加各阶段耗时与命中统计
+ */
+export async function getRetrievedDocsWithMetrics(
+  query: string,
+  keywords: Keyword[]
+): Promise<{ docs: RetrievedDoc[], metrics: RetrievalMetrics }> {
+  const startTime = performance.now()
+
+  const docs = await getRetrievedDocs(query, keywords)
+
+  const endTime = performance.now()
+
+  // 从结果中统计各类型命中数
+  const vectorCount = docs.filter(d => d.type === 'vector').length
+  const fuzzyCount = docs.filter(d => d.type === 'fuzzy').length
+  const rerankApplied = docs.some(d => d.type === 'rerank')
+
+  const metrics: RetrievalMetrics = {
+    totalLatencyMs: Math.round(endTime - startTime),
+    vectorCount,
+    fuzzyCount,
+    rerankApplied
+  }
+
+  logger.rag.debug(
+    `检索完成 — 耗时: ${metrics.totalLatencyMs}ms, ` +
+    `向量: ${vectorCount}, 模糊: ${fuzzyCount}, Rerank: ${rerankApplied}`
+  )
+
+  return { docs, metrics }
+}
+

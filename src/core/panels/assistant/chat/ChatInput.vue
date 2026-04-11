@@ -119,6 +119,7 @@ import { storeToRefs } from 'pinia'
 import { useToast } from '@/composables/useToast'
 import { useArticleStore } from '@/stores/article'
 import { useWorkspaceLayoutStore } from '@/stores/workspaceLayout'
+import { useEvaluationStore } from '@/stores/evaluation'
 
 const input = ref('')
 const isSending = ref(false)
@@ -132,6 +133,7 @@ const articleStore = useArticleStore()
 const layoutStore = useWorkspaceLayoutStore()
 const { t } = useI18n()
 const { info, error } = useToast()
+const evalStore = useEvaluationStore()
 const { isRagEnabled, documentCount } = storeToRefs(vectorStore)
 
 const handleEnter = (e: KeyboardEvent) => {
@@ -312,6 +314,12 @@ ${content.trim()}
       }, true)
 
       logger.assistant.debug('--- AI Request Completed ---')
+
+      // 8. 后台异步 RAG 评估（不阻塞用户体验）
+      if (docs.length > 0 && fullContent) {
+        const contexts = docs.map(d => d.content)
+        evalStore.evaluateInBackground(content, fullContent, contexts).catch(() => {})
+      }
     }
   } catch (e) {
     logger.assistant.error('Failed to perform send message', e)

@@ -61,6 +61,12 @@ export const LOG_MODULES: LogModuleConfig[] = [
     files: ['RootLayout.vue', 'App.vue', 'main.ts', 'db/index.ts', 'utils/tauriStore.ts', 'stores/setting.ts', 'stores/layout.ts']
   },
   {
+    id: 'evaluation',
+    color: '#14b8a6', // teal
+    defaultEnabled: true,
+    files: ['rag-evaluator.ts', 'benchmark-generator.ts', 'benchmark-runner.ts', 'eval-storage.ts', 'RagEvaluation.vue']
+  },
+  {
     id: 'default',
     color: '#6366f1', // indigo
     defaultEnabled: true,

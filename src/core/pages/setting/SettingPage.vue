@@ -71,7 +71,7 @@
         <EncryptionSetting v-if="activeTab === 'encryption'" />
         <DeveloperSetting 
           v-if="activeTab.startsWith('developer')" 
-          :active-tab="activeTab === 'developer:color' ? 'color' : 'debug'" 
+          :active-tab="activeTab === 'developer:color' ? 'color' : activeTab === 'developer:evaluation' ? 'evaluation' : 'debug'" 
         />
         <VisionSetting v-if="activeTab === 'vision'" />
         <EditorSetting v-if="activeTab === 'editor'" />
@@ -172,6 +172,7 @@ const navItems = computed(() => [
     subItems: [
       { id: 'developer:color', label: t('settings.developer.tabs.color') },
       { id: 'developer:debug', label: t('settings.developer.tabs.debug') },
+      { id: 'developer:evaluation', label: t('settings.developer.tabs.evaluation') },
     ]
   }
 ])
