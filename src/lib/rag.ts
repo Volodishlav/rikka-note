@@ -37,26 +37,27 @@ export async function chunkText(
  * 处理单个Markdown文件，计算向量并存储到数据库
  */
 export async function processMarkdownFile(
-  filePath: string, 
+  relativeFilePath: string, 
   fileContent?: string
 ): Promise<boolean> {
   try {
-    const workspace = await getWorkspacePath()
     let content: string
-    if (workspace.isCustom) {
-      content = fileContent || await readTextFile(filePath)
+    if (fileContent) {
+      content = fileContent
     } else {
-      const { path, baseDir } = await getFilePathOptions(filePath)
-      content = fileContent || await readTextFile(path, { baseDir })
+      // 统一使用项目标准的路径解析逻辑
+      const { path: resolvedPath, baseDir } = await getFilePathOptions(relativeFilePath)
+      content = await readTextFile(resolvedPath, { baseDir })
     }
+    
     const store = await Store.load('store.json')
     const chunkSize = await store.get<number>('ragChunkSize') || 1000;
     const chunkOverlap = await store.get<number>('ragChunkOverlap') || 200;
     const enableSemantic = await store.get<boolean>('ragEnableSemantic') || false;
     const semanticThreshold = await store.get<number>('ragSemanticThreshold') || 0.7;
     
-    const relativePath = await toWorkspaceRelativePath(filePath);
-    const filename = relativePath;
+    // 数据库中统一存储逻辑相对路径作为 filename
+    const filename = relativeFilePath;
     
     const chunks = await chunkText(content, {
       chunkSize,
@@ -93,7 +94,7 @@ export async function processMarkdownFile(
     
     return true;
   } catch (error) {
-    logger.rag.error(`处理文件 ${filePath} 失败:`, error);
+    logger.rag.error(`处理文件 ${relativeFilePath} 失败:`, error);
     return false;
   }
 }
@@ -178,9 +179,9 @@ export async function processAllMarkdownFiles(): Promise<{
       for (const item of tree) {
         if (item.isFile && item.name.endsWith('.md')) {
           result.total++;
-          // 获取完整路径
-          const filePath = await getFilePath(item);
-          const success = await processMarkdownFile(filePath);
+          // 获取逻辑路径（相对路径）
+          const logicalPath = getLogicalPath(item);
+          const success = await processMarkdownFile(logicalPath);
           if (success) {
             result.success++;
           } else {
@@ -203,25 +204,18 @@ export async function processAllMarkdownFiles(): Promise<{
 }
 
 /**
- * 根据DirTree项获取完整文件路径
+ * 根据 DirTree 项获取逻辑上的相对路径（作为系统内的唯一标识）
  */
-async function getFilePath(item: DirTree): Promise<string> {
-  const workspace = await getWorkspacePath();
-  let path = item.name;
-  let parent = item.parent;
+function getLogicalPath(item: DirTree): string {
+  const parts: string[] = []
+  let current: DirTree | undefined = item
   
-  // 构建相对路径
-  while (parent) {
-    path = `${parent.name}/${path}`;
-    parent = parent.parent;
+  while (current) {
+    parts.unshift(current.name)
+    current = current.parent
   }
   
-  // 转换为完整路径
-  if (workspace.isCustom) {
-    return await join(workspace.path, path);
-  } else {
-    return path; // 返回相对于AppData/article的路径
-  }
+  return parts.join('/')
 }
 
 /**

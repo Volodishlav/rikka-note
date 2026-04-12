@@ -98,7 +98,10 @@
       "encryptFailed": "Encryption failed",
       "decryptSuccess": "Encryption removed",
       "decryptFailed": "Failed to remove encryption",
-      "openInNewTab": "Open in New Tab"
+      "openInNewTab": "Open in New Tab",
+      "vectorize": "Vectorize Index",
+      "vectorizeSuccess": "Vectorized successfully",
+      "vectorizeFailed": "Vectorization failed"
     }
   },
   "workspace": {

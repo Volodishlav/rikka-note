@@ -154,14 +154,20 @@ export const useVectorStore = defineStore('vector', () => {
     }
   };
 
-  const processDocument = async (filename: string, content: string) => {
+  const processDocument = async (filename: string, content?: string): Promise<boolean> => {
     // 如果向量数据库未启用，直接返回
-    if (!isVectorDbEnabled.value) return;
+    if (!isVectorDbEnabled.value) return false;
     
     try {
-      await processMarkdownFile(filename, content);
+      const success = await processMarkdownFile(filename, content);
+      
+      // 更新文档计数
+      documentCount.value = await getVectorDocumentCount();
+      
+      return success;
     } catch (error) {
       logger.rag.error(`处理文档 ${filename} 向量失败:`, error);
+      return false;
     }
   };
 

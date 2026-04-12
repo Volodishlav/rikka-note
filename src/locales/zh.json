@@ -98,7 +98,10 @@
       "encryptFailed": "加密失败",
       "decryptSuccess": "已解除加密",
       "decryptFailed": "解除加密失败",
-      "openInNewTab": "在新标签页中打开"
+      "openInNewTab": "在新标签页中打开",
+      "vectorize": "向量化索引",
+      "vectorizeSuccess": "向量化索引成功",
+      "vectorizeFailed": "向量化索引失败"
     }
   },
   "workspace": {

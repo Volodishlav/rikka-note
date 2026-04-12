@@ -112,6 +112,14 @@
       >
         {{ t('article.contextMenu.decrypt') }}
       </ContextMenuItem>
+      <ContextMenuSeparator v-if="!isImageFile && item.name.endsWith('.md')" />
+      <ContextMenuItem
+          v-if="!isImageFile && item.name.endsWith('.md')"
+          :disabled="fileIsEncrypted"
+          @click="handleVectorizeFile"
+      >
+        {{ t('article.contextMenu.vectorize') }}
+      </ContextMenuItem>
     </ContextMenuContent>
   </ContextMenu>
 
@@ -140,6 +148,7 @@ import {Image, LockKeyhole} from 'lucide-vue-next'
 import type {DirTree} from '@/stores/article'
 import {useArticleStore} from '@/stores/article'
 import {useEncryptionStore} from '@/stores/encryption'
+import { useVectorStore } from '@/stores/vector'
 import { getAbsoluteFilePath, getFilePathOptions } from '@/lib/workspace'
 import {useToast} from '@/composables/useToast'
 import FileIcon from './FileIcon.vue'
@@ -167,6 +176,7 @@ const articleStore = useArticleStore()
 const layoutStore = useWorkspaceLayoutStore()
 const { show } = useToast()
 const clipboardStore = useClipboardStore()
+const vectorStore = useVectorStore()
 const { t } = useI18n()
 const clipboardItem = computed(() => clipboardStore.clipboardItem)
 const clipboardOperation = computed(() => clipboardStore.clipboardOperation)
@@ -581,6 +591,34 @@ const handleDecryptFile = async () => {
       }
     }
     showPasswordDialog.value = true
+  }
+}
+
+// 向量化索引处理
+const handleVectorizeFile = async () => {
+  if (!vectorStore.isVectorDbEnabled) {
+    show({ title: t('search.semanticSearchDisabled'), description: t('search.semanticSearchDisabledDesc'), variant: 'warning' })
+    return
+  }
+
+  if (fileIsEncrypted.value) {
+    show({ title: t('article.contextMenu.vectorizeFailed'), description: '无法索引加密文件，请先解密。', variant: 'warning' })
+    return
+  }
+
+  try {
+    show({ title: t('article.fileToolbar.processingVectors'), description: path.value, variant: 'default' })
+    
+    const successResult = await vectorStore.processDocument(path.value)
+    
+    if (successResult) {
+      show({ title: t('article.contextMenu.vectorizeSuccess'), variant: 'success' })
+    } else {
+      show({ title: t('article.contextMenu.vectorizeFailed'), variant: 'error' })
+    }
+  } catch (err) {
+    logger.rag.error('Vectorize file failed:', err)
+    show({ title: t('article.contextMenu.vectorizeFailed'), variant: 'error' })
   }
 }
 
