@@ -16,15 +16,25 @@ import ArtTitle from '@/shared/components/ArtTitle.vue'
 import { OcrCapture } from '@/core/pages/ocr'
 import OcrScreenSelector from '@/core/pages/ocr/OcrScreenSelector.vue'
 import { useWorkspaceLayoutStore } from '@/stores/workspaceLayout'
+import { useSettingStore } from '@/stores/setting'
 import { logger } from '@/utils/logger';
 import { computed } from 'vue';
 
 const layoutStore = useLayoutStore()
 const workspaceLayoutStore = useWorkspaceLayoutStore()
+const settingStore = useSettingStore()
 
 // 当设置页面开启，或编辑器与侧边栏同时开启时，背景实际上已被完全遮挡
 const isBackgroundCovered = computed(() => {
   if (layoutStore.isSettingPageVisible) return true;
+
+  // 如果编辑器正在显示动态背景（空状态且开关开启），则不认为背景已被遮挡
+  const isEditorTransparent = layoutStore.isEditorVisible && 
+                               workspaceLayoutStore.rootNode.tabs.length === 0 && 
+                               settingStore.showEditorBackground;
+  
+  if (isEditorTransparent) return false;
+
   // 如果左侧/右侧边栏和编辑器同时打开，背景已无暴露空间
   return layoutStore.isEditorVisible && (layoutStore.isLeftSidebarVisible || layoutStore.isRightSidebarVisible);
 })
