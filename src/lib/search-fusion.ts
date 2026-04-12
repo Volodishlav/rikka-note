@@ -87,7 +87,7 @@ export function fuseSearchResults(
         {
             name: 'fuzzy',
             items: fuzzyResults.map((r) => ({
-                id: r.item?.path || r.filename, // 路径作为标识符
+                id: r.item?.id || r.item?.path || r.filename, // 优先使用标准化 ID 或路径
                 score: r.score,
                 data: { ...r, _source: 'fuzzy' }
             }))
@@ -95,7 +95,7 @@ export function fuseSearchResults(
         {
             name: 'vector',
             items: vectorResults.map((r) => ({
-                id: r.filename, // 语义结果可能来自同一文件，这里后续可能需要更细粒度
+                id: r.path || r.filename, // 语义结果现在带有 path 字段变量
                 score: r.score,
                 data: { ...r, _source: 'vector' }
             }))

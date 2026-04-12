@@ -25,7 +25,7 @@
             v-for="(doc, index) in retrievedDocs" 
             :key="doc.filename + index"
             class="group relative flex flex-col p-3 bg-muted/30 rounded-xl border border-border/50 hover:border-primary/40 hover:bg-muted/50 cursor-pointer transition-all duration-200 shadow-sm overflow-hidden"
-            @click="navigateToDoc(doc.filename)"
+            @click="navigateToDoc(doc)"
           >
             <!-- 单个移除按钮 -->
             <Button 
@@ -156,21 +156,30 @@ const removeDoc = (index: number) => {
   }
 }
 
-const navigateToDoc = async (filename: string) => {
+const navigateToDoc = async (doc: RetrievedDoc) => {
   try {
-    // 确保已加载所有文章，以便查找路径
+    const path = doc.path || doc.filename
+    
+    // 确保已加载所有文章
     if (articleStore.allArticle.length === 0) {
       await articleStore.loadAllArticle()
     }
     
-    // 在全量文章列表中寻找路径匹配的文件
-    const match = articleStore.allArticle.find(a => a.path.endsWith(filename))
+    // 直接通过相对路径匹配（精准匹配）
+    const match = articleStore.allArticle.find(a => a.path === path)
     
     if (match) {
       await layoutStore.openFile(match.path)
-      info(`正在查看: ${filename}`, '已跳转至笔记')
+      info(`正在查看: ${doc.filename}`, '已跳转至笔记')
     } else {
-      error(`未能在当前工作区找到文件: ${filename}`, '跳转失败')
+      // 兜底逻辑：如果精准匹配失败，尝试 endsWith（处理旧索引数据）
+      const fuzzyMatch = articleStore.allArticle.find(a => a.path.endsWith(doc.filename))
+      if (fuzzyMatch) {
+         await layoutStore.openFile(fuzzyMatch.path)
+         info(`正在查看: ${doc.filename}`, '已跳转至笔记')
+      } else {
+         error(`未能在当前工作区找到文件: ${doc.filename}`, '跳转失败')
+      }
     }
   } catch (err) {
     logger.assistant.error('Navigation failed:', err)

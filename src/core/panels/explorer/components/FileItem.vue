@@ -104,13 +104,13 @@
           :disabled="!item.isLocale"
           @click="handleEncryptFile"
       >
-        🔒 {{ t('article.contextMenu.encrypt') }}
+        {{ t('article.contextMenu.encrypt') }}
       </ContextMenuItem>
       <ContextMenuItem
           v-if="fileIsEncrypted"
           @click="handleDecryptFile"
       >
-        🔓 {{ t('article.contextMenu.decrypt') }}
+        {{ t('article.contextMenu.decrypt') }}
       </ContextMenuItem>
     </ContextMenuContent>
   </ContextMenu>

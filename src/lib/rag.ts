@@ -11,7 +11,7 @@ import { invoke } from "@tauri-apps/api/core";
 
 // 重新导出initVectorDb和checkRerankModelAvailable，使其可在其他模块中导入
 export { initVectorDb, getVectorDocumentCount, checkRerankModelAvailable };
-import { getFilePathOptions, getWorkspacePath } from "./workspace";
+import { getFilePathOptions, getWorkspacePath, toWorkspaceRelativePath } from "./workspace";
 import { DirTree } from "@/stores/article";
 import { toast } from "@/components/ui/toast/use-toast";
 import { join } from "@tauri-apps/api/path";
@@ -123,8 +123,9 @@ export async function processMarkdownFile(
     const chunkSize = await store.get<number>('ragChunkSize');
     const chunkOverlap = await store.get<number>('ragChunkOverlap');
     const chunks = chunkText(content, chunkSize, chunkOverlap);
-    // 文件名（不含路径）
-    const filename = filePath.split('/').pop() || filePath;
+    // 统一使用相对于工作区的路径作为标识符
+    const relativePath = await toWorkspaceRelativePath(filePath);
+    const filename = relativePath;
     
     // 先删除该文件的旧记录
     await deleteVectorDocumentsByFilename(filename);
@@ -344,7 +345,7 @@ async function collectMarkdownContents(): Promise<SearchItem[]> {
             }
             
             items.push({
-              id: filePath,
+              id: await toWorkspaceRelativePath(filePath),
               title: item.name,
               article: content,
               search_type: 'markdown'
@@ -418,9 +419,10 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
         if (similarDocs.length > 0) {
           for (const doc of similarDocs) {
             allContexts.push({
-              filename: doc.filename,
+              filename: doc.filename, // 这里的 filename 已经是相对路径了
               content: doc.content,
               score: doc.similarity || 0,
+              path: doc.filename, // 增加显式的 path 字段
               type: 'vector'
             });
           }
@@ -470,6 +472,7 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
 
                 allContexts.push({
                   filename: result.item.title || '未命名文件',
+                  path: result.item.id || '', // 使用 standardized id (relative path)
                   content: content.substring(startIdx, endIdx),
                   score: finalScore,
                   keyword: keyword.text,
@@ -492,16 +495,7 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
     const sources: FusionSource[] = [
         {
             name: 'fuzzy',
-            items: fuzzyResults.map((r) => ({
-                id: r.item?.path || r.filename, // 路径作为标识符
-                score: r.score,
-                data: { ...r, _source: 'fuzzy' }
-            }))
-        },
-        {
-            name: 'vector',
-            items: vectorResults.map((r) => ({
-                id: r.filename, // 语义结果可能来自同一文件，这里后续可能需要更细粒度
+                id: r.filename, // 向量结果现在存储的是相对路径，直接做 ID
                 score: r.score,
                 data: { ...r, _source: 'vector' }
             }))
@@ -509,6 +503,16 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
     ];
 
     let uniqueContexts = reciprocalRankFusion(sources, 60, 20);
+
+    // 确保返回的结果中 filename 只是展示名，path 是逻辑路径
+    uniqueContexts = uniqueContexts.map(ctx => ({
+      ...ctx,
+      // 如果 filename 包含路径分隔符，说明它是存储的相对路径，提取出最后的成分作为展示名
+      filename: ctx.filename.includes('/') || ctx.filename.includes('\\') 
+          ? ctx.filename.split(/[/\\]/).pop() 
+          : ctx.filename,
+      path: ctx.path || ctx.filename // 保证 path 始终可用
+    }));
 
     // ==========================================
     // 核心改进 4：【精排阶段】对混合结果进行二次重排
