@@ -63,9 +63,7 @@ import { useTheme, ThemeKey } from '@/composables/useTheme'
 import { useSettingStore } from '@/stores/setting'
 import { storeToRefs } from 'pinia'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
 import { Sun, Moon, Monitor } from 'lucide-vue-next'
-import { logger } from '@/utils/logger'
 
 
 
@@ -108,6 +106,30 @@ const languageOptions = computed(() => [
   {
     value: 'en',
     label: 'English'
+  },
+  {
+    value: 'ja',
+    label: '日本語'
+  },
+  {
+    value: 'ko',
+    label: '한국어'
+  },
+  {
+    value: 'fr',
+    label: 'Français'
+  },
+  {
+    value: 'de',
+    label: 'Deutsch'
+  },
+  {
+    value: 'es',
+    label: 'Español'
+  },
+  {
+    value: 'ru',
+    label: 'Русский язык'
   }
 ])
 

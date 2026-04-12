@@ -5,11 +5,23 @@ import zh from '../locales/zh.json'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import 'dayjs/locale/en'
+import ja from '../locales/ja.json'
+import ko from '../locales/ko.json'
+import fr from '../locales/fr.json'
+import de from '../locales/de.json'
+import es from '../locales/es.json'
+import ru from '../locales/ru.json'
 
 // 消息集合：后续可把更多语言放入这里
 const messages = {
     en,
     zh,
+    ja,
+    ko,
+    fr,
+    de,
+    es,
+    ru
 }
 
 // 初始语言（兜底）：优先从 localStorage 读取，后续由 SettingStore 接管
