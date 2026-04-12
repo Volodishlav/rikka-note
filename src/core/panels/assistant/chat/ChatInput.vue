@@ -261,6 +261,8 @@ const performSendMessage = async (content: string, docs: RetrievedDoc[]) => {
 Your knowledge library is the most relevant content related to this question. Please use these information to answer the question:
 ${docs.map(ctx => `文件：${ctx.filename}\n${ctx.content}\n`).join('\n---\n\n')}
 `
+        logger.assistant.info(`📝 [集成上下文] 最终带入 ${docs.length} 个参考分块，总计约 ${ragContext.length} 字符`);
+        logger.rag.debug(`   - 参考来源: ${docs.map(d => d.filename).join(', ')}`);
       }
 
       // 构建最终提示词

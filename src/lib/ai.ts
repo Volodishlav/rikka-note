@@ -180,9 +180,10 @@ export async function checkRerankModelAvailable(): Promise<boolean> {
  * 请求嵌入向量
  * @param text 需要嵌入的文本
  * @param throwError 是否抛出错误，默认为false
+ * @param silent 是否静默输出，默认为false
  * @returns 嵌入向量结果，如果失败则返回null
  */
-export async function fetchEmbedding(text: string, throwError = false): Promise<number[] | null> {
+export async function fetchEmbedding(text: string, throwError = false, silent = false): Promise<number[] | null> {
   try {
     if (text.length) {
       const store = await Store.load('store.json');
@@ -196,12 +197,7 @@ export async function fetchEmbedding(text: string, throwError = false): Promise<
         baseURL = `http://127.0.0.1:${port}/v1`;
         apiKey = 'llama.cpp';
         model = localModelStr;
-        
-        logger.rag.info(`🚀 [向量核心] 命中本地 Embedding 引擎`);
-        logger.rag.info(`   - 本地端点: ${baseURL}`);
-        logger.rag.info(`   - 加载模型: ${model}`);
       } else {
-        // 获取嵌入模型信息
         const modelInfo = await getEmbeddingModelInfo();
         if (!modelInfo) {
           throw new Error('未配置嵌入模型或模型配置不正确');
@@ -209,15 +205,20 @@ export async function fetchEmbedding(text: string, throwError = false): Promise<
         baseURL = modelInfo.baseURL;
         apiKey = modelInfo.apiKey;
         model = modelInfo.model;
-        
-        logger.rag.info(`☁️ [向量核心] 使用云侧远程 Embedding 服务`);
-        logger.rag.debug(`   - 远程提供商 URL: ${baseURL}`);
-        logger.rag.debug(`   - 请求使用模型: ${model}`);
+      }
+
+      if (!silent) {
+        if (useLocalEmbedding) {
+          logger.rag.info(`🚀 [向量核心] 使用本地引擎: ${model}`);
+        } else {
+          logger.rag.info(`☁️ [向量核心] 使用远程服务: ${model}`);
+        }
       }
 
       if (!baseURL || !model) {
-        logger.rag.error('嵌入模型配置不完整', { baseURL, model });
-        throw new Error('嵌入模型配置不完整');
+        const missing = !baseURL ? 'baseURL' : 'model';
+        logger.rag.error(`嵌入模型配置不完整: 缺失 ${missing}`, { baseURL, model });
+        throw new Error(`嵌入模型配置不完整: 缺失 ${missing}`);
       }
       
       // 发送嵌入请求，增加对本地服务的重试机制（模型加载可能需要几秒钟）
@@ -226,7 +227,9 @@ export async function fetchEmbedding(text: string, throwError = false): Promise<
       let response: any = null;
       let lastError: any = null;
 
-      logger.rag.debug(`开始发起 Embedding 请求，内容长度: ${text.length} 字符...`);
+      if (!silent) {
+        logger.rag.debug(`开始发起 Embedding 请求，内容长度: ${text.length} 字符...`);
+      }
 
       while (attempt < maxRetries) {
         try {
@@ -234,7 +237,7 @@ export async function fetchEmbedding(text: string, throwError = false): Promise<
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKey}`
+              'Authorization': `Bearer ${apiKey || ''}`
             },
             body: JSON.stringify({
               model: model,
@@ -244,11 +247,16 @@ export async function fetchEmbedding(text: string, throwError = false): Promise<
           });
           
           if (response.ok) {
-            logger.rag.debug(`✅ Embedding 获取成功 (Attempt: ${attempt + 1})`);
+            if (!silent) {
+              logger.rag.debug(`✅ Embedding 获取成功 (Attempt: ${attempt + 1})`);
+            }
             break; // 成功则跳出重试循环
           } else {
              const errorData = await response.json().catch(() => ({}));
              lastError = new Error(`嵌入请求失败: ${response.status} ${errorData.error?.message || response.statusText}`);
+             if (response.status === 413) {
+               logger.rag.error(`🚫 [Token 溢出] 分块过大（约 ${text.length} 字符），超过了模型的 512 Tokens 限制。建议减小切块 Size (当前 300 可能因为 Overlap 导致实际文本量过大)。`);
+             }
              logger.rag.warn(`❌ Embedding HTTP 错误: ${response.status}`, errorData);
           }
         } catch (e: any) {

@@ -8,6 +8,7 @@ import {
   getVectorDocumentCount
 } from "@/db/vector";
 import { invoke } from "@tauri-apps/api/core";
+import { MarkdownChunker, ChunkerOptions } from "./markdown-chunker";
 
 // 重新导出initVectorDb和checkRerankModelAvailable，使其可在其他模块中导入
 export { initVectorDb, getVectorDocumentCount, checkRerankModelAvailable };
@@ -21,86 +22,15 @@ import { reciprocalRankFusion, FusionSource } from "./search-fusion";
 
 /**
  * 文本分块函数，用于将大文本分成小块
+ * 升级版：集成 Markdown AST 解析与语义感知分块
  */
-export function chunkText(
+export async function chunkText(
   text: string, 
-  chunkSize: number = 1000,
-  chunkOverlap: number = 200
-): string[] {
-  const chunks: string[] = [];
-  
-  // 检查文本是否足够长，需要分块
-  if (text.length <= chunkSize) {
-    chunks.push(text);
-    return chunks;
-  }
-  
-  // 尝试在段落边界进行分块
-  const paragraphs = text.split('\n\n');
-  let currentChunk = '';
-  
-  for (const paragraph of paragraphs) {
-    // 如果加上当前段落后超出了块大小，则保存当前块并开始新块
-    if (currentChunk.length + paragraph.length + 2 > chunkSize) {
-      // 如果当前块非空，保存它
-      if (currentChunk.length > 0) {
-        chunks.push(currentChunk);
-        // 保留重叠部分到新块
-        const lastChunkParts = currentChunk.split('\n\n');
-        const overlapLength = Math.min(chunkOverlap, currentChunk.length);
-        const overlapParts = [];
-        let currentLength = 0;
-        
-        // 从后向前取段落，直到达到重叠大小
-        for (let i = lastChunkParts.length - 1; i >= 0; i--) {
-          const part = lastChunkParts[i];
-          if (currentLength + part.length + 2 <= overlapLength) {
-            overlapParts.unshift(part);
-            currentLength += part.length + 2;
-          } else {
-            break;
-          }
-        }
-        
-        currentChunk = overlapParts.join('\n\n');
-      }
-      
-      // 如果单个段落过长，需要强制分割
-      if (paragraph.length > chunkSize) {
-        // 先尝试按句子分割
-        const sentences = paragraph.split(/(?:\.|\?|\!)\s+/);
-        let sentenceChunk = '';
-        
-        for (const sentence of sentences) {
-          if (sentenceChunk.length + sentence.length > chunkSize) {
-            if (sentenceChunk) {
-              chunks.push(sentenceChunk);
-              // 保留重叠
-              const overlapLength = Math.min(chunkOverlap, sentenceChunk.length);
-              sentenceChunk = sentenceChunk.slice(-overlapLength);
-            }
-          }
-          
-          sentenceChunk += sentence + ' ';
-        }
-        
-        if (sentenceChunk) {
-          currentChunk += sentenceChunk;
-        }
-      } else {
-        currentChunk += paragraph + '\n\n';
-      }
-    } else {
-      currentChunk += paragraph + '\n\n';
-    }
-  }
-  
-  // 添加最后一个块
-  if (currentChunk.trim()) {
-    chunks.push(currentChunk.trim());
-  }
-  
-  return chunks;
+  options: ChunkerOptions,
+  filename: string = "unknown"
+): Promise<string[]> {
+  const chunker = new MarkdownChunker(options);
+  return await chunker.chunk(text, filename);
 }
 
 /**
@@ -120,25 +50,34 @@ export async function processMarkdownFile(
       content = fileContent || await readTextFile(path, { baseDir })
     }
     const store = await Store.load('store.json')
-    const chunkSize = await store.get<number>('ragChunkSize');
-    const chunkOverlap = await store.get<number>('ragChunkOverlap');
-    const chunks = chunkText(content, chunkSize, chunkOverlap);
-    // 统一使用相对于工作区的路径作为标识符
+    const chunkSize = await store.get<number>('ragChunkSize') || 1000;
+    const chunkOverlap = await store.get<number>('ragChunkOverlap') || 200;
+    const enableSemantic = await store.get<boolean>('ragEnableSemantic') || false;
+    const semanticThreshold = await store.get<number>('ragSemanticThreshold') || 0.7;
+    
     const relativePath = await toWorkspaceRelativePath(filePath);
     const filename = relativePath;
+    
+    const chunks = await chunkText(content, {
+      chunkSize,
+      chunkOverlap,
+      enableSemantic,
+      semanticThreshold
+    }, filename);
     
     // 先删除该文件的旧记录
     await deleteVectorDocumentsByFilename(filename);
     
     // 处理每个文本块
+    logger.rag.info(`⏳ [向量索引] 正在为 ${chunks.length} 个分块生成向量...`);
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
       
-      // 计算嵌入向量
-      const embedding = await fetchEmbedding(chunk);
+      // 计算嵌入向量 (批量处理时开启静默模式)
+      const embedding = await fetchEmbedding(chunk, false, true);
       
       if (!embedding) {
-        logger.rag.error(`无法计算文件 ${filename} 第 ${i+1} 块的向量`);
+        logger.rag.error(`❌ 无法计算文件 ${filename} 第 ${i+1} 块的向量。分块内容如下：\n---\n${chunk}\n---`);
         continue;
       }
       
@@ -404,25 +343,27 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
     const isMeaningfulQuery = query.trim().length > 2 && /[\u4e00-\u9fa5\u3040-\u30ffa-zA-Z0-9]/i.test(query);
 
     if (!isMeaningfulQuery) {
-      logger.rag.debug('Query is too short or meaningless, skipping vector search.');
+      logger.rag.debug('🔍 [意图解析] 查询过短或无意义，跳过向量检索。');
+    } else {
+      logger.rag.debug(`🔍 [意图解析] 原始查询: "${query}"`);
     }
     // ==========================================
     // 核心改进 1：使用【完整原句】进行一次向量检索 (最重要)
     // ==========================================
     if (isMeaningfulQuery && query && query.trim().length > 0) {
-      logger.rag.debug(`Searching vector for full query: ${query}`);
-      const queryEmbedding = await fetchEmbedding(query);
+      const queryEmbedding = await fetchEmbedding(query, false, true); // 搜索时静默 Embedding 日志
       if (queryEmbedding) {
         let similarDocs = await getSimilarDocuments(queryEmbedding, resultCount, similarityThreshold);
-        logger.rag.debug(`Found ${similarDocs.length} vector docs for full query`);
+        logger.rag.info(`🛰️ [多路检索] 向量路径命中了 ${similarDocs.length} 个片段`);
 
         if (similarDocs.length > 0) {
           for (const doc of similarDocs) {
+            logger.rag.debug(`   - 命中: ${doc.filename} (Score: ${doc.similarity?.toFixed(4)})`);
             allContexts.push({
-              filename: doc.filename, // 这里的 filename 已经是相对路径了
+              filename: doc.filename,
               content: doc.content,
               score: doc.similarity || 0,
-              path: doc.filename, // 增加显式的 path 字段
+              path: doc.filename,
               type: 'vector'
             });
           }
@@ -445,6 +386,7 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
     if (validKeywords.length > 0) {
       const items = await collectMarkdownContents();
       if (items.length > 0) {
+        logger.rag.info(`🛰️ [多路检索] 模糊路径正在匹配 ${validKeywords.length} 个关键词: ${validKeywords.map(k => k.text).join(', ')}`);
         for (const keyword of validKeywords) {
           const fuzzyResults = await invoke<FuzzySearchResult[]>('fuzzy_search', {
             items,
@@ -454,6 +396,10 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
             includeScore: true,
             includeMatches: true
           });
+
+          if (fuzzyResults.length > 0) {
+            logger.rag.debug(`   - 关键词 "${keyword.text}" 命中 ${fuzzyResults.length} 个结果`);
+          }
 
           for (const result of fuzzyResults) {
             if (result.score > 0) {
@@ -466,13 +412,12 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
                   startIdx = Math.max(0, match.indices[0][0] - 250);
                   endIdx = Math.min(content.length, match.indices[0][1] + 250);
                 }
-                // 标准化权重
                 const normalizedWeight = Math.min(keyword.weight, 2.0);
                 const finalScore = result.score * normalizedWeight;
 
                 allContexts.push({
                   filename: result.item.title || '未命名文件',
-                  path: result.item.id || '', // 使用 standardized id (relative path)
+                  path: result.item.id || '',
                   content: content.substring(startIdx, endIdx),
                   score: finalScore,
                   keyword: keyword.text,
@@ -512,6 +457,7 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
     ];
 
     let uniqueContexts = reciprocalRankFusion(sources, 60, 20);
+    logger.rag.debug(`⚖️ [排名融合] RRF 融合完成，输出 top ${uniqueContexts.length} 个候选`);
 
     // 确保返回的结果中 filename 只是展示名，path 是逻辑路径
     uniqueContexts = uniqueContexts.map(ctx => ({
@@ -530,18 +476,16 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
     if (uniqueContexts.length > 0) {
       const rerankAvailable = await checkRerankModelAvailable();
       if (rerankAvailable) {
-        logger.rag.debug('Applying Rerank to top candidates...');
-        // 准备重排格式 (rerankDocuments 需要 id, filename,内容,相似度)
+        logger.rag.info('⚖️ [精排阶段] 正在调用 Rerank 模型进行二次校准...');
         const candidates = uniqueContexts.slice(0, 10).map((ctx, idx) => ({
           id: idx,
           filename: ctx.filename,
           content: ctx.content,
-          similarity: ctx.score // 传入原始得分供参考
+          similarity: ctx.score
         }));
         
         const reranked = await rerankDocuments(query, candidates);
         
-        // 使用重排后的顺序替换前面的顺位
         const rerankedCtxs = reranked.map(r => ({
           filename: r.filename,
           content: r.content,
@@ -549,9 +493,9 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
           type: 'rerank'
         }));
         
-        // 将重排后的结果补回 uniqueContexts 的头部
         const remaining = uniqueContexts.slice(10);
         uniqueContexts = [...rerankedCtxs, ...remaining];
+        logger.rag.debug(`⚖️ [精排阶段] 重排完成，首位结果: ${uniqueContexts[0]?.filename}`);
       }
     }
 

@@ -128,6 +128,34 @@
         />
         <div class="text-xs text-muted-foreground">{{ t('settings.rag.similarityThresholdDesc') }}</div>
       </div>
+
+      <Separator />
+
+      <!-- Semantic Chunking -->
+      <div class="space-y-4 pt-2">
+        <div class="flex items-center justify-between">
+          <div class="space-y-0.5">
+            <Label>{{ t('settings.rag.enableSemantic') }}</Label>
+            <div class="text-xs text-muted-foreground">{{ t('settings.rag.enableSemanticDesc') }}</div>
+          </div>
+          <Switch v-model="enableSemantic" />
+        </div>
+
+        <div v-if="enableSemantic" class="space-y-4 pt-2 animate-in fade-in slide-in-from-top-1">
+          <div class="flex justify-between items-center">
+            <Label>{{ t('settings.rag.semanticThreshold') }}</Label>
+            <span class="text-sm font-mono bg-muted px-2 py-0.5 rounded">{{ semanticThreshold }}</span>
+          </div>
+          <Slider
+            v-model="semanticThresholdVal"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            @update:model-value="updateSemanticThreshold"
+          />
+          <div class="text-xs text-muted-foreground">{{ t('settings.rag.semanticThresholdDesc') }}</div>
+        </div>
+      </div>
     </div>
 
     <Separator />
@@ -158,6 +186,7 @@ import { ChartScatter, ListOrdered, RefreshCw, Trash2, Loader2 } from 'lucide-vu
 import { Store } from '@tauri-apps/plugin-store'
 import { clearVectorDb, initVectorDb } from '@/db/vector'
 import { useToast } from '@/composables/useToast'
+import { Switch } from '@/components/ui/switch'
 import { ask } from '@tauri-apps/plugin-dialog'
 import { checkEmbeddingModelAvailable, checkRerankModelAvailable } from '@/lib/rag'
 
@@ -179,6 +208,8 @@ const chunkSize = ref(1000)
 const chunkOverlap = ref(200)
 const resultCount = ref(5)
 const similarityThreshold = ref(0.7)
+const enableSemantic = ref(false) // 语义分块开关
+const semanticThreshold = ref(0.7)
 const isTesting = ref(false)
 const isTestingRerank = ref(false)
 
@@ -186,12 +217,21 @@ const chunkSizeVal = ref([1000])
 const chunkOverlapVal = ref([200])
 const resultCountVal = ref([5])
 const similarityThresholdVal = ref([0.7])
+const semanticThresholdVal = ref([0.7])
 
 // Sync slider values
 watch(chunkSizeVal, (val: number[]) => chunkSize.value = val[0])
 watch(chunkOverlapVal, (val: number[]) => chunkOverlap.value = val[0])
 watch(resultCountVal, (val: number[]) => resultCount.value = val[0])
 watch(similarityThresholdVal, (val: number[]) => similarityThreshold.value = val[0])
+watch(semanticThresholdVal, (val: number[]) => semanticThreshold.value = val[0])
+
+// ✅ 修复：监听语义分块开关，自动保存到存储
+watch(enableSemantic, async (newVal) => {
+  const store = await Store.load('store.json')
+  await store.set('ragEnableSemantic', newVal)
+  await store.save()
+})
 
 const initParams = async () => {
   const store = await Store.load('store.json')
@@ -199,11 +239,17 @@ const initParams = async () => {
   chunkOverlap.value = await store.get<number>('ragChunkOverlap') || 200
   resultCount.value = await store.get<number>('ragResultCount') || 5
   similarityThreshold.value = await store.get<number>('ragSimilarityThreshold') || 0.7
-  
+
+  // ✅ 修复：正确加载开关状态
+  enableSemantic.value = await store.get<boolean>('ragEnableSemantic') ?? false
+
+  semanticThreshold.value = await store.get<number>('ragSemanticThreshold') || 0.7
+
   chunkSizeVal.value = [chunkSize.value]
   chunkOverlapVal.value = [chunkOverlap.value]
   resultCountVal.value = [resultCount.value]
   similarityThresholdVal.value = [similarityThreshold.value]
+  semanticThresholdVal.value = [semanticThreshold.value]
 }
 
 const updateParam = async (key: string, val: number) => {
@@ -217,24 +263,38 @@ const updateChunkOverlap = (val: number[] | undefined) => { if (val) updateParam
 const updateResultCount = (val: number[] | undefined) => { if (val) updateParam('ragResultCount', val[0]) }
 const updateSimilarityThreshold = (val: number[] | undefined) => { if (val) updateParam('ragSimilarityThreshold', val[0]) }
 
+// ✅ 简化：开关直接绑定 v-model，不需要单独方法
+const updateEnableSemantic = (val: boolean) => {
+  enableSemantic.value = val
+}
+
+const updateSemanticThreshold = (val: number[] | undefined) => {
+  if (val) updateParam('ragSemanticThreshold', val[0])
+}
+
 const resetDefaults = async () => {
   chunkSize.value = 1000
   chunkOverlap.value = 200
   resultCount.value = 5
   similarityThreshold.value = 0.7
-  
+
   chunkSizeVal.value = [1000]
   chunkOverlapVal.value = [200]
   resultCountVal.value = [5]
   similarityThresholdVal.value = [0.7]
-  
+  enableSemantic.value = false // ✅ 重置开关
+  semanticThreshold.value = 0.7
+  semanticThresholdVal.value = [0.7]
+
   const store = await Store.load('store.json')
   await store.set('ragChunkSize', 1000)
   await store.set('ragChunkOverlap', 200)
   await store.set('ragResultCount', 5)
   await store.set('ragSimilarityThreshold', 0.7)
+  await store.set('ragEnableSemantic', false)
+  await store.set('ragSemanticThreshold', 0.7)
   await store.save()
-  
+
   info(t('settings.rag.resetSuccess'))
 }
 
@@ -243,11 +303,10 @@ const clearVector = async () => {
     title: t('settings.rag.deleteTitle'),
     kind: 'warning'
   })
-  
+
   if (confirmed) {
     await clearVectorDb()
     await initVectorDb()
-    // Reset vector store count if needed
     vectorStore.documentCount = 0
     info(t('settings.rag.deleteSuccess'))
   }
@@ -258,7 +317,7 @@ const testEmbedding = async () => {
   // @ts-ignore
   const result = await checkEmbeddingModelAvailable()
   isTesting.value = false
-  
+
   if (result === true) {
     success(t('settings.rag.testSuccess'))
   } else {
@@ -270,7 +329,7 @@ const testRerank = async () => {
   isTestingRerank.value = true
   const result = await checkRerankModelAvailable()
   isTestingRerank.value = false
-  
+
   if (result) {
     success(t('settings.rag.testSuccess'))
   } else {
