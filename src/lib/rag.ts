@@ -360,6 +360,7 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
               content: doc.content,
               score: doc.similarity || 0,
               path: doc.filename,
+              chunk_id: (doc as any).chunk_id || 0,
               type: 'vector'
             });
           }
@@ -397,6 +398,7 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
             path: doc.filename, // FTS5 存的是相对路径
             content: doc.content,
             score: finalScore,
+            chunk_id: (doc as any).chunk_id || 0,
             keyword: keyword.text,
             type: 'fts',
             item: { path: doc.filename }
@@ -416,7 +418,7 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
             name: 'fts',
             weight: 1.2, // 给 FTS5 (精准匹配) 略高的权重，解决关键词盲态
             items: ftsResults.map((r) => ({
-                id: r.path || r.filename,
+                id: `${r.filename}#${(r as any).chunk_id || 0}`,
                 score: r.score,
                 data: { ...r, _source: 'fts' }
             }))
@@ -425,7 +427,7 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
             name: 'vector',
             weight: 1.0,
             items: vectorResults.map((r) => ({
-                id: r.path || r.filename,
+                id: `${r.filename}#${(r as any).chunk_id || 0}`,
                 score: r.score,
                 data: { ...r, _source: 'vector' }
             }))
@@ -457,21 +459,29 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
           id: idx,
           filename: ctx.filename,
           content: ctx.content,
-          similarity: ctx.score
+          similarity: ctx.score,
+          path: ctx.path,
+          originalType: ctx.type // 保留原始召回源信息
         }));
         
         const reranked = await rerankDocuments(query, candidates);
         
-        const rerankedCtxs = reranked.map(r => ({
+        // 核心改进：精排置信度过滤 (阈值校准)
+        // 过滤掉精排得分极低 (< 0.01) 的语义噪音
+        const filteredReranked = reranked.filter(r => r.similarity >= 0.01);
+        
+        const rerankedCtxs = filteredReranked.map(r => ({
           filename: r.filename,
           content: r.content,
           score: r.similarity,
-          type: 'rerank'
+          path: (r as any).path || r.filename,
+          type: 'rerank',
+          originalType: (r as any).originalType // 传递原始类型用于指标统计
         }));
         
         const remaining = uniqueContexts.slice(10);
         uniqueContexts = [...rerankedCtxs, ...remaining];
-        logger.rag.debug(`⚖️ [精排阶段] 重排完成，首位结果: ${uniqueContexts[0]?.filename}`);
+        logger.rag.debug(`⚖️ [精排阶段] 重排完成，过滤掉 ${reranked.length - filteredReranked.length} 个低置信度噪音，首位结果: ${uniqueContexts[0]?.filename}`);
       }
     }
 
@@ -556,9 +566,9 @@ export async function getRetrievedDocsWithMetrics(
 
   const endTime = performance.now()
 
-  // 从结果中统计各类型命中数
-  const vectorCount = docs.filter(d => d.type === 'vector').length
-  const ftsCount = docs.filter(d => d.type === 'fts').length
+  // 从结果中统计各类型命中数 (修正：如果被重排序过，应优先查找 originalType)
+  const vectorCount = docs.filter(d => (d.type === 'vector' || (d as any).originalType === 'vector')).length
+  const ftsCount = docs.filter(d => (d.type === 'fts' || (d as any).originalType === 'fts')).length
   const rerankApplied = docs.some(d => d.type === 'rerank')
 
   const metrics: RetrievalMetrics = {

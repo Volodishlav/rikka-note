@@ -148,10 +148,11 @@ export async function getSimilarDocuments(
       id: doc.id,
       filename: doc.filename,
       content: doc.content,
+      chunk_id: (doc as any).chunk_id || 0, // 确保返回分块 ID
       similarity
     };
   })
-      .filter((doc): doc is { id: number, filename: string, content: string, similarity: number } =>
+      .filter((doc): doc is { id: number, filename: string, content: string, chunk_id: number, similarity: number } =>
           doc !== null && doc.similarity >= threshold
       )
       .sort((a, b) => b.similarity - a.similarity)
@@ -181,6 +182,7 @@ export async function getFtsDocuments(
         rowid as id, 
         filename, 
         content, 
+        chunk_id,
         rank as fts_score
       from vector_documents_fts 
       where vector_documents_fts match $1 
@@ -192,6 +194,7 @@ export async function getFtsDocuments(
       id: r.id,
       filename: r.filename,
       content: r.content,
+      chunk_id: r.chunk_id || 0,
       // 将 rank 转为正向分数以便 RRF 逻辑处理 (FTS5 rank 默认越小越相关)
       score: Math.abs(r.fts_score) || 0,
       type: 'fts'
