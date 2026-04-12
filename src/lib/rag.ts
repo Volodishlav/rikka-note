@@ -495,7 +495,16 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
     const sources: FusionSource[] = [
         {
             name: 'fuzzy',
-                id: r.filename, // 向量结果现在存储的是相对路径，直接做 ID
+            items: fuzzyResults.map((r) => ({
+                id: r.path || r.filename,
+                score: r.score,
+                data: { ...r, _source: 'fuzzy' }
+            }))
+        },
+        {
+            name: 'vector',
+            items: vectorResults.map((r) => ({
+                id: r.path || r.filename,
                 score: r.score,
                 data: { ...r, _source: 'vector' }
             }))
