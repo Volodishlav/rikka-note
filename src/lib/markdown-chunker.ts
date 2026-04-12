@@ -138,35 +138,67 @@ export class MarkdownChunker {
   }
 
   /**
-   * 细拆逻辑：逻辑递进 -> 语义/字符
+   * 细拆逻辑：级联处理器
+   * 层级：段落重组 -> 语义感知 -> 字符定长
    */
   private async subSplit(text: string): Promise<string[]> {
     // 1. 尝试按段落切分
     const paragraphs = text.split(/\n\n+/);
     if (paragraphs.length > 1) {
-      const results: string[] = [];
-      let temp = "";
+      const pChunks: string[] = [];
+      let buffer = "";
+      
       for (const p of paragraphs) {
-        if (temp.length + p.length > this.options.chunkSize && temp) {
-          results.push(temp);
-          temp = p;
+        if (p.length > this.options.chunkSize) {
+          // 当前段落本身就超长，先清空 buffer，再对这一段进行语义细拆
+          if (buffer) pChunks.push(buffer);
+          const sChunks = await this.subSplit(p); // 递归调用（下一层级会处理它）
+          pChunks.push(...sChunks);
+          buffer = "";
+        } else if (buffer.length + p.length > this.options.chunkSize && buffer) {
+          pChunks.push(buffer);
+          buffer = p;
         } else {
-          temp = temp ? temp + "\n\n" + p : p;
+          buffer = buffer ? buffer + "\n\n" + p : p;
         }
       }
-      if (temp) results.push(temp);
-      return results;
+      if (buffer) pChunks.push(buffer);
+      return pChunks;
     }
 
     // 2. 如果单段依然超长，尝试语义分块
     if (this.options.enableSemantic) {
-      return await this.semanticSplit(text);
+      const sChunks = await this.semanticSplit(text);
+      // 检查语义切分后的块是否依然超大（应对超长句子）
+      const checkedChunks: string[] = [];
+      for (const sc of sChunks) {
+        if (sc.length > this.options.chunkSize) {
+           checkedChunks.push(...this.naiveSplit(sc));
+        } else {
+           checkedChunks.push(sc);
+        }
+      }
+      return checkedChunks;
     }
 
     // 3. 兜底：定长切分
+    return this.naiveSplit(text);
+  }
+
+  /**
+   * 最后的保底：定长字符切分
+   */
+  private naiveSplit(text: string): string[] {
     const chunks: string[] = [];
-    for (let i = 0; i < text.length; i += this.options.chunkSize - this.options.chunkOverlap) {
-      chunks.push(text.slice(i, i + this.options.chunkSize));
+    const size = this.options.chunkSize;
+    const overlap = Math.min(this.options.chunkOverlap || 0, Math.floor(size * 0.5));
+    
+    if (text.length <= size) return [text];
+    
+    for (let i = 0; i < text.length; i += size - overlap) {
+      const chunk = text.slice(i, i + size);
+      if (chunk) chunks.push(chunk);
+      if (i + size >= text.length) break;
     }
     return chunks;
   }
@@ -184,19 +216,26 @@ export class MarkdownChunker {
     const embeds: number[][] = [];
     
     for (let i = 0; i < sentences.length; i++) {
-      const e = await fetchEmbedding(sentences[i], false, true); // 使用静默模式
-      if (e) embeds.push(e);
-      else embeds.push([]);
+        // 对于极长的句子，截断后计算向量以防止 Embedding 阶段报错
+        const sampleText = sentences[i].slice(0, 500); 
+        const e = await fetchEmbedding(sampleText, false, true); 
+        if (e) embeds.push(e);
+        else embeds.push([]);
     }
 
     let buffer = sentences[0];
     let splitCount = 0;
     for (let i = 0; i < sentences.length - 1; i++) {
         const sim = this.cosineSimilarity(embeds[i], embeds[i+1]);
+        // 关键改进：即使相似度高，如果加上下一句超过 chunkSize，也必须强制切分
         const overSize = (buffer.length + sentences[i+1].length > this.options.chunkSize);
         
         if (sim < this.options.semanticThreshold || overSize) {
-            logger.rag.debug(`   - 发生切分: idx=${i}, sim=${sim.toFixed(4)}, overSize=${overSize}`);
+            if (overSize) {
+                logger.rag.debug(`   - 强制切分 (Size Limit): idx=${i}, length=${buffer.length}`);
+            } else {
+                logger.rag.debug(`   - 语义切分: idx=${i}, sim=${sim.toFixed(4)}`);
+            }
             chunks.push(buffer);
             buffer = sentences[i+1];
             splitCount++;
@@ -206,7 +245,7 @@ export class MarkdownChunker {
     }
     if (buffer) chunks.push(buffer);
     
-    logger.rag.info(`🧠 [语言分块] 识别到 ${splitCount} 个语义转折点`);
+    logger.rag.info(`🧠 [子级细拆] 语义层级产出 ${chunks.length} 个分块 (包含 ${splitCount} 个自然转折点)`);
     return chunks;
   }
 

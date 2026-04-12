@@ -50,3 +50,13 @@ src-tauri/.cargo/
 /.claude/skills/gitnexus/gitnexus-guide/SKILL.md
 /.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md
 /.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md
+/doc/rag-test-cases.md
+/doc/RAG实战（一）处理文本Chunk的代码.md
+/doc/RAG实战（三A）综合方案处理文本Chunk的代码.md
+/doc/RAG实战（三）基于语义Embedding的分割文本Chunk.md
+/doc/RAG实战（二）基于规则处理文本Chunk.md
+/doc/RAG实战（五）处理多模态Chunk的代码.md
+/doc/rag改进walkthrough.md
+/doc/RAG评估框架技术报告.md
+/doc/Rikka_note_rag_analysis_report.md
+/doc/日志系统.md
