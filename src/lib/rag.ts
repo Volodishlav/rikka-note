@@ -4,6 +4,7 @@ import {
   upsertVectorDocument, 
   deleteVectorDocumentsByFilename, 
   getSimilarDocuments,
+  getFtsDocuments,
   initVectorDb,
   getVectorDocumentCount
 } from "@/db/vector";
@@ -251,9 +252,10 @@ interface FuzzySearchResult {
 }
 
 /**
- * 从工作区中收集所有Markdown文件内容，用于模糊搜索
+ * 废弃的旧方法: 从工作区中收集所有Markdown文件内容，用于模糊搜索
+ * 现在由于使用了 FTS5，不再需要将全量内容加载到内存
  */
-async function collectMarkdownContents(): Promise<SearchItem[]> {
+async function _collectMarkdownContentsDeprecated(): Promise<SearchItem[]> {
   try {
     // 获取工作区中的所有文件
     const fileTree = await getWorkspaceFiles();
@@ -375,52 +377,30 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
         .slice(0, 3);
 
     // ==========================================
-    // 核心改进 3：仅使用【有效关键词】进行模糊匹配 (作为兜底)
+    // 核心改进 3：使用 FTS5 (BM25) 进行全量关键词匹配 (替代原有的 Fuzzy Path)
     // ==========================================
     if (validKeywords.length > 0) {
-      const items = await collectMarkdownContents();
-      if (items.length > 0) {
-        logger.rag.info(`🛰️ [多路检索] 模糊路径正在匹配 ${validKeywords.length} 个关键词: ${validKeywords.map(k => k.text).join(', ')}`);
-        for (const keyword of validKeywords) {
-          const fuzzyResults = await invoke<FuzzySearchResult[]>('fuzzy_search', {
-            items,
-            query: keyword.text,
-            keys: ['title', 'article'],
-            threshold: 0.3,
-            includeScore: true,
-            includeMatches: true
+      logger.rag.info(`🛰️ [多路检索] FTS5 路径正在匹配 ${validKeywords.length} 个关键词...`);
+      for (const keyword of validKeywords) {
+        const ftsResults = await getFtsDocuments(keyword.text, 15);
+        if (ftsResults.length > 0) {
+          logger.rag.debug(`   - 关键词 "${keyword.text}" (FTS5) 命中 ${ftsResults.length} 个片段`);
+        }
+
+        for (const doc of ftsResults) {
+          // 归一化权重处理
+          const normalizedWeight = Math.min(keyword.weight, 2.0);
+          const finalScore = doc.score * normalizedWeight;
+
+          allContexts.push({
+            filename: doc.filename,
+            path: doc.filename, // FTS5 存的是相对路径
+            content: doc.content,
+            score: finalScore,
+            keyword: keyword.text,
+            type: 'fts',
+            item: { path: doc.filename }
           });
-
-          if (fuzzyResults.length > 0) {
-            logger.rag.debug(`   - 关键词 "${keyword.text}" 命中 ${fuzzyResults.length} 个结果`);
-          }
-
-          for (const result of fuzzyResults) {
-            if (result.score > 0) {
-              const articleMatches = result.matches.filter(m => m.key === 'article');
-              if (articleMatches.length > 0) {
-                const match = articleMatches[0];
-                const content = match.value;
-                let startIdx = 0, endIdx = content.length;
-                if (match.indices.length > 0) {
-                  startIdx = Math.max(0, match.indices[0][0] - 250);
-                  endIdx = Math.min(content.length, match.indices[0][1] + 250);
-                }
-                const normalizedWeight = Math.min(keyword.weight, 2.0);
-                const finalScore = result.score * normalizedWeight;
-
-                allContexts.push({
-                  filename: result.item.title || '未命名文件',
-                  path: result.item.id || '',
-                  content: content.substring(startIdx, endIdx),
-                  score: finalScore,
-                  keyword: keyword.text,
-                  type: 'fuzzy',
-                  item: { path: result.item.id || '' }
-                });
-              }
-            }
-          }
         }
       }
     }
@@ -429,19 +409,21 @@ export async function getRetrievedDocs(query: string, keywords: Keyword[]): Prom
 
     // 使用 RRF 合并不同检索源的结果
     const vectorResults = allContexts.filter(c => c.type === 'vector').sort((a, b) => b.score - a.score);
-    const fuzzyResults = allContexts.filter(c => c.type === 'fuzzy').sort((a, b) => b.score - a.score);
+    const ftsResults = allContexts.filter(c => c.type === 'fts').sort((a, b) => b.score - a.score);
 
     const sources: FusionSource[] = [
         {
-            name: 'fuzzy',
-            items: fuzzyResults.map((r) => ({
+            name: 'fts',
+            weight: 1.2, // 给 FTS5 (精准匹配) 略高的权重，解决关键词盲态
+            items: ftsResults.map((r) => ({
                 id: r.path || r.filename,
                 score: r.score,
-                data: { ...r, _source: 'fuzzy' }
+                data: { ...r, _source: 'fts' }
             }))
         },
         {
             name: 'vector',
+            weight: 1.0,
             items: vectorResults.map((r) => ({
                 id: r.path || r.filename,
                 score: r.score,
@@ -576,19 +558,19 @@ export async function getRetrievedDocsWithMetrics(
 
   // 从结果中统计各类型命中数
   const vectorCount = docs.filter(d => d.type === 'vector').length
-  const fuzzyCount = docs.filter(d => d.type === 'fuzzy').length
+  const ftsCount = docs.filter(d => d.type === 'fts').length
   const rerankApplied = docs.some(d => d.type === 'rerank')
 
   const metrics: RetrievalMetrics = {
     totalLatencyMs: Math.round(endTime - startTime),
     vectorCount,
-    fuzzyCount,
+    fuzzyCount: ftsCount, // 映射到旧的指标字段以便前端展示
     rerankApplied
   }
 
   logger.rag.debug(
     `检索完成 — 耗时: ${metrics.totalLatencyMs}ms, ` +
-    `向量: ${vectorCount}, 模糊: ${fuzzyCount}, Rerank: ${rerankApplied}`
+    `向量: ${vectorCount}, FTS5: ${ftsCount}, Rerank: ${rerankApplied}`
   )
 
   return { docs, metrics }

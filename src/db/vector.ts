@@ -25,6 +25,20 @@ export async function initVectorDb() {
     )
   `);
   
+  // 初始化 FTS5 全文检索表 (使用 content 字段进行索引)
+  // 注意: FTS5 是 SQLite 的虚表扩展
+  await db!.execute(`
+    create virtual table if not exists vector_documents_fts using fts5(
+      filename,
+      chunk_id unindexed,
+      content,
+      content='vector_documents',
+      content_rowid='id'
+    )
+  `);
+
+  // 创建触发器实现自动同步 (可选，但为了性能和可靠性此处采用代码同步)
+  
   // 创建用于快速查找文件的索引
   await db!.execute(`
     create index if not exists idx_vector_documents_filename 
@@ -34,9 +48,38 @@ export async function initVectorDb() {
 
 // 插入或更新向量文档
 export async function upsertVectorDocument(doc: Omit<VectorDocument, 'id'>) {
-  await db!.execute(
+  // 1. 更新主表
+  const result = await db!.execute(
     "insert into vector_documents (filename, chunk_id, content, embedding, updated_at) values ($1, $2, $3, $4, $5) on conflict(filename, chunk_id) do update set content = excluded.content, embedding = excluded.embedding, updated_at = excluded.updated_at",
     [doc.filename, doc.chunk_id, doc.content, doc.embedding, doc.updated_at]);
+  
+  const lastInsertId = result.lastInsertId;
+
+  // 2. 同步到 FTS5 虚表
+  // 由于 FTS5 虚表不能直接 ON CONFLICT，我们先尝试删除对应的旧条目或直接由于外部处理逻辑（已预先删除）直接插入
+  // 这里通过主表的 rowid (lastInsertId) 来同步
+  if (lastInsertId) {
+    await db!.execute(
+      "insert into vector_documents_fts(rowid, filename, chunk_id, content) values ($1, $2, $3, $4)",
+      [lastInsertId, doc.filename, doc.chunk_id, doc.content]
+    );
+  } else {
+    // 这种情况下是更新了已有记录，我们需要根据 filename 和 chunk_id 找到 id 并更新 FTS
+    const existing = await db!.select<{id: number}[]>(
+      "select id from vector_documents where filename = $1 and chunk_id = $2",
+      [doc.filename, doc.chunk_id]
+    );
+    if (existing && existing[0]) {
+      await db!.execute(
+        "insert into vector_documents_fts(vector_documents_fts, rowid, filename, chunk_id, content) values('delete', $1, $2, $3, $4)",
+        [existing[0].id, doc.filename, doc.chunk_id, doc.content]
+      );
+      await db!.execute(
+        "insert into vector_documents_fts(rowid, filename, chunk_id, content) values ($1, $2, $3, $4)",
+        [existing[0].id, doc.filename, doc.chunk_id, doc.content]
+      );
+    }
+  }
 }
 
 // 获取指定文件名的所有向量文档
@@ -48,6 +91,12 @@ export async function getVectorDocumentsByFilename(filename: string) {
 
 // 通过文件名删除向量文档
 export async function deleteVectorDocumentsByFilename(filename: string) {
+  // 同步删除 FTS5 条目 (需在删除主表数据前获取 ID，或者直接按 filename 删)
+  await db!.execute(
+    "delete from vector_documents_fts where filename = $1",
+    [filename]
+  );
+  
   await db!.execute(
     "delete from vector_documents where filename = $1",
     [filename]);
@@ -68,7 +117,7 @@ export async function getSimilarDocuments(
   limit: number = 5,
   threshold: number = 0.5
 ): Promise<{id: number, filename: string, content: string, similarity: number}[]> {
-  // 获取所有文档向量
+  // 获取所有文档向量 (待优化: 大规模数据下应使用向量数据库或更高效的索引方式)
   const docs = await db!.select<VectorDocument[]>(`
     select id, filename, content, embedding from vector_documents
   `);
@@ -109,6 +158,50 @@ export async function getSimilarDocuments(
       .slice(0, limit);
 }
 
+/**
+ * 使用 FTS5 进行全文检索 (BM25)
+ * @param query 搜索词
+ * @param limit 限制数量
+ */
+export async function getFtsDocuments(
+  query: string,
+  limit: number = 20
+): Promise<{id: number, filename: string, content: string, score: number, type: string}[]> {
+  // 预处理 query，防止 SQL 注入或格式错误，简单的处理是将特殊字符转义或包裹
+  // FTS5 MATCH 语法比较严格
+  const safeQuery = query.replace(/['"/\\;]/g, ' ');
+  
+  if (!safeQuery.trim()) return [];
+
+  try {
+    // 使用 rank 功能获取 BM25 评分 (rank 越小越相关，但在 FTS5 中 rank 是负数，排序时需注意)
+    // 也可以使用 bm25(vector_documents_fts) 如果编译了相关库，但 rank 是内置的
+    const results = await db!.select<any[]>(`
+      select 
+        rowid as id, 
+        filename, 
+        content, 
+        rank as fts_score
+      from vector_documents_fts 
+      where vector_documents_fts match $1 
+      order by rank 
+      limit $2
+    `, [safeQuery, limit]);
+
+    return results.map(r => ({
+      id: r.id,
+      filename: r.filename,
+      content: r.content,
+      // 将 rank 转为正向分数以便 RRF 逻辑处理 (FTS5 rank 默认越小越相关)
+      score: Math.abs(r.fts_score) || 0,
+      type: 'fts'
+    }));
+  } catch (e) {
+    logger.rag.error('FTS5 search failed:', e);
+    return [];
+  }
+}
+
 // 余弦相似度计算
 function cosineSimilarity(vecA: number[], vecB: number[]): number {
   if (vecA.length !== vecB.length) {
@@ -133,6 +226,9 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
 
 // 清空向量数据库
 export async function clearVectorDb() {
+  await db!.execute(`
+    delete from vector_documents_fts
+  `);
   await db!.execute(`
     delete from vector_documents
   `);
