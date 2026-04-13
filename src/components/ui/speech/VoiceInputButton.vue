@@ -27,8 +27,8 @@ import { ref, computed, onUnmounted } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Mic, MicOff, Loader2 } from 'lucide-vue-next'
 import { invoke } from '@tauri-apps/api/core'
-import { useToast } from '@/composables/useToast'
-import { useI18n } from '@/composables/useI18n'
+import { useToast } from '@/composables/useToast.ts'
+import { useI18n } from '@/composables/useI18n.ts'
 
 const props = defineProps<{
   onResult: (text: string) => void

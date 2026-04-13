@@ -14,7 +14,14 @@
          ref="aboutRef">
       <!-- 动态背景 -->
       <Start class="absolute inset-0 z-0" />
-
+      <!-- 2. 全局径向渐变模糊遮罩 (控制模糊层级在动画之上) -->
+      <div
+          class="absolute inset-0 z-[1] backdrop-blur-xl pointer-events-none"
+          style="
+            mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0) 70%);
+            -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0) 70%);
+          "
+      ></div>
       <!-- 内容容器 -->
       <div class="relative z-10 flex flex-col items-center -mt-24 transition-all">
         <!-- 应用图标 -->
@@ -29,15 +36,16 @@
         <!-- 开发者信息 -->
         <div class="flex flex-col items-center gap-2 text-muted-foreground animate-in fade-in duration-1000 delay-300">
           <div class="flex items-center gap-2">
-            <span class="text-sm font-medium opacity-70">库地址：</span>
+            <span class="text-sm font-bold text-black dark:text-white">库地址：</span>
             <a href="https://github.com/remnant-song/rikka-note"
                target="_blank"
                class="text-sm text-primary hover:underline hover:text-primary/80 transition-colors">
               https://github.com/remnant-song/rikka-note
             </a>
           </div>
-          <div class="text-xs opacity-60">
-            版本号：v0.1.0
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-black dark:text-white">版本号：</span>
+            <span class="text-sm text-primary">v0.1.0</span>
           </div>
         </div>
       </div>
