@@ -576,6 +576,33 @@
         "orangeShadow": "橙色阴影"
       }
     },
+    "speech": {
+      "title": "语音识别",
+      "description": "配置离线语音转文字功能。下载模型后即可使用，无需联网。",
+      "asrModel": "语音识别模型 (ASR)",
+      "presetModel": "预设模型",
+      "selectModel": "请选择模型",
+      "downloadSource": "下载源",
+      "vadModel": "语音活动检测模型 (VAD)",
+      "vadModelDesc": "自动剔除录音中的静音片段，提高识别速度。建议下载。",
+      "downloadModel": "一键下载模型",
+      "modelReady": "已就绪",
+      "modelNotReady": "模型未下载",
+      "asrModelReady": "识别模型已就绪",
+      "asrModelNotReady": "识别模型未下载",
+      "vadModelReady": "检测模型已就绪",
+      "vadModelNotReady": "检测模型未下载",
+      "downloadingAsr": "正在下载 ASR 模型",
+      "downloadingVad": "正在下载 VAD 模型",
+      "recheck": "重新检测",
+      "downloadSuccess": "模型下载成功",
+      "recording": "录音中...",
+      "recognizing": "识别中...",
+      "stopRecording": "停止并识别",
+      "noModel": "请先在设置 > 语音识别中下载模型",
+      "voiceInput": "语音输入",
+      "emptyResult": "未识别到有效的语音"
+    },
     "about": {
       "title": "关于"
     }

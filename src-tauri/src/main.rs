@@ -12,6 +12,7 @@ mod backup;
 mod model_manager;
 mod ocr;
 mod encryption;
+mod speech;
 use tauri::{AppHandle, Manager, State, WindowEvent};
 use model_manager::LlamaServerState;
 use screenshot::{screenshot};
@@ -26,6 +27,12 @@ fn main() {
     tauri::Builder::default()
         .manage(model_manager::LlamaServerState {
             process: std::sync::Mutex::new(None),
+        })
+        .manage(speech::SpeechState {
+            is_recording: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
+            audio_buffer: std::sync::Arc::new(std::sync::Mutex::new(Vec::new())),
+            audio_stream: std::sync::Mutex::new(None),
+            device_sample_rate: std::sync::Mutex::new(None),
         })
         // 核心插件 - 最先加载
         .plugin(tauri_plugin_fs::init())
@@ -77,6 +84,10 @@ fn main() {
             encryption::encrypt_file,
             encryption::decrypt_file,
             encryption::check_file_encrypted,
+            speech::check_speech_model_exists,
+            speech::start_recording,
+            speech::stop_recording_and_recognize,
+            speech::download_speech_model,
         ])
 
         // 应用设置 - 在所有插件和命令注册后

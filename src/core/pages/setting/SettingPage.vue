@@ -74,6 +74,7 @@
           :active-tab="activeTab === 'developer:color' ? 'color' : activeTab === 'developer:evaluation' ? 'evaluation' : 'debug'" 
         />
         <VisionSetting v-if="activeTab === 'vision'" />
+        <SpeechSetting v-if="activeTab === 'speech'" />
         <EditorSetting v-if="activeTab === 'editor'" />
       </main>
     </div>
@@ -85,7 +86,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from '@/composables/useI18n'
 import { 
   BotMessageSquare, Drama, Settings, BookText, Code2, 
-  Shield, Laptop, ChevronRight, Eye, PencilLine, Info
+  Shield, Laptop, ChevronRight, Eye, PencilLine, Info, Mic
 } from 'lucide-vue-next'
 import { 
   Sidebar, SidebarContent, SidebarHeader, SidebarProvider,
@@ -104,6 +105,7 @@ import RagSetting from './rag/RagSetting.vue'
 import EncryptionSetting from './encryption/EncryptionSetting.vue'
 import DeveloperSetting from './developer/DeveloperSetting.vue'
 import VisionSetting from './vision/VisionSetting.vue'
+import SpeechSetting from './speech/SpeechSetting.vue'
 import EditorSetting from './editor/EditorSetting.vue'
 import { useLayoutStore } from '@/stores/layout'
 
@@ -163,6 +165,11 @@ const navItems = computed(() => [
     id: 'vision',
     label: t('settings.vision.title'),
     icon: Eye
+  },
+  {
+    id: 'speech',
+    label: t('settings.speech.title'),
+    icon: Mic
   },
   {
     id: 'encryption',

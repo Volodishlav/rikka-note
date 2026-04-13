@@ -88,6 +88,12 @@
         <Send class="h-4 w-4" />
       </Button>
       
+      <!-- 语音输入按钮 -->
+      <VoiceInputButton
+        class="absolute bottom-2 right-20 h-8 w-8"
+        :on-result="handleVoiceResult"
+      />
+
       <!-- AI 编辑模式切换按钮 -->
       <Button 
         variant="ghost" 
@@ -111,6 +117,7 @@ import { useI18n } from '@/composables/useI18n'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Send, FileText, X, AlertCircle, Wand2, Sparkles } from 'lucide-vue-next'
+import VoiceInputButton from '@/components/speech/VoiceInputButton.vue'
 import { fetchAiStream } from '@/lib/ai'
 import { getRetrievedDocs, type RetrievedDoc } from '@/lib/rag'
 import { logger } from '@/utils/logger'
@@ -135,6 +142,11 @@ const { t } = useI18n()
 const { info, error } = useToast()
 const evalStore = useEvaluationStore()
 const { isRagEnabled, documentCount } = storeToRefs(vectorStore)
+
+const handleVoiceResult = (text: string) => {
+  // 将识别结果追加到输入框
+  input.value = input.value ? `${input.value} ${text}` : text
+}
 
 const handleEnter = (e: KeyboardEvent) => {
   if (!e.shiftKey) {
