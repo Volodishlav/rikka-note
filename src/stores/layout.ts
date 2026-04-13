@@ -46,6 +46,8 @@ export const useLayoutStore = defineStore('layout', () => {
     const isScreenSelecting = ref(false)
     // 存储当前截屏的 Base64 数据
     const screenImageData = ref('')
+    // 控制是否显示关于页面
+    const isAboutVisible = ref(false)
 
     // Action to toggle the visibility of the left sidebar
     function toggleLeftSidebar() {
@@ -114,6 +116,11 @@ export const useLayoutStore = defineStore('layout', () => {
         screenImageData.value = imageData
     }
 
+    // Action to toggle the visibility of the about page
+    function toggleAboutPage() {
+        isAboutVisible.value = !isAboutVisible.value
+    }
+
     return {
         isLeftSidebarVisible,
         isEditorVisible,
@@ -123,12 +130,14 @@ export const useLayoutStore = defineStore('layout', () => {
         isOcrVisible,
         isScreenSelecting,
         screenImageData,
+        isAboutVisible,
         toggleLeftSidebar,
         toggleEditor,
         toggleRightSidebar,
         toggleSearchPanel,
         toggleSettingPage,
         toggleOcr,
-        setScreenSelecting
+        setScreenSelecting,
+        toggleAboutPage
     }
 })

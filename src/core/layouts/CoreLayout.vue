@@ -15,6 +15,7 @@ import Start from '@/shared/pages/start.vue'
 import ArtTitle from '@/shared/components/ArtTitle.vue'
 import { OcrCapture } from '@/core/pages/ocr'
 import OcrScreenSelector from '@/core/pages/ocr/OcrScreenSelector.vue'
+import AboutOverlay from '@/core/pages/about/AboutOverlay.vue'
 import { useWorkspaceLayoutStore } from '@/stores/workspaceLayout'
 import { useSettingStore } from '@/stores/setting'
 import { logger } from '@/utils/logger';
@@ -132,6 +133,9 @@ const handleSelectionDone = (bytes: number[]) => {
         v-if="layoutStore.isScreenSelecting" 
         @selected="handleSelectionDone"
       />
+
+      <!-- “关于”页面遮罩层 -->
+      <AboutOverlay />
     </div>
   </div>
 </template>

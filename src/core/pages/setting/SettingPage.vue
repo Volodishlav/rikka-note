@@ -48,7 +48,7 @@
                 <SidebarMenuItem v-else>
                   <SidebarMenuButton
                     :active="activeTab === item.id"
-                    @click="activeTab = item.id"
+                    @click="handleParentClick(item)"
                     class="w-full justify-start"
                   >
                     <component :is="item.icon" class="mr-2 h-4 w-4" />
@@ -85,7 +85,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from '@/composables/useI18n'
 import { 
   BotMessageSquare, Drama, Settings, BookText, Code2, 
-  Shield, Laptop, ChevronRight, Eye, PencilLine
+  Shield, Laptop, ChevronRight, Eye, PencilLine, Info
 } from 'lucide-vue-next'
 import { 
   Sidebar, SidebarContent, SidebarHeader, SidebarProvider,
@@ -105,8 +105,10 @@ import EncryptionSetting from './encryption/EncryptionSetting.vue'
 import DeveloperSetting from './developer/DeveloperSetting.vue'
 import VisionSetting from './vision/VisionSetting.vue'
 import EditorSetting from './editor/EditorSetting.vue'
+import { useLayoutStore } from '@/stores/layout'
 
 const { t } = useI18n()
+const layoutStore = useLayoutStore()
 
 // 状态管理
 const activeTab = ref('general')
@@ -119,6 +121,8 @@ const isDeveloperOpen = ref(false) // 默认收起
 const handleParentClick = (item: any) => {
   if (item.id === 'developer') {
     activeTab.value = 'developer:debug' // 跳转到调试系统子项
+  } else if (item.id === 'about') {
+    layoutStore.toggleAboutPage()
   } else {
     activeTab.value = item.id
   }
@@ -174,6 +178,11 @@ const navItems = computed(() => [
       { id: 'developer:debug', label: t('settings.developer.tabs.debug') },
       { id: 'developer:evaluation', label: t('settings.developer.tabs.evaluation') },
     ]
+  },
+  {
+    id: 'about',
+    label: t('settings.about.title'),
+    icon: Info
   }
 ])
 </script>

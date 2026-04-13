@@ -574,6 +574,9 @@
         "pinkShadow": "Pink Shadow",
         "orangeShadow": "Orange Shadow"
       }
+    },
+    "about": {
+      "title": "About"
     }
   },
   "encryption": {

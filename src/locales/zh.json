@@ -575,6 +575,9 @@
         "pinkShadow": "粉丝阴影",
         "orangeShadow": "橙色阴影"
       }
+    },
+    "about": {
+      "title": "关于"
     }
   },
   "encryption": {
