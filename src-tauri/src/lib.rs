@@ -1,8 +1,6 @@
-mod webdav;
 mod fuzzy_search;
 mod ocr;
 mod encryption;
-use webdav::{webdav_backup, webdav_create_dir, webdav_sync, webdav_test};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -15,10 +13,6 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_sql::Builder::default().build())
         .invoke_handler(tauri::generate_handler![
-            webdav_test,
-            webdav_backup,
-            webdav_sync,
-            webdav_create_dir,
             fuzzy_search::fuzzy_search,
             fuzzy_search::fuzzy_search_parallel,
             ocr::ocr_from_bytes,

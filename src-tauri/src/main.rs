@@ -2,7 +2,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod screenshot;
-mod webdav;
 mod fuzzy_search;
 mod keywords;
 mod tray;
@@ -16,7 +15,6 @@ mod speech;
 use tauri::{AppHandle, Manager, State, WindowEvent};
 use model_manager::LlamaServerState;
 use screenshot::{screenshot};
-use webdav::{webdav_backup, webdav_sync, webdav_test, webdav_create_dir};
 use fuzzy_search::{fuzzy_search, fuzzy_search_parallel};
 use keywords::{rank_keywords};
 use backup::{export_app_data, import_app_data};
@@ -56,13 +54,9 @@ fn main() {
         // 注册命令处理器
         .invoke_handler(tauri::generate_handler![
             screenshot,
-            webdav_test,
-            webdav_backup,
-            webdav_sync,
             fuzzy_search,
             fuzzy_search_parallel,
             rank_keywords,
-            webdav_create_dir,
             export_app_data,
             import_app_data,
             model_manager::download_local_model,
