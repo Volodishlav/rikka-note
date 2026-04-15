@@ -577,6 +577,35 @@
     },
     "about": {
       "title": "About"
+    },
+    "sync": {
+      "title": "Sync",
+      "config": "Repo Config",
+      "remoteUrl": "Remote URL",
+      "remoteUrlPlaceholder": "https://github.com/user/repo.git",
+      "branch": "Branch",
+      "branchPlaceholder": "main",
+      "token": "GitHub Token (PAT)",
+      "tokenPlaceholder": "ghp_...",
+      "content": "Sync Content",
+      "syncNotes": "Sync Notes",
+      "syncDatabase": "Sync Database (SQLite)",
+      "actions": "Actions",
+      "commit": "Commit Changes",
+      "commitMessage": "Commit Message",
+      "commitMessagePlaceholder": "Enter commit message...",
+      "pull": "Pull Latest",
+      "push": "Push to Remote",
+      "syncAll": "Sync All",
+      "status": "Status",
+      "lastSync": "Last Sync",
+      "never": "Never",
+      "syncing": "Syncing...",
+      "success": "Sync Success",
+      "failed": "Sync Failed",
+      "initRepo": "Init Git Repo",
+      "notInit": "Current folder is not a Git repository",
+      "initSuccess": "Git initialized successfully"
     }
   },
   "encryption": {

@@ -76,6 +76,7 @@
         <VisionSetting v-if="activeTab === 'vision'" />
         <SpeechSetting v-if="activeTab === 'speech'" />
         <EditorSetting v-if="activeTab === 'editor'" />
+        <SyncSetting v-if="activeTab === 'sync'" />
       </main>
     </div>
   </SidebarProvider>
@@ -86,7 +87,8 @@ import { ref, computed } from 'vue'
 import { useI18n } from '@/composables/useI18n'
 import { 
   BotMessageSquare, Drama, Settings, BookText, Code2, 
-  Shield, Laptop, ChevronRight, Eye, PencilLine, Info, Mic
+  Shield, Laptop, ChevronRight, Eye, PencilLine, Info, Mic,
+  CloudSync
 } from 'lucide-vue-next'
 import { 
   Sidebar, SidebarContent, SidebarHeader, SidebarProvider,
@@ -107,6 +109,7 @@ import DeveloperSetting from './developer/DeveloperSetting.vue'
 import VisionSetting from './vision/VisionSetting.vue'
 import SpeechSetting from './speech/SpeechSetting.vue'
 import EditorSetting from './editor/EditorSetting.vue'
+import SyncSetting from './sync/SyncSetting.vue'
 import { useLayoutStore } from '@/stores/layout'
 
 const { t } = useI18n()
@@ -140,6 +143,11 @@ const navItems = computed(() => [
     id: 'editor',
     label: t('settings.editor.title'),
     icon: PencilLine
+  },
+  {
+    id: 'sync',
+    label: t('settings.sync.title'),
+    icon: CloudSync
   },
   {
     id: 'local',

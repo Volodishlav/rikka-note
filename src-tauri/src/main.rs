@@ -12,6 +12,7 @@ mod model_manager;
 mod ocr;
 mod encryption;
 mod speech;
+mod git;
 use tauri::{AppHandle, Manager, State, WindowEvent};
 use model_manager::LlamaServerState;
 use screenshot::{screenshot};
@@ -82,6 +83,10 @@ fn main() {
             speech::start_recording,
             speech::stop_recording_and_recognize,
             speech::download_speech_model,
+            git::git_commit_and_push,
+            git::git_pull,
+            git::git_status,
+            git::git_init_repo,
         ])
 
         // 应用设置 - 在所有插件和命令注册后

@@ -605,6 +605,35 @@
     },
     "about": {
       "title": "关于"
+    },
+    "sync": {
+      "title": "同步",
+      "config": "仓库配置",
+      "remoteUrl": "远程 URL",
+      "remoteUrlPlaceholder": "https://github.com/user/repo.git",
+      "branch": "分支",
+      "branchPlaceholder": "main",
+      "token": "GitHub Token (PAT)",
+      "tokenPlaceholder": "ghp_...",
+      "content": "同步内容",
+      "syncNotes": "同步笔记文件",
+      "syncDatabase": "同步数据库 (SQLite)",
+      "actions": "操作",
+      "commit": "提交变更",
+      "commitMessage": "提交说明",
+      "commitMessagePlaceholder": "输入提交信息...",
+      "pull": "拉取最新",
+      "push": "推送远端",
+      "syncAll": "一键同步",
+      "status": "状态",
+      "lastSync": "上次同步",
+      "never": "从未",
+      "syncing": "同步中...",
+      "success": "同步成功",
+      "failed": "同步失败",
+      "initRepo": "初始化 Git 仓库",
+      "notInit": "当前文件夹尚未初始化为 Git 仓库",
+      "initSuccess": "Git 初始化成功"
     }
   },
   "encryption": {

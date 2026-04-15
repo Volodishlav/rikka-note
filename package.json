@@ -26,6 +26,7 @@
     "@vueuse/core": "^14.2.1",
     "class-variance-authority": "^0.7.1",
     "cropperjs": "^1.6.2",
+    "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
     "echarts": "^6.0.0",
     "hast-util-to-html": "^9.0.5",
