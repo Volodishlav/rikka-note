@@ -31,7 +31,7 @@
             alt="应用图标"
         />
         <!-- 艺术标题 -->
-        <ArtTitle class="w-full max-w-lg mb-8" showBackground="graphic"></ArtTitle>
+        <ArtTitle class="w-full max-w-lg mb-8" showBackground="graphic" :animate="true"></ArtTitle>
 
         <!-- 开发者信息 -->
         <div class="flex flex-col items-center gap-2 text-muted-foreground animate-in fade-in duration-1000 delay-300">
@@ -60,7 +60,7 @@
           leave-to-class="opacity-0 translate-y-4"
       >
         <div v-if="showEscTip"
-             class="absolute bottom-16 left-1/2 -translate-x-1/2 px-6 py-2.5 rounded-full bg-foreground/5 backdrop-blur-xl border border-foreground/10 text-sm text-foreground/40 shadow-sm pointer-events-none">
+             class="absolute bottom-16 left-1/2 -translate-x-1/2 px-6 py-2.5 rounded-full bg-foreground/5 backdrop-blur-xl border border-foreground/10 text-sm text-foreground/40 shadow-sm pointer-events-none z-20">
           按 ESC 退出关于页面
         </div>
       </Transition>
@@ -95,7 +95,7 @@ watch(() => layoutStore.isAboutVisible, (visible) => {
       showEscTip.value = true
       setTimeout(() => {
         showEscTip.value = false
-      }, 2000)
+      }, 3000)
     }, 500)
     
     // 聚焦以接收按键事件

@@ -67,6 +67,8 @@
           :stroke="item.shadow"
           stroke-width="5"
           stroke-linejoin="round"
+          :class="{ 'animate-letter': animate }"
+          :style="{ '--index': index }"
         >{{ item.char }}</text>
       </g>
     </svg>
@@ -87,6 +89,10 @@ const props = defineProps({
     type: String,
     default: null,
     validator: (value: any) => [null, 'graphic', 'brush'].includes(value)
+  },
+  animate: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -152,5 +158,45 @@ svg {
   width: 100%;
   height: auto;
   max-width: 1200px;
+}
+
+/* 书写动画样式 */
+.animate-letter {
+  opacity: 0;
+  fill-opacity: 0;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  filter: blur(4px);
+  transform: translateY(10px);
+  animation: writing 2.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  animation-delay: calc(var(--index) * 0.2s);
+}
+
+@keyframes writing {
+  0% {
+    opacity: 0;
+    fill-opacity: 0;
+    stroke-dashoffset: 1000;
+    filter: blur(8px);
+    transform: translateY(20px);
+  }
+  30% {
+    opacity: 1;
+    stroke-dashoffset: 1000;
+    fill-opacity: 0;
+  }
+  70% {
+    stroke-dashoffset: 0;
+    fill-opacity: 0;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 1;
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+    filter: blur(0);
+    transform: translateY(0);
+  }
 }
 </style>
