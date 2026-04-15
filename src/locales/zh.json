@@ -633,7 +633,10 @@
       "failed": "同步失败",
       "initRepo": "初始化 Git 仓库",
       "notInit": "当前文件夹尚未初始化为 Git 仓库",
-      "initSuccess": "Git 初始化成功"
+      "initSuccess": "Git 初始化成功",
+      "conflictStrategy": "合并冲突策略",
+      "ours": "本地优先 (保留本地修改)",
+      "theirs": "远程优先 (覆盖为远程内容)"
     }
   },
   "encryption": {

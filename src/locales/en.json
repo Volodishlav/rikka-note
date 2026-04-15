@@ -605,7 +605,10 @@
       "failed": "Sync Failed",
       "initRepo": "Init Git Repo",
       "notInit": "Current folder is not a Git repository",
-      "initSuccess": "Git initialized successfully"
+      "initSuccess": "Git initialized successfully",
+      "conflictStrategy": "Resolve Conflict Strategy",
+      "ours": "Local First (Keep Local)",
+      "theirs": "Remote First (Overwrite with Remote)"
     }
   },
   "encryption": {

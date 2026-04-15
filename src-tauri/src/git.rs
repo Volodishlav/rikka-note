@@ -7,6 +7,8 @@ pub struct GitConfig {
     pub remote_url: String,
     pub branch: String,
     pub token: String, // GitHub PAT
+    #[serde(rename = "conflictStrategy")]
+    pub conflict_strategy: String, // "ours" or "theirs"
 }
 
 #[tauri::command]
@@ -109,8 +111,42 @@ pub async fn git_pull(
         repo.checkout_head(Some(git2::build::CheckoutBuilder::default().force())).map_err(|e| e.to_string())?;
         Ok("已快速合并 (Fast-forward)".to_string())
     } else if analysis.is_normal() {
-        // 普通合并比较复杂，此处先做提示
-        Err("检测到版本冲突，请手动处理或使用命令行合并".to_string())
+        // 执行合并
+        let mut merge_opts = git2::MergeOptions::new();
+        if config.conflict_strategy == "ours" {
+            merge_opts.file_favor(git2::FileFavor::Ours);
+        } else if config.conflict_strategy == "theirs" {
+            merge_opts.file_favor(git2::FileFavor::Theirs);
+        }
+
+        let mut checkout_opts = git2::build::CheckoutBuilder::new();
+        checkout_opts.force();
+
+        repo.merge(&[&fetch_commit], Some(&mut merge_opts), Some(&mut checkout_opts))
+            .map_err(|e| format!("合并执行失败: {}", e))?;
+
+        // 检查是否有冲突
+        if repo.index().map_err(|e| e.to_string())?.has_conflicts() {
+            return Err("检测到内容冲突，请手动处理".to_string());
+        }
+
+        // 自动提交合并结果
+        let mut index = repo.index().map_err(|e| e.to_string())?;
+        let tree_id = index.write_tree().map_err(|e| e.to_string())?;
+        let tree = repo.find_tree(tree_id).map_err(|e| e.to_string())?;
+        let sig = Signature::now("Rikka Note", "sync@rikka.note").map_err(|e| e.to_string())?;
+        
+        // 获取父提交
+        let head = repo.head().map_err(|e| e.to_string())?.peel_to_commit().map_err(|e| e.to_string())?;
+        let fetch_c = repo.find_commit(fetch_commit.id()).map_err(|e| e.to_string())?;
+        
+        repo.commit(Some("HEAD"), &sig, &sig, "Merge remote-tracking branch", &tree, &[&head, &fetch_c])
+            .map_err(|e| format!("自动提交合并失败: {}", e))?;
+        
+        // 清理合并状态
+        repo.cleanup_state().map_err(|e| e.to_string())?;
+        
+        Ok("已自动合并远程变更 (Merge)".to_string())
     } else {
         Ok("已经是最新版本".to_string())
     }

@@ -2,7 +2,7 @@
   <SidebarProvider>
     <div class="flex h-full w-full bg-background text-foreground overflow-hidden">
       <!-- Sidebar -->
-      <Sidebar collapsible="none" class="w-64 border-r shrink-0">
+      <Sidebar collapsible="none" class="w-50 border-r shrink-0">
         <SidebarHeader class="p-4 pt-6 pb-2">
           <h2 class="text-lg font-semibold px-2">{{ t('settings.title') }}</h2>
         </SidebarHeader>

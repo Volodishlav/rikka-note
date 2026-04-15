@@ -48,6 +48,25 @@
             />
           </div>
         </div>
+
+        <div class="grid gap-2">
+          <label class="text-xs font-medium">{{ t('settings.sync.conflictStrategy') }}</label>
+          <Select v-model="config.conflictStrategy">
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="ours">
+                  {{ t('settings.sync.ours') }}
+                </SelectItem>
+                <SelectItem value="theirs">
+                  {{ t('settings.sync.theirs') }}
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
 
@@ -108,6 +127,14 @@ import { useWorkspaceStore } from '@/stores/workspace'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import { 
+  Select, 
+  SelectContent, 
+  SelectGroup, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select'
 import { Github, RefreshCw, Upload, Download } from 'lucide-vue-next'
 import { invoke } from '@tauri-apps/api/core'
 import { tauriGet, tauriSet } from '@/utils/tauriStore'
@@ -127,7 +154,8 @@ const syncLogs = ref<{time: string, msg: string, type: 'info' | 'error'}[]>([])
 const config = reactive({
   remoteUrl: '',
   branch: 'main',
-  token: ''
+  token: '',
+  conflictStrategy: 'ours'
 })
 
 // 添加日志
