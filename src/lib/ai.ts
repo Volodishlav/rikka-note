@@ -33,13 +33,36 @@ async function getPromptContent(): Promise<string> {
 async function getAISettings(modelType?: string): Promise<AiConfig | undefined> {
   const store = await Store.load('store.json')
   const aiConfigs = await store.get<AiConfig[]>('aiModelList')
-  const modelKey = await store.get(modelType || 'primaryModel')
-  if (!modelKey) {
-    const primaryModel = await store.get<string>('primaryModel')
-    return aiConfigs?.find(item => item.key === primaryModel)
-  } else {
-    return aiConfigs?.find(item => item.key === modelKey)
+  const modelKey = await store.get<string>(modelType || 'primaryModel')
+  
+  const keyToFind = modelKey || await store.get<string>('primaryModel')
+  
+  // Special handling for local injected models
+  if (keyToFind === 'local-llama-server') {
+    const port = await store.get<number>('localChatPort') || 8081
+    const modelStr = await store.get<string>('localChatModelStr') || 'local-model'
+    return {
+      key: 'local-llama-server',
+      title: '本地推理模型',
+      baseURL: `http://127.0.0.1:${port}/v1`,
+      model: modelStr,
+      modelType: 'chat'
+    }
   }
+
+  if (keyToFind === 'local-embedding-server') {
+    const port = await store.get<number>('localEmbeddingPort') || 8080
+    const modelStr = await store.get<string>('localEmbeddingModelStr') || 'local-model'
+    return {
+      key: 'local-embedding-server',
+      title: '本地向量模型',
+      baseURL: `http://127.0.0.1:${port}/v1`,
+      model: modelStr,
+      modelType: 'embedding'
+    }
+  }
+
+  return aiConfigs?.find(item => item.key === keyToFind)
 }
 
 /**

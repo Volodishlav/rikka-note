@@ -7,9 +7,11 @@ use tokio::io::AsyncWriteExt;
 use reqwest::Client;
 use futures_util::StreamExt;
 
-// Global state to store the llama-server child process
+use std::collections::HashMap;
+
+// Global state to store multiple llama-server child processes
 pub struct LlamaServerState {
-    pub process: Mutex<Option<Child>>,
+    pub processes: Mutex<HashMap<String, Child>>,
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -214,11 +216,13 @@ pub async fn start_llama_server(
     state: tauri::State<'_, LlamaServerState>,
     model_filename: String,
     port: u16,
+    purpose: String, // "embedding" or "chat"
+    context_size: Option<u32>,
 ) -> Result<String, String> {
-    println!("=== [DEBUG] Starting llama-server ===");
+    println!("=== [DEBUG] Starting llama-server for {} ===", purpose);
     
-    // Ensure we stop if it was already running
-    let _ = stop_llama_server(state.clone()).await;
+    // Ensure we stop if THIS purpose was already running
+    let _ = stop_llama_server(state.clone(), purpose.clone()).await;
 
     let app_dir = get_app_data_dir(&app)?;
     
@@ -237,23 +241,29 @@ pub async fn start_llama_server(
         return Err(format!("Model file not found at {:?}", model_path));
     }
 
-    println!("Executing: {:?} -m {:?} --embedding --pooling last --port {}", server_exe, model_path, port);
+    println!("Executing: {:?} -m {:?} --port {}", server_exe, model_path, port);
 
-    let mut child = Command::new(&server_exe)
-        .arg("-m")
-        .arg(&model_path)
-        .arg("--embedding")
-        .arg("--pooling")
-        .arg("last")
-        .arg("--host")
-        .arg("127.0.0.1")
-        .arg("--port")
-        .arg(port.to_string())
+    let mut cmd = Command::new(&server_exe);
+    cmd.arg("-m").arg(&model_path)
+       .arg("--host").arg("127.0.0.1")
+       .arg("--port").arg(port.to_string());
+
+    if purpose == "embedding" {
+        cmd.arg("--embedding").arg("--pooling").arg("last");
+        // Embedding models don't need huge context, 2048 is enough for RAG and saves lots of VRAM
+        cmd.arg("-c").arg("2048");
+    } else {
+        // Chat mode defaults
+        let ctx = context_size.unwrap_or(4096);
+        cmd.arg("-c").arg(ctx.to_string());
+        cmd.arg("--flash-attn").arg("on"); 
+    }
+
+    let mut child = cmd
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
-        // In a real application we'd use creation_flags to hide console window on windows
         .spawn()
-        .map_err(|e| format!("Failed to start llama-server.exe: {}", e))?;
+        .map_err(|e| format!("Failed to start llama-server.exe ({}): {}", purpose, e))?;
 
     if let Some(stdout) = child.stdout.take() {
         std::thread::spawn(move || {
@@ -269,45 +279,54 @@ pub async fn start_llama_server(
 
     if let Some(stderr) = child.stderr.take() {
         let app_clone = app.clone();
+        let purpose_clone = purpose.clone();
         std::thread::spawn(move || {
             use std::io::{BufRead, BufReader};
+            let mut is_ready = false;
             let reader = BufReader::new(stderr);
             for line in reader.lines() {
                 if let Ok(l) = line {
                     println!("[llama-server stderr] {}", l);
                     // Hook into the logs to detect when it's fully started
                     if l.contains("server is listening on http") {
-                        let _ = app_clone.emit("llama-server-ready", ());
+                        is_ready = true;
+                        let _ = app_clone.emit(&format!("llama-server-ready-{}", purpose_clone), ());
                     }
                     if l.contains("out of memory") || l.contains("cannot allocate") {
-                        let _ = app_clone.emit("llama-server-error", l);
+                        let _ = app_clone.emit(&format!("llama-server-error-{}", purpose_clone), l);
+                        return; // Exit thread on critical error
                     }
                 }
+            }
+            // If the loop ends (stderr closed) and we weren't ready, the process likely crashed
+            if !is_ready {
+                let _ = app_clone.emit(&format!("llama-server-error-{}", purpose_clone), "Engine process exited unexpectedly during startup.");
             }
         });
     }
 
-    let mut process_state = state.process.lock().unwrap();
-    *process_state = Some(child);
+    let mut processes = state.processes.lock().unwrap();
+    processes.insert(purpose.clone(), child);
 
-    println!("=== [DEBUG] llama-server started on port {} ===", port);
+    println!("=== [DEBUG] llama-server ({}) started on port {} ===", purpose, port);
     Ok(format!("Server started on port {}", port))
 }
 
 #[tauri::command]
 pub async fn stop_llama_server(
     state: tauri::State<'_, LlamaServerState>,
+    purpose: String,
 ) -> Result<String, String> {
-    println!("=== [DEBUG] Stopping llama-server ===");
-    let mut process_state = state.process.lock().unwrap();
-    if let Some(mut child) = process_state.take() {
-        println!("Killing llama-server process (PID: {})", child.id());
+    println!("=== [DEBUG] Stopping llama-server for {} ===", purpose);
+    let mut processes = state.processes.lock().unwrap();
+    if let Some(mut child) = processes.remove(&purpose) {
+        println!("Killing llama-server {} process (PID: {})", purpose, child.id());
         let _ = child.kill();
         let _ = child.wait();
-        println!("=== [DEBUG] llama-server stopped ===");
+        println!("=== [DEBUG] llama-server {} stopped ===", purpose);
         Ok("Stopped".to_string())
     } else {
-        println!("No llama-server process running.");
+        println!("No llama-server {} process running.", purpose);
         Ok("Not running".to_string())
     }
 }
@@ -315,19 +334,20 @@ pub async fn stop_llama_server(
 #[tauri::command]
 pub async fn check_llama_server_status(
     state: tauri::State<'_, LlamaServerState>,
+    purpose: String,
 ) -> Result<bool, String> {
-    let mut process_state = state.process.lock().unwrap();
-    if let Some(child) = process_state.as_mut() {
+    let mut processes = state.processes.lock().unwrap();
+    if let Some(child) = processes.get_mut(&purpose) {
         match child.try_wait() {
             Ok(Some(_status)) => {
-                *process_state = None; // clear the dead process
+                processes.remove(&purpose); // clear the dead process
                 return Ok(false);
             }
             Ok(None) => {
                 return Ok(true);
             }
             Err(_) => {
-                *process_state = None;
+                processes.remove(&purpose);
                 return Ok(false);
             }
         }

@@ -25,7 +25,7 @@ use backup::{export_app_data, import_app_data};
 fn main() {
     tauri::Builder::default()
         .manage(model_manager::LlamaServerState {
-            process: std::sync::Mutex::new(None),
+            processes: std::sync::Mutex::new(std::collections::HashMap::new()),
         })
         .manage(speech::SpeechState {
             is_recording: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
@@ -101,9 +101,9 @@ fn main() {
             }
             tauri::RunEvent::ExitRequested { .. } | tauri::RunEvent::Exit => {
                 let state: tauri::State<model_manager::LlamaServerState> = app_handle.state();
-                let mut process_state = state.process.lock().unwrap();
-                if let Some(mut child) = process_state.take() {
-                    println!("=== [DEBUG] App Exiting: Killing llama-server process (PID: {})", child.id());
+                let mut processes = state.processes.lock().unwrap();
+                for (purpose, mut child) in processes.drain() {
+                    println!("=== [DEBUG] App Exiting: Killing llama-server process ({}) (PID: {})", purpose, child.id());
                     let _ = child.kill();
                     let _ = child.wait();
                 }

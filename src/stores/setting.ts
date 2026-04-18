@@ -46,8 +46,35 @@ export const useSettingStore = defineStore('setting', () => {
     const autoImageAnalyze = ref<boolean>(false)
 
     // Derived State (Filtered Models)
-    const chatModels = computed(() => aiModelList.value.filter((m: AiConfig) => m.modelType === 'chat' || !m.modelType))
-    const embeddingModels = computed(() => aiModelList.value.filter((m: AiConfig) => m.modelType === 'embedding'))
+    const chatModels = computed(() => {
+        const models = aiModelList.value.filter((m: AiConfig) => m.modelType === 'chat' || !m.modelType)
+        if (localChatRunning.value) {
+            models.unshift({
+                key: 'local-llama-server',
+                title: `本地模型 (${localChatModelStr.value})`,
+                baseURL: `http://127.0.0.1:${localChatPort.value}/v1`,
+                model: localChatModelStr.value,
+                modelType: 'chat',
+                icon: 'https://s2.loli.net/2025/06/25/JU2jVxLFsW4lB6S.png' // Use a generic local bot icon
+            })
+        }
+        return models
+    })
+
+    const embeddingModels = computed(() => {
+        const models = aiModelList.value.filter((m: AiConfig) => m.modelType === 'embedding')
+        if (localEmbeddingRunning.value) {
+            models.unshift({
+                key: 'local-embedding-server',
+                title: `本地向量模型 (${localEmbeddingModelStr.value})`,
+                baseURL: `http://127.0.0.1:${localEmbeddingPort.value}/v1`,
+                model: localEmbeddingModelStr.value,
+                modelType: 'embedding'
+            })
+        }
+        return models
+    })
+
     const rerankModels = computed(() => aiModelList.value.filter((m: AiConfig) => m.modelType === 'rerank'))
     const imageModels = computed(() => aiModelList.value.filter((m: AiConfig) => m.modelType === 'image'))
     
@@ -58,6 +85,16 @@ export const useSettingStore = defineStore('setting', () => {
     const useLocalEmbedding = ref<boolean>(false)
     const localEmbeddingModelStr = ref<string>('qwen3-embedding-0.6b-q8_0.gguf')
     const localEmbeddingPort = ref<number>(8080)
+
+    // Local Chat (LLM/SLM) Configs
+    const useLocalChat = ref<boolean>(false)
+    const localChatModelStr = ref<string>('gemma-4-e2b-it-q4_k_m.gguf')
+    const localChatPort = ref<number>(8081)
+    const localChatContextSize = ref<number>(4096)
+    
+    // Runtime status (not persisted)
+    const localChatRunning = ref<boolean>(false)
+    const localEmbeddingRunning = ref<boolean>(false)
     
     // Developer & Log Configs
     const devLogLevel = ref<'debug' | 'info' | 'warn' | 'error' | 'none'>('debug')
@@ -136,6 +173,18 @@ export const useSettingStore = defineStore('setting', () => {
             
             const savedLocalEmbeddingPort = await tauriGet<number>('localEmbeddingPort')
             if (savedLocalEmbeddingPort) localEmbeddingPort.value = savedLocalEmbeddingPort
+
+            const savedUseLocalChat = await tauriGet<boolean>('useLocalChat')
+            if (savedUseLocalChat !== undefined && savedUseLocalChat !== null) useLocalChat.value = savedUseLocalChat
+
+            const savedLocalChatModelStr = await tauriGet<string>('localChatModelStr')
+            if (savedLocalChatModelStr) localChatModelStr.value = savedLocalChatModelStr
+
+            const savedLocalChatPort = await tauriGet<number>('localChatPort')
+            if (savedLocalChatPort) localChatPort.value = savedLocalChatPort
+
+            const savedLocalChatContextSize = await tauriGet<number>('localChatContextSize')
+            if (savedLocalChatContextSize) localChatContextSize.value = savedLocalChatContextSize
 
             const savedAutoImageAnalyze = await tauriGet<boolean>('autoImageAnalyze')
             if (savedAutoImageAnalyze !== undefined && savedAutoImageAnalyze !== null) autoImageAnalyze.value = savedAutoImageAnalyze
@@ -268,9 +317,47 @@ export const useSettingStore = defineStore('setting', () => {
         await tauriSet('localEmbeddingModelStr', val)
     }
     
+    async function setUseLocalEmbedding(val: boolean) {
+        useLocalEmbedding.value = val
+        await tauriSet('useLocalEmbedding', val)
+    }
+
+    async function setLocalEmbeddingModelStr(val: string) {
+        localEmbeddingModelStr.value = val
+        await tauriSet('localEmbeddingModelStr', val)
+    }
+
     async function setLocalEmbeddingPort(val: number) {
         localEmbeddingPort.value = val
         await tauriSet('localEmbeddingPort', val)
+    }
+
+    async function setUseLocalChat(val: boolean) {
+        useLocalChat.value = val
+        await tauriSet('useLocalChat', val)
+    }
+
+    async function setLocalChatModelStr(val: string) {
+        localChatModelStr.value = val
+        await tauriSet('localChatModelStr', val)
+    }
+
+    async function setLocalChatPort(val: number) {
+        localChatPort.value = val
+        await tauriSet('localChatPort', val)
+    }
+
+    async function setLocalChatContextSize(val: number) {
+        localChatContextSize.value = val
+        await tauriSet('localChatContextSize', val)
+    }
+
+    function setLocalChatRunning(val: boolean) {
+        localChatRunning.value = val
+    }
+
+    function setLocalEmbeddingRunning(val: boolean) {
+        localEmbeddingRunning.value = val
     }
 
     async function setDevLogLevel(val: 'debug' | 'info' | 'warn' | 'error' | 'none') {
@@ -330,6 +417,18 @@ export const useSettingStore = defineStore('setting', () => {
         setUseLocalEmbedding,
         setLocalEmbeddingModelStr,
         setLocalEmbeddingPort,
+        useLocalChat,
+        localChatModelStr,
+        localChatPort,
+        localChatContextSize,
+        localChatRunning,
+        localEmbeddingRunning,
+        setUseLocalChat,
+        setLocalChatModelStr,
+        setLocalChatPort,
+        setLocalChatContextSize,
+        setLocalChatRunning,
+        setLocalEmbeddingRunning,
         devLogLevel,
         devLogModules,
         setDevLogLevel,
