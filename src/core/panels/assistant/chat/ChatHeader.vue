@@ -1,9 +1,10 @@
-﻿<template>
+<template>
   <div class="flex items-center justify-between px-4 py-2 border-b bg-background/95 backdrop-blur z-10 gap-2">
 <!--    <div class="font-semibold text-sm shrink-0">{{ t('record.chat.header.title') }}</div>-->
     <div class="flex items-center gap-2 flex-1 justify-end min-w-0">
       <ChatLanguage />
       <RagSwitch />
+      <ThinkSwitch />
       <!-- Prompt Selector -->
       <Select :model-value="promptStore.currentPrompt?.id || ''" @update:model-value="onPromptSelect">
         <SelectTrigger class="w-[120px] h-8 text-xs truncate">
@@ -52,6 +53,7 @@ import { Button } from '@/components/ui/button'
 import { History, MessageSquarePlus } from 'lucide-vue-next'
 import ChatLanguage from "./ChatLanguage.vue"
 import RagSwitch from "./RagSwitch.vue"
+import ThinkSwitch from "./ThinkSwitch.vue"
 import ChatSessionsSheet from './ChatSessionsSheet.vue'
 
 const settingStore = useSettingStore()

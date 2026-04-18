@@ -14,6 +14,26 @@
         </div>
       </div>
       <div class="prose dark:prose-invert max-w-none break-words leading-relaxed">
+        <!-- 思考过程 (如果存在且是助手回复) -->
+        <div v-if="thinkingData" class="mb-4">
+          <Collapsible v-model:open="isThinkingOpen">
+            <CollapsibleTrigger as-child>
+              <Button variant="ghost" size="sm" class="flex items-center gap-2 h-7 px-2 text-xs font-medium text-muted-foreground bg-muted/30 hover:bg-muted/50 rounded-md border border-border/50 transition-all">
+                <Brain class="h-3 w-3" />
+                <span>{{ t('record.chat.message.thinkingProcess') || '思维过程' }}</span>
+                <ChevronDown class="h-3 w-3 transition-transform duration-200" :class="{ 'rotate-180': isThinkingOpen }" />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent class="mt-2 text-xs text-muted-foreground bg-muted/20 p-3 rounded-md border border-border/30 overflow-hidden animate-in fade-in slide-in-from-top-1">
+              <div v-if="isThinkingProcessing" class="flex items-center gap-2 mb-2 italic opacity-70">
+                 <Loader2 class="h-3 w-3 animate-spin" />
+                 <span>{{ t('record.chat.message.thinkingInProgress') || '正在思考中...' }}</span>
+              </div>
+              <MdPreview :modelValue="thinkingData.content" :editorId="'think-' + message.id" :theme="isDark ? 'dark' : 'light'" class="!bg-transparent opacity-80" />
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+
         <!-- 如果消息包含提案代码块，且是助手回复，渲染 Diff 预览 -->
         <template v-if="proposalData">
           <div v-if="proposalData.prefix" class="mb-2">
@@ -33,7 +53,7 @@
           </div>
         </template>
         
-        <MdPreview v-else :modelValue="message.content || ''" :editorId="'msg-' + message.id" :theme="isDark ? 'dark' : 'light'" />
+        <MdPreview v-else :modelValue="displayContent" :editorId="'msg-' + message.id" :theme="isDark ? 'dark' : 'light'" />
       </div>
     </div>
   </div>
@@ -44,9 +64,10 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { Chat } from '@/db/chats'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Copy } from 'lucide-vue-next'
+import { Copy, Brain, ChevronDown, Loader2 } from 'lucide-vue-next'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { useToast } from '@/composables/useToast'
 import { useI18n } from '@/composables/useI18n'
 import { useChatStore } from '@/stores/chat'
@@ -62,6 +83,42 @@ const props = defineProps<{
 const { success } = useToast()
 const { t } = useI18n()
 const chatStore = useChatStore()
+
+const isThinkingOpen = ref(false)
+
+// 提取并清洗掉思考过程后的剩余内容
+const displayContent = computed(() => {
+  if (!props.message.content) return '';
+  return props.message.content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
+})
+
+// 解析思考过程
+const thinkingData = computed(() => {
+  if (props.message.role !== 'assistant' || !props.message.content) return null;
+  const match = props.message.content.match(/<thinking>([\s\S]*?)<\/thinking>/);
+  if (match) {
+    return {
+      content: match[1].trim()
+    }
+  }
+  
+  // 兼容性处理：如果只有开标签没有关标签（流式传输中）
+  if (props.message.content.includes('<thinking>')) {
+    const parts = props.message.content.split('<thinking>');
+    if (parts.length > 1 && !parts[1].includes('</thinking>')) {
+       return {
+         content: parts[1].trim()
+       }
+    }
+  }
+  
+  return null;
+})
+
+// 判断思考是否在进行中（流式）
+const isThinkingProcessing = computed(() => {
+   return props.message.content?.includes('<thinking>') && !props.message.content?.includes('</thinking>');
+})
 
 // 解析消息中的提案内容
 const proposalData = computed(() => {

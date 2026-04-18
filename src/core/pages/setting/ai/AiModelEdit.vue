@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <Dialog :open="open" @update:open="$emit('update:open', $event)">
     <DialogContent class="sm:max-w-[500px]">
       <DialogHeader>
@@ -47,6 +47,12 @@
           <Label for="temperature" class="text-right">{{ t('settings.ai.editDialog.temperatureLabel') }}</Label>
           <Input id="temperature" v-model.number="form.temperature" type="number" step="0.1" min="0" max="2" class="col-span-3" />
         </div>
+        <div class="grid grid-cols-4 items-center gap-4" v-if="form.modelType === 'chat'">
+          <Label for="supportsThinking" class="text-right">{{ t('settings.ai.editDialog.supportsThinkingLabel') || '支持深度思考' }}</Label>
+          <div class="col-span-3 flex items-center h-10">
+             <Switch id="supportsThinking" :checked="form.supportsThinking" @update:checked="form.supportsThinking = $event" />
+          </div>
+        </div>
       </div>
       
       <DialogFooter>
@@ -66,6 +72,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 
 const { t } = useI18n()
 
@@ -88,7 +95,8 @@ const form = ref<AiConfig>({
   model: '',
   modelType: 'chat',
   temperature: 0.7,
-  topP: 1
+  topP: 1,
+  supportsThinking: false
 })
 
 watch(() => props.open, (newVal: boolean) => {
@@ -106,7 +114,8 @@ watch(() => props.open, (newVal: boolean) => {
         model: '',
         modelType: 'chat',
         temperature: 0.7,
-        topP: 1
+        topP: 1,
+        supportsThinking: false
       }
     }
   }

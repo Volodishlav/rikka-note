@@ -396,12 +396,17 @@ export async function rerankDocuments(
 /**
  * 为不同AI类型准备消息
  */
-async function prepareMessages(text: string, includeLanguage = false, history: {role: string, content: string}[] = []): Promise<{
+async function prepareMessages(text: string, includeLanguage = false, history: {role: string, content: string}[] = [], enableThinking = false, supportsThinking = false): Promise<{
   messages: OpenAI.Chat.ChatCompletionMessageParam[],
   geminiText?: string
 }> {
   // 获取prompt内容
   let promptContent = await getPromptContent()
+  
+  // Inject think token for Gemma 4 if enabled
+  if (enableThinking && supportsThinking) {
+    promptContent = `<|think|>${promptContent}`
+  }
   
   if (includeLanguage) {
     const store = await Store.load('store.json')
@@ -488,8 +493,12 @@ export async function fetchAi(text: string, history: {role: string, content: str
     // 验证AI服务
     if (validateAIService(aiConfig?.baseURL) === null) return ''
     
+    // 获取思考模式状态
+    const store = await Store.load('store.json')
+    const useThink = await store.get<boolean>('useThink') || false
+
     // 准备消息
-    const { messages } = await prepareMessages(text, false, history)
+    const { messages } = await prepareMessages(text, false, history, useThink, aiConfig?.supportsThinking)
 
     const openai = await createOpenAIClient(aiConfig)
     
@@ -522,8 +531,12 @@ export async function fetchAiStream(text: string, onUpdate: (content: string) =>
     // 验证AI服务
     if (await validateAIService(aiConfig?.baseURL) === null) return ''
     
+    // 加载思考模式开关状态
+    const store = await Store.load('store.json')
+    const useThink = await store.get<boolean>('useThink') || false
+
     // 准备消息
-    const { messages } = await prepareMessages(text, true, history)
+    const { messages } = await prepareMessages(text, true, history, useThink, aiConfig?.supportsThinking)
 
     logger.assistant.debug('--- AI Request Debug ---')
     logger.assistant.debug('Model:', aiConfig?.model)
@@ -555,7 +568,7 @@ export async function fetchAiStream(text: string, onUpdate: (content: string) =>
       const content = chunk.choices[0]?.delta?.content || ''
       if (thinkingContent) {
         thinking += thinkingContent
-        fullContent = `<thinking>${thinking}<thinking>`
+        fullContent = `<thinking>${thinking}</thinking>`
       }
       if (content) {
         fullContent += content
@@ -584,8 +597,12 @@ export async function fetchAiStreamToken(text: string, onUpdate: (content: strin
     // 验证AI服务
     if (await validateAIService(aiConfig?.baseURL) === null) return ''
     
+    // 加载思考模式开关状态
+    const store = await Store.load('store.json')
+    const useThink = await store.get<boolean>('useThink') || false
+
     // 准备消息
-    const { messages } = await prepareMessages(text, true, history)
+    const { messages } = await prepareMessages(text, true, history, useThink, aiConfig?.supportsThinking)
   
     const openai = await createOpenAIClient(aiConfig)
 

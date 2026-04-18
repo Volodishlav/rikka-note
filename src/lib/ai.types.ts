@@ -14,6 +14,7 @@ export interface AiConfig {
   customHeaders?: Record<string, string>
   voice?: string
   speed?: number
+  supportsThinking?: boolean
 }
 
 export const baseAiConfig: AiConfig[] = [

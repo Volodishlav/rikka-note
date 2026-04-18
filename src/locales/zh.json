@@ -163,6 +163,11 @@
         "clearDialogTitle": "清空聊天记录",
         "clearDialogMessage": "确定要清空此标签的聊天记录吗？"
       },
+      "think": {
+        "enabled": "已开启深度思考模式",
+        "disabled": "已关闭深度思考模式",
+        "switchTip": "切换思考模式建议开启新会话以获得最佳效果"
+      },
       "sessions": {
         "title": "会话历史",
         "new": "新建会话",
@@ -190,7 +195,9 @@
         "aiAvatar": "AI",
         "userName": "你",
         "aiName": "AI 助手",
-        "copiedToClipboard": "已复制到剪贴板"
+        "copiedToClipboard": "已复制到剪贴板",
+        "thinkingProcess": "思维过程",
+        "thinkingInProgress": "正在思考中..."
       },
       "rag": {
         "enabled": "RAG 已启用",
@@ -317,6 +324,7 @@
         "typeLabel": "模型类型",
         "typePlaceholder": "选择模型类型",
         "temperatureLabel": "温度",
+        "supportsThinkingLabel": "支持深度思考",
         "cancel": "取消",
         "save": "保存"
       }

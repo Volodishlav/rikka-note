@@ -31,6 +31,7 @@ export const useChatStore = defineStore('chat', () => {
     const isPlaceholderEnabled = ref(true)
     const syncState = ref(false)
     const lastSyncTime = ref('')
+    const useThink = ref(false)
 
     // AI 编辑模式状态
     const isEditMode = ref(false)
@@ -218,6 +219,10 @@ export const useChatStore = defineStore('chat', () => {
         isEditMode.value = val !== undefined ? val : !isEditMode.value
     }
 
+    const setUseThink = (val: boolean) => {
+        useThink.value = val
+    }
+
     // 监听工作区状态，自动初始化
     const workspaceStore = useWorkspaceStore()
     watch(() => workspaceStore.activeWorkspace, async (newVal) => {
@@ -257,6 +262,8 @@ export const useChatStore = defineStore('chat', () => {
         editFullContent,
         editFilePath,
         setEditContext,
-        toggleEditMode
+        toggleEditMode,
+        useThink,
+        setUseThink
     }
 })

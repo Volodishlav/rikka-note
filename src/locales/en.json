@@ -190,7 +190,9 @@
         "aiAvatar": "AI",
         "userName": "You",
         "aiName": "AI Assistant",
-        "copiedToClipboard": "Copied to clipboard"
+        "copiedToClipboard": "Copied to clipboard",
+        "thinkingProcess": "Thinking Process",
+        "thinkingInProgress": "Thinking in progress..."
       },
       "rag": {
         "enabled": "RAG Enabled",
@@ -317,6 +319,7 @@
         "typeLabel": "Model Type",
         "typePlaceholder": "Select type",
         "temperatureLabel": "Temperature",
+        "supportsThinkingLabel": "Supports Thinking",
         "cancel": "Cancel",
         "save": "Save"
       }
