@@ -92,6 +92,27 @@ export const useSettingStore = defineStore('setting', () => {
     const localChatPort = ref<number>(8081)
     const localChatContextSize = ref<number>(4096)
     
+    // Local Chat Advanced (LLM)
+    const localChatGpuLayers = ref<number>(-1) // -1 means all to GPU if possible
+    const localChatThreads = ref<number>(4)
+    const localChatBatchSize = ref<number>(512)
+    const localChatFlashAttn = ref<boolean>(true)
+    const localChatTemp = ref<number>(0.7)
+    const localChatTopP = ref<number>(1.0)
+    const localChatMaxTokens = ref<number>(2048)
+    const localChatFreqPen = ref<number>(0.0)
+    const localChatPresPen = ref<number>(0.0)
+    const localChatStop = ref<string>('')
+    const localChatSystemPrompt = ref<string>('')
+
+    // Local Embedding Advanced
+    const localEmbeddingThreads = ref<number>(4)
+    const localEmbeddingBatchSize = ref<number>(32)
+    const localEmbeddingGpuLayers = ref<number>(0) // Embedding usually fine on CPU, but allow GPU
+    const localEmbeddingMaxSeq = ref<number>(512)
+    const localEmbeddingNorm = ref<boolean>(true)
+    const localEmbeddingPooling = ref<string>('mean')
+    
     // Runtime status (not persisted)
     const localChatRunning = ref<boolean>(false)
     const localEmbeddingRunning = ref<boolean>(false)
@@ -185,6 +206,43 @@ export const useSettingStore = defineStore('setting', () => {
 
             const savedLocalChatContextSize = await tauriGet<number>('localChatContextSize')
             if (savedLocalChatContextSize) localChatContextSize.value = savedLocalChatContextSize
+
+            // Load Local Advanced Settings
+            const savedLocalChatGpuLayers = await tauriGet<number>('localChatGpuLayers')
+            if (savedLocalChatGpuLayers !== null) localChatGpuLayers.value = savedLocalChatGpuLayers
+            const savedLocalChatThreads = await tauriGet<number>('localChatThreads')
+            if (savedLocalChatThreads) localChatThreads.value = savedLocalChatThreads
+            const savedLocalChatBatchSize = await tauriGet<number>('localChatBatchSize')
+            if (savedLocalChatBatchSize) localChatBatchSize.value = savedLocalChatBatchSize
+            const savedLocalChatFlashAttn = await tauriGet<boolean>('localChatFlashAttn')
+            if (savedLocalChatFlashAttn !== null) localChatFlashAttn.value = savedLocalChatFlashAttn
+            const savedLocalChatTemp = await tauriGet<number>('localChatTemp')
+            if (savedLocalChatTemp !== null) localChatTemp.value = savedLocalChatTemp
+            const savedLocalChatTopP = await tauriGet<number>('localChatTopP')
+            if (savedLocalChatTopP !== null) localChatTopP.value = savedLocalChatTopP
+            const savedLocalChatMaxTokens = await tauriGet<number>('localChatMaxTokens')
+            if (savedLocalChatMaxTokens) localChatMaxTokens.value = savedLocalChatMaxTokens
+            const savedLocalChatFreqPen = await tauriGet<number>('localChatFreqPen')
+            if (savedLocalChatFreqPen !== null) localChatFreqPen.value = savedLocalChatFreqPen
+            const savedLocalChatPresPen = await tauriGet<number>('localChatPresPen')
+            if (savedLocalChatPresPen !== null) localChatPresPen.value = savedLocalChatPresPen
+            const savedLocalChatStop = await tauriGet<string>('localChatStop')
+            if (savedLocalChatStop) localChatStop.value = savedLocalChatStop
+            const savedLocalChatSystemPrompt = await tauriGet<string>('localChatSystemPrompt')
+            if (savedLocalChatSystemPrompt) localChatSystemPrompt.value = savedLocalChatSystemPrompt
+
+            const savedLocalEmbeddingThreads = await tauriGet<number>('localEmbeddingThreads')
+            if (savedLocalEmbeddingThreads) localEmbeddingThreads.value = savedLocalEmbeddingThreads
+            const savedLocalEmbeddingBatchSize = await tauriGet<number>('localEmbeddingBatchSize')
+            if (savedLocalEmbeddingBatchSize) localEmbeddingBatchSize.value = savedLocalEmbeddingBatchSize
+            const savedLocalEmbeddingGpuLayers = await tauriGet<number>('localEmbeddingGpuLayers')
+            if (savedLocalEmbeddingGpuLayers !== null) localEmbeddingGpuLayers.value = savedLocalEmbeddingGpuLayers
+            const savedLocalEmbeddingMaxSeq = await tauriGet<number>('localEmbeddingMaxSeq')
+            if (savedLocalEmbeddingMaxSeq) localEmbeddingMaxSeq.value = savedLocalEmbeddingMaxSeq
+            const savedLocalEmbeddingNorm = await tauriGet<boolean>('localEmbeddingNorm')
+            if (savedLocalEmbeddingNorm !== null) localEmbeddingNorm.value = savedLocalEmbeddingNorm
+            const savedLocalEmbeddingPooling = await tauriGet<string>('localEmbeddingPooling')
+            if (savedLocalEmbeddingPooling) localEmbeddingPooling.value = savedLocalEmbeddingPooling
 
             const savedAutoImageAnalyze = await tauriGet<boolean>('autoImageAnalyze')
             if (savedAutoImageAnalyze !== undefined && savedAutoImageAnalyze !== null) autoImageAnalyze.value = savedAutoImageAnalyze
@@ -352,6 +410,78 @@ export const useSettingStore = defineStore('setting', () => {
         await tauriSet('localChatContextSize', val)
     }
 
+    // LLM Advanced Setters
+    async function setLocalChatGpuLayers(val: number) {
+        localChatGpuLayers.value = val
+        await tauriSet('localChatGpuLayers', val)
+    }
+    async function setLocalChatThreads(val: number) {
+        localChatThreads.value = val
+        await tauriSet('localChatThreads', val)
+    }
+    async function setLocalChatBatchSize(val: number) {
+        localChatBatchSize.value = val
+        await tauriSet('localChatBatchSize', val)
+    }
+    async function setLocalChatFlashAttn(val: boolean) {
+        localChatFlashAttn.value = val
+        await tauriSet('localChatFlashAttn', val)
+    }
+    async function setLocalChatTemp(val: number) {
+        localChatTemp.value = val
+        await tauriSet('localChatTemp', val)
+    }
+    async function setLocalChatTopP(val: number) {
+        localChatTopP.value = val
+        await tauriSet('localChatTopP', val)
+    }
+    async function setLocalChatMaxTokens(val: number) {
+        localChatMaxTokens.value = val
+        await tauriSet('localChatMaxTokens', val)
+    }
+    async function setLocalChatFreqPen(val: number) {
+        localChatFreqPen.value = val
+        await tauriSet('localChatFreqPen', val)
+    }
+    async function setLocalChatPresPen(val: number) {
+        localChatPresPen.value = val
+        await tauriSet('localChatPresPen', val)
+    }
+    async function setLocalChatStop(val: string) {
+        localChatStop.value = val
+        await tauriSet('localChatStop', val)
+    }
+    async function setLocalChatSystemPrompt(val: string) {
+        localChatSystemPrompt.value = val
+        await tauriSet('localChatSystemPrompt', val)
+    }
+
+    // Embedding Advanced Setters
+    async function setLocalEmbeddingThreads(val: number) {
+        localEmbeddingThreads.value = val
+        await tauriSet('localEmbeddingThreads', val)
+    }
+    async function setLocalEmbeddingBatchSize(val: number) {
+        localEmbeddingBatchSize.value = val
+        await tauriSet('localEmbeddingBatchSize', val)
+    }
+    async function setLocalEmbeddingGpuLayers(val: number) {
+        localEmbeddingGpuLayers.value = val
+        await tauriSet('localEmbeddingGpuLayers', val)
+    }
+    async function setLocalEmbeddingMaxSeq(val: number) {
+        localEmbeddingMaxSeq.value = val
+        await tauriSet('localEmbeddingMaxSeq', val)
+    }
+    async function setLocalEmbeddingNorm(val: boolean) {
+        localEmbeddingNorm.value = val
+        await tauriSet('localEmbeddingNorm', val)
+    }
+    async function setLocalEmbeddingPooling(val: string) {
+        localEmbeddingPooling.value = val
+        await tauriSet('localEmbeddingPooling', val)
+    }
+
     function setLocalChatRunning(val: boolean) {
         localChatRunning.value = val
     }
@@ -423,12 +553,46 @@ export const useSettingStore = defineStore('setting', () => {
         localChatContextSize,
         localChatRunning,
         localEmbeddingRunning,
+        localChatGpuLayers,
+        localChatThreads,
+        localChatBatchSize,
+        localChatFlashAttn,
+        localChatTemp,
+        localChatTopP,
+        localChatMaxTokens,
+        localChatFreqPen,
+        localChatPresPen,
+        localChatStop,
+        localChatSystemPrompt,
+        localEmbeddingThreads,
+        localEmbeddingBatchSize,
+        localEmbeddingGpuLayers,
+        localEmbeddingMaxSeq,
+        localEmbeddingNorm,
+        localEmbeddingPooling,
         setUseLocalChat,
         setLocalChatModelStr,
         setLocalChatPort,
         setLocalChatContextSize,
         setLocalChatRunning,
         setLocalEmbeddingRunning,
+        setLocalChatGpuLayers,
+        setLocalChatThreads,
+        setLocalChatBatchSize,
+        setLocalChatFlashAttn,
+        setLocalChatTemp,
+        setLocalChatTopP,
+        setLocalChatMaxTokens,
+        setLocalChatFreqPen,
+        setLocalChatPresPen,
+        setLocalChatStop,
+        setLocalChatSystemPrompt,
+        setLocalEmbeddingThreads,
+        setLocalEmbeddingBatchSize,
+        setLocalEmbeddingGpuLayers,
+        setLocalEmbeddingMaxSeq,
+        setLocalEmbeddingNorm,
+        setLocalEmbeddingPooling,
         devLogLevel,
         devLogModules,
         setDevLogLevel,

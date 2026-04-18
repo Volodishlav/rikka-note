@@ -502,12 +502,36 @@ export async function fetchAi(text: string, history: {role: string, content: str
 
     const openai = await createOpenAIClient(aiConfig)
     
+    // Merge local advanced settings if applicable
+    let temperature = aiConfig?.temperature || 1
+    let top_p = aiConfig?.topP || 1
+    let max_tokens = undefined
+    let frequency_penalty = undefined
+    let presence_penalty = undefined
+    let stop = undefined
+
+    if (aiConfig?.key === 'local-llama-server') {
+       temperature = await store.get<number>('localChatTemp') ?? 0.7
+       top_p = await store.get<number>('localChatTopP') ?? 1.0
+       max_tokens = await store.get<number>('localChatMaxTokens') ?? 2048
+       frequency_penalty = await store.get<number>('localChatFreqPen') ?? 0.0
+       presence_penalty = await store.get<number>('localChatPresPen') ?? 0.0
+       const stopStr = await store.get<string>('localChatStop')
+       if (stopStr) {
+          stop = stopStr.split(',').map(s => s.trim()).filter(s => s.length > 0)
+       }
+    }
+
     const completion = await openai.chat.completions.create({
       model: aiConfig?.model || '',
       messages: messages,
-      temperature: aiConfig?.temperature || 1,
-      top_p: aiConfig?.topP || 1,
-    })
+      temperature,
+      top_p,
+      max_tokens,
+      frequency_penalty,
+      presence_penalty,
+      stop,
+    } as any)
     
     return completion.choices[0].message.content || ''
   } catch (error) {
@@ -545,13 +569,37 @@ export async function fetchAiStream(text: string, onUpdate: (content: string) =>
 
     const openai = await createOpenAIClient(aiConfig)
     
+    // Merge local advanced settings if applicable
+    let temperature = aiConfig?.temperature || 1
+    let top_p = aiConfig?.topP || 1
+    let max_tokens = undefined
+    let frequency_penalty = undefined
+    let presence_penalty = undefined
+    let stop = undefined
+
+    if (aiConfig?.key === 'local-llama-server') {
+       temperature = await store.get<number>('localChatTemp') ?? 0.7
+       top_p = await store.get<number>('localChatTopP') ?? 1.0
+       max_tokens = await store.get<number>('localChatMaxTokens') ?? 2048
+       frequency_penalty = await store.get<number>('localChatFreqPen') ?? 0.0
+       presence_penalty = await store.get<number>('localChatPresPen') ?? 0.0
+       const stopStr = await store.get<string>('localChatStop')
+       if (stopStr) {
+          stop = stopStr.split(',').map(s => s.trim()).filter(s => s.length > 0)
+       }
+    }
+
     const stream = await openai.chat.completions.create({
       model: aiConfig?.model || '',
       messages: messages,
-      temperature: aiConfig?.temperature,
-      top_p: aiConfig?.topP,
+      temperature,
+      top_p,
+      max_tokens,
+      frequency_penalty,
+      presence_penalty,
+      stop,
       stream: true,
-    }, {
+    } as any, {
       signal: abortSignal
     })
     

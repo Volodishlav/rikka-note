@@ -63,7 +63,7 @@
               {{ currentDownloadingEngineFile }}
             </span>
             <span v-if="engineDownloadTotal > 0" class="font-mono text-primary">
-              {{ (engineDownloadedBytes / 1024 / 1024).toFixed(1) }} / {{ (engineDownloadTotal / 1024 / 1024).toFixed(1) }} MB
+              {{ ((engineDownloadedBytes ?? 0) / 1024 / 1024).toFixed(1) }} / {{ ((engineDownloadTotal ?? 1) / 1024 / 1024).toFixed(1) }} MB
             </span>
           </div>
           <div class="w-full h-2 bg-muted/60 rounded-full overflow-hidden border shadow-inner">
@@ -112,25 +112,25 @@
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
-          <!-- 模型选择 -->
-          <div class="space-y-3">
-            <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">预设模型</Label>
-            <Select :model-value="settingStore.localEmbeddingModelStr" @update:model-value="onPresetModelSelect($event as string, 'embedding')">
-              <SelectTrigger class="h-11 rounded-xl shadow-sm">
-                <SelectValue placeholder="选择 Embedding 模型" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="m in presetEmbeddingModels" :key="m.filename" :value="m.filename">
-                  {{ m.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+          <div class="flex flex-col gap-3">
+            <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">配置模型路径 (支持 GGUF)</Label>
+            <div class="flex gap-2">
+              <Input 
+                :model-value="settingStore.localEmbeddingModelStr" 
+                @update:model-value="settingStore.setLocalEmbeddingModelStr($event as string)"
+                placeholder="文件名或绝对路径 (.gguf)"
+                class="h-11 rounded-xl shadow-sm font-mono text-xs"
+              />
+              <Button variant="outline" size="icon" class="h-11 w-11 rounded-xl shrink-0" @click="selectModelFile('embedding')">
+                <Folder class="w-4 h-4" />
+              </Button>
+            </div>
           </div>
 
           <div class="flex items-end gap-3">
              <Button @click="downloadModel('embedding')" :disabled="embeddingState.isDownloading || embeddingState.isFileExists" variant="secondary" class="flex-1 h-11 font-bold rounded-xl shadow-sm">
               <Download class="w-4 h-4 mr-2" /> 
-              {{ embeddingState.isFileExists ? '模型已就绪' : '下载并配置模型' }}
+              {{ embeddingState.isFileExists ? '模型已就绪 (可直接启动)' : '下载预设模型' }}
             </Button>
           </div>
         </div>
@@ -138,8 +138,8 @@
         <!-- 进度条 -->
         <div v-if="embeddingState.isDownloading" class="space-y-2.5 p-4 rounded-2xl bg-muted/40 border">
           <div class="flex justify-between items-center text-xs font-bold">
-            <span class="flex items-center gap-2">下载中 ({{ (embeddingState.downloadedBytes/1024/1024).toFixed(1) }}MB)</span>
-            <span class="font-mono">{{ embeddingState.downloadProgress.toFixed(1) }}%</span>
+            <span class="flex items-center gap-2">下载中 ({{ ((embeddingState.downloadedBytes ?? 0)/1024/1024).toFixed(1) }}MB)</span>
+            <span class="font-mono">{{ (embeddingState.downloadProgress ?? 0).toFixed(1) }}%</span>
           </div>
           <div class="w-full h-1.5 bg-muted rounded-full overflow-hidden">
             <div class="h-full bg-primary transition-all duration-300" :style="{ width: `${embeddingState.downloadProgress}%` }"></div>
@@ -150,17 +150,65 @@
         <div class="space-y-4">
           <button @click="showAdvancedEmbedding = !showAdvancedEmbedding" class="flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-primary transition-colors py-1">
             <ChevronDown :class="['w-4 h-4 transition-transform duration-300', showAdvancedEmbedding ? 'rotate-180' : '']" />
-            高级配置 (端口等)
+            高级配置 (维度、池化、硬件)
           </button>
           
-          <div v-if="showAdvancedEmbedding" class="grid grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-300">
-            <div class="space-y-2">
-              <Label class="text-[10px] font-bold uppercase text-muted-foreground">监听端口</Label>
-              <Input type="number" :model-value="settingStore.localEmbeddingPort" @update:model-value="settingStore.setLocalEmbeddingPort(Number($event))" :disabled="embeddingState.isRunning" class="h-9 rounded-lg" />
+          <div v-if="showAdvancedEmbedding" class="space-y-6 p-5 rounded-2xl bg-muted/30 border border-dashed animate-in slide-in-from-top-2 duration-300">
+            <!-- 硬件分配 -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">监听端口</Label>
+                  <span class="text-[10px] font-mono text-primary">{{ settingStore.localEmbeddingPort }}</span>
+                </div>
+                <Input type="number" :model-value="settingStore.localEmbeddingPort" @update:model-value="settingStore.setLocalEmbeddingPort(Number($event))" :disabled="embeddingState.isRunning" class="h-9 rounded-lg" />
+              </div>
+              
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">CPU 线程数</Label>
+                  <span class="text-[10px] font-mono text-primary">{{ settingStore.localEmbeddingThreads }}</span>
+                </div>
+                <Slider :min="1" :max="32" :step="1" :model-value="[settingStore.localEmbeddingThreads]" @update:model-value="settingStore.setLocalEmbeddingThreads($event[0])" />
+              </div>
+
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">GPU 层数 (NGL)</Label>
+                  <span class="text-[10px] font-mono text-primary">{{ settingStore.localEmbeddingGpuLayers }}</span>
+                </div>
+                <Slider :min="0" :max="100" :step="1" :model-value="[settingStore.localEmbeddingGpuLayers]" @update:model-value="settingStore.setLocalEmbeddingGpuLayers($event[0])" />
+              </div>
             </div>
-            <div class="space-y-2">
-              <Label class="text-[10px] font-bold uppercase text-muted-foreground">模型文件名</Label>
-              <Input :model-value="settingStore.localEmbeddingModelStr" @update:model-value="settingStore.setLocalEmbeddingModelStr($event as string)" :disabled="embeddingState.isRunning" class="h-9 rounded-lg" />
+
+            <!-- 模型特性 -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">最大序列长度</Label>
+                  <span class="text-[10px] font-mono text-primary">{{ settingStore.localEmbeddingMaxSeq }}</span>
+                </div>
+                <Slider :min="128" :max="2048" :step="128" :model-value="[settingStore.localEmbeddingMaxSeq]" @update:model-value="settingStore.setLocalEmbeddingMaxSeq($event[0])" />
+              </div>
+
+              <div class="space-y-3">
+                <Label class="text-[10px] font-bold uppercase text-muted-foreground block">池化策略 (Pooling)</Label>
+                <Select :model-value="settingStore.localEmbeddingPooling" @update:model-value="settingStore.setLocalEmbeddingPooling($event as string)">
+                  <SelectTrigger class="h-9 rounded-lg">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mean">Mean (推荐)</SelectItem>
+                    <SelectItem value="cls">CLS</SelectItem>
+                    <SelectItem value="last">Last</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div class="flex items-center gap-2 pt-6">
+                <Checkbox id="norm-check" :checked="settingStore.localEmbeddingNorm" @update:checked="settingStore.setLocalEmbeddingNorm($event)" />
+                <Label for="norm-check" class="text-[10px] font-bold uppercase text-muted-foreground cursor-pointer">向量归一化 (L2)</Label>
+              </div>
             </div>
           </div>
         </div>
@@ -207,28 +255,25 @@
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
-          <!-- 模型选择 -->
-          <div class="space-y-3">
-            <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">推荐模型 (建议 8G+ 显存使用 E4B)</Label>
-            <Select :model-value="settingStore.localChatModelStr" @update:model-value="onPresetModelSelect($event as string, 'chat')">
-              <SelectTrigger class="h-11 rounded-xl shadow-sm">
-                <SelectValue placeholder="选择本地推理模型" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="m in presetChatModels" :key="m.filename" :value="m.filename">
-                  <div class="flex flex-col gap-0.5">
-                    <span class="font-bold">{{ m.name }}</span>
-                    <span class="text-[10px] text-muted-foreground font-normal">{{ m.desc }}</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+          <div class="flex flex-col gap-3">
+            <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">配置对话模型路径 (支持 GGUF)</Label>
+            <div class="flex gap-2">
+              <Input 
+                :model-value="settingStore.localChatModelStr" 
+                @update:model-value="settingStore.setLocalChatModelStr($event as string)"
+                placeholder="文件名或绝对路径 (.gguf)"
+                class="h-11 rounded-xl shadow-sm font-mono text-xs"
+              />
+              <Button variant="outline" size="icon" class="h-11 w-11 rounded-xl shrink-0" @click="selectModelFile('chat')">
+                <Folder class="w-4 h-4" />
+              </Button>
+            </div>
           </div>
 
           <div class="flex items-end gap-3">
              <Button @click="downloadModel('chat')" :disabled="chatState.isDownloading || chatState.isFileExists" variant="secondary" class="flex-1 h-11 font-bold rounded-xl shadow-sm hover:bg-muted-foreground hover:text-white transition-all">
               <Download class="w-4 h-4 mr-2" /> 
-              {{ chatState.isFileExists ? '模型已就绪' : '下载并配置模型' }}
+              {{ chatState.isFileExists ? '模型已就绪 (可直接启动)' : '下载预设模型' }}
             </Button>
           </div>
         </div>
@@ -237,7 +282,7 @@
         <div v-if="chatState.isDownloading" class="space-y-2.5 p-4 rounded-2xl bg-muted/40 border">
           <div class="flex justify-between items-center text-xs font-bold">
             <span class="flex items-center gap-2">模型下载中 (共计约 3-5 GB)...</span>
-            <span class="font-mono">{{ chatState.downloadProgress.toFixed(1) }}%</span>
+            <span class="font-mono">{{ (chatState.downloadProgress ?? 0).toFixed(1) }}%</span>
           </div>
           <div class="w-full h-1.5 bg-muted rounded-full overflow-hidden">
             <div class="h-full bg-primary transition-all duration-300" :style="{ width: `${chatState.downloadProgress}%` }"></div>
@@ -248,21 +293,133 @@
         <div class="space-y-4">
           <button @click="showAdvancedChat = !showAdvancedChat" class="flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-primary transition-colors py-1">
             <ChevronDown :class="['w-4 h-4 transition-transform duration-300', showAdvancedChat ? 'rotate-180' : '']" />
-            高级配置 (上下文、端口)
+            高级配置 (生成、性能、硬件)
           </button>
           
-          <div v-if="showAdvancedChat" class="grid md:grid-cols-3 gap-4 animate-in slide-in-from-top-2 duration-300">
-             <div class="space-y-2">
-              <Label class="text-[10px] font-bold uppercase text-muted-foreground">上下文长度 (Context)</Label>
-              <Input type="number" :model-value="settingStore.localChatContextSize" @update:model-value="settingStore.setLocalChatContextSize(Number($event))" :disabled="chatState.isRunning" class="h-9 rounded-lg" />
+          <div v-if="showAdvancedChat" class="space-y-8 p-6 rounded-2xl bg-muted/30 border border-dashed animate-in slide-in-from-top-2 duration-300">
+            <!-- 1. 生成控制 (运行时参数) -->
+            <div class="space-y-5">
+              <div class="flex items-center gap-2 text-xs font-bold text-primary">
+                <div class="w-1 h-3 bg-primary rounded-full"></div>
+                生成控制 (Runtime)
+              </div>
+              <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-6">
+                <!-- Temperature -->
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <div class="flex flex-col">
+                      <Label class="text-[10px] font-bold uppercase text-muted-foreground">温度系数 (Temperature)</Label>
+                      <span class="text-[9px] text-muted-foreground/60 italic">越高越有创意，0为精准。</span>
+                    </div>
+                    <span class="text-[10px] font-mono font-bold text-primary">{{ (settingStore.localChatTemp ?? 0.7).toFixed(1) }}</span>
+                  </div>
+                  <Slider :min="0" :max="2.0" :step="0.1" :model-value="[settingStore.localChatTemp]" @update:model-value="settingStore.setLocalChatTemp($event[0])" />
+                </div>
+                
+                <!-- Top-P -->
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <div class="flex flex-col">
+                      <Label class="text-[10px] font-bold uppercase text-muted-foreground">核采样 (Top-p)</Label>
+                      <span class="text-[9px] text-muted-foreground/60 italic">采样范围百分比。</span>
+                    </div>
+                    <span class="text-[10px] font-mono font-bold text-primary">{{ (settingStore.localChatTopP ?? 1.0).toFixed(2) }}</span>
+                  </div>
+                  <Slider :min="0" :max="1.0" :step="0.05" :model-value="[settingStore.localChatTopP]" @update:model-value="settingStore.setLocalChatTopP($event[0])" />
+                </div>
+
+                <!-- Max Tokens -->
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <div class="flex flex-col">
+                      <Label class="text-[10px] font-bold uppercase text-muted-foreground">最大生成长度 (Tokens)</Label>
+                    </div>
+                    <span class="text-[10px] font-mono font-bold text-primary">{{ settingStore.localChatMaxTokens }}</span>
+                  </div>
+                  <Slider :min="16" :max="8192" :step="128" :model-value="[settingStore.localChatMaxTokens]" @update:model-value="settingStore.setLocalChatMaxTokens($event[0])" />
+                </div>
+              </div>
+
+               <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-6">
+                 <!-- Frequency Penalty -->
+                 <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">频率惩罚 (Frequency Penalty)</Label>
+                    <span class="text-[10px] font-mono font-bold text-primary">{{ (settingStore.localChatFreqPen ?? 0.0).toFixed(1) }}</span>
+                  </div>
+                  <Slider :min="-2.0" :max="2.0" :step="0.1" :model-value="[settingStore.localChatFreqPen]" @update:model-value="settingStore.setLocalChatFreqPen($event[0])" />
+                </div>
+
+                <!-- Presence Penalty -->
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">存在惩罚 (Presence Penalty)</Label>
+                    <span class="text-[10px] font-mono font-bold text-primary">{{ (settingStore.localChatPresPen ?? 0.0).toFixed(1) }}</span>
+                  </div>
+                  <Slider :min="-2.0" :max="2.0" :step="0.1" :model-value="[settingStore.localChatPresPen]" @update:model-value="settingStore.setLocalChatPresPen($event[0])" />
+                </div>
+
+                <div class="space-y-2">
+                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">停止序列 (逗号分隔)</Label>
+                  <Input :model-value="settingStore.localChatStop" @update:model-value="settingStore.setLocalChatStop($event as string)" placeholder="##, ---" class="h-8 text-xs rounded-lg" />
+                </div>
+              </div>
             </div>
-            <div class="space-y-2">
-              <Label class="text-[10px] font-bold uppercase text-muted-foreground">监听端口</Label>
-              <Input type="number" :model-value="settingStore.localChatPort" @update:model-value="settingStore.setLocalChatPort(Number($event))" :disabled="chatState.isRunning" class="h-9 rounded-lg" />
-            </div>
-            <div class="space-y-2">
-              <Label class="text-[10px] font-bold uppercase text-muted-foreground">模型文件名</Label>
-              <Input :model-value="settingStore.localChatModelStr" @update:model-value="settingStore.setLocalChatModelStr($event as string)" :disabled="chatState.isRunning" class="h-9 rounded-lg" />
+
+            <!-- 2. 性能与硬件 (启动参数，需重启生效) -->
+            <div class="space-y-5 pt-4 border-t border-muted-foreground/10">
+              <div class="flex items-center gap-2 text-xs font-bold text-primary">
+                <div class="w-1 h-3 bg-amber-500 rounded-full"></div>
+                推理优化与硬件 (需重启生效)
+              </div>
+              <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Context Size -->
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">上下文窗口</Label>
+                    <span class="text-[10px] font-mono font-bold text-primary">{{ settingStore.localChatContextSize }}</span>
+                  </div>
+                  <Slider :min="512" :max="32768" :step="512" :model-value="[settingStore.localChatContextSize]" @update:model-value="settingStore.setLocalChatContextSize($event[0])" />
+                </div>
+
+                <!-- GPU Layers -->
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">GPU 层数 (NGL)</Label>
+                    <span class="text-[10px] font-mono font-bold text-primary">{{ settingStore.localChatGpuLayers === -1 ? '全量 (Max)' : settingStore.localChatGpuLayers }}</span>
+                  </div>
+                  <Slider :min="-1" :max="100" :step="1" :model-value="[settingStore.localChatGpuLayers]" @update:model-value="settingStore.setLocalChatGpuLayers($event[0])" />
+                </div>
+
+                <!-- Threads -->
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">CPU 线程数</Label>
+                    <span class="text-[10px] font-mono font-bold text-primary">{{ settingStore.localChatThreads }}</span>
+                  </div>
+                  <Slider :min="1" :max="32" :step="1" :model-value="[settingStore.localChatThreads]" @update:model-value="settingStore.setLocalChatThreads($event[0])" />
+                </div>
+
+                <!-- Batch Size -->
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">批处理大小 (Batch)</Label>
+                    <span class="text-[10px] font-mono font-bold text-primary">{{ settingStore.localChatBatchSize }}</span>
+                  </div>
+                  <Slider :min="128" :max="2048" :step="128" :model-value="[settingStore.localChatBatchSize]" @update:model-value="settingStore.setLocalChatBatchSize($event[0])" />
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                  <Checkbox id="chat-flash-attn" :checked="settingStore.localChatFlashAttn" @update:checked="settingStore.setLocalChatFlashAttn($event)" />
+                  <Label for="chat-flash-attn" class="text-[10px] font-bold uppercase text-muted-foreground cursor-pointer">开启 Flash Attention (推荐)</Label>
+                </div>
+                <div class="flex items-center gap-2">
+                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">监听端口</Label>
+                  <Input type="number" :model-value="settingStore.localChatPort" @update:model-value="settingStore.setLocalChatPort(Number($event))" :disabled="chatState.isRunning" class="h-8 w-20 text-xs rounded-lg text-center" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -281,10 +438,13 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/composables/useToast'
 import { Switch } from '@/components/ui/switch'
-import { Download, Play, Square, Bot, Loader2, Cpu, CheckCircle2, ChevronDown, MessageSquareText } from 'lucide-vue-next'
+import { Download, Play, Square, Bot, Loader2, Cpu, CheckCircle2, ChevronDown, MessageSquareText, Folder, Plus, Trash2 } from 'lucide-vue-next'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
+import { open } from '@tauri-apps/plugin-dialog'
 import { logger } from '@/utils/logger'
+import { Slider } from '@/components/ui/slider'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const { t } = useI18n()
 const settingStore = useSettingStore()
@@ -605,11 +765,38 @@ const startServer = async (purpose: 'embedding' | 'chat') => {
        modelFilename,
        port: Number(port),
        purpose,
-       contextSize
+       contextSize: purpose === 'chat' ? settingStore.localChatContextSize : settingStore.localEmbeddingMaxSeq,
+       gpuLayers: purpose === 'chat' ? settingStore.localChatGpuLayers : settingStore.localEmbeddingGpuLayers,
+       threads: purpose === 'chat' ? settingStore.localChatThreads : settingStore.localEmbeddingThreads,
+       batchSize: purpose === 'chat' ? settingStore.localChatBatchSize : settingStore.localEmbeddingBatchSize,
+       flashAttn: purpose === 'chat' ? settingStore.localChatFlashAttn : true,
     })
   } catch(e: any) {
     error(`启动失败: ${e}`)
     state.isStarting = false
+  }
+}
+
+const selectModelFile = async (purpose: 'embedding' | 'chat') => {
+  try {
+    const selected = await open({
+      multiple: false,
+      filters: [{
+        name: 'GGUF Model',
+        extensions: ['gguf']
+      }]
+    })
+    
+    if (selected && typeof selected === 'string') {
+      if (purpose === 'embedding') {
+        settingStore.setLocalEmbeddingModelStr(selected)
+      } else {
+        settingStore.setLocalChatModelStr(selected)
+      }
+      success('已选择本地模型文件')
+    }
+  } catch (e) {
+    logger.ai.error('Picker error', e)
   }
 }
 

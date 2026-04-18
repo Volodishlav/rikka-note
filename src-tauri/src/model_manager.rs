@@ -266,6 +266,11 @@ pub async fn start_llama_server(
     port: u16,
     purpose: String, // "embedding" or "chat"
     context_size: Option<u32>,
+    gpu_layers: Option<i32>,
+    threads: Option<u32>,
+    batch_size: Option<u32>,
+    flash_attn: Option<bool>,
+    ubatch_size: Option<u32>,
 ) -> Result<String, String> {
     println!("=== [DEBUG] Starting llama-server for {} ===", purpose);
     
@@ -280,7 +285,12 @@ pub async fn start_llama_server(
         server_exe = app_dir.join("llama-server.exe");
     }
     
-    let model_path = app_dir.join(&model_filename);
+    // Handle absolute path
+    let model_path = if std::path::Path::new(&model_filename).is_absolute() {
+        PathBuf::from(&model_filename)
+    } else {
+        app_dir.join(&model_filename)
+    };
 
     if !server_exe.exists() {
         return Err(format!("llama-server.exe not found. Engine might not be downloaded."));
@@ -296,15 +306,35 @@ pub async fn start_llama_server(
        .arg("--host").arg("127.0.0.1")
        .arg("--port").arg(port.to_string());
 
+    // Common performance parameters
+    if let Some(ngl) = gpu_layers {
+        cmd.arg("-ngl").arg(ngl.to_string());
+    }
+    if let Some(t) = threads {
+        cmd.arg("-t").arg(t.to_string());
+    }
+    if let Some(b) = batch_size {
+        cmd.arg("-b").arg(b.to_string());
+    }
+    if let Some(ub) = ubatch_size {
+        cmd.arg("--ubatch-size").arg(ub.to_string());
+    }
+
     if purpose == "embedding" {
         cmd.arg("--embedding").arg("--pooling").arg("last");
-        // Embedding models don't need huge context, 2048 is enough for RAG and saves lots of VRAM
-        cmd.arg("-c").arg("2048");
+        // Embedding models don't need huge context, defaults to 2048 if not provided
+        let ctx = context_size.unwrap_or(2048);
+        cmd.arg("-c").arg(ctx.to_string());
     } else {
         // Chat mode defaults
         let ctx = context_size.unwrap_or(4096);
         cmd.arg("-c").arg(ctx.to_string());
-        cmd.arg("--flash-attn").arg("on"); 
+        
+        if flash_attn.unwrap_or(true) {
+            cmd.arg("--flash-attn").arg("on"); 
+        } else {
+            cmd.arg("--flash-attn").arg("off");
+        }
     }
 
     let mut child = cmd
