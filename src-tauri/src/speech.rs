@@ -408,12 +408,18 @@ pub async fn download_speech_model(
 ) -> Result<String, String> {
     let speech_dir = get_speech_model_dir(&app)?;
     let file_path = speech_dir.join(&filename);
+    let temp_path = speech_dir.join(format!("{}.downloading", filename));
 
     println!("[Speech] 下载模型: {} -> {:?}", filename, file_path);
 
     if file_path.exists() {
         println!("[Speech] 文件已存在: {:?}", file_path);
         return Ok(file_path.to_string_lossy().to_string());
+    }
+
+    // Clean up stale temp
+    if temp_path.exists() {
+        let _ = tokio::fs::remove_file(&temp_path).await;
     }
 
     // 复用下载逻辑（带进度事件）
@@ -430,9 +436,9 @@ pub async fn download_speech_model(
 
     let total_size = res.content_length();
 
-    let mut file = tokio::fs::File::create(&file_path)
+    let mut file = tokio::fs::File::create(&temp_path)
         .await
-        .map_err(|e| format!("创建文件失败: {}", e))?;
+        .map_err(|e| format!("创建临时文件失败: {}", e))?;
 
     use tokio::io::AsyncWriteExt;
     use futures_util::StreamExt;
@@ -463,6 +469,12 @@ pub async fn download_speech_model(
         }
     }
 
-    println!("[Speech] 模型下载完成: {:?}", file_path);
+    file.sync_all().await.map_err(|e| e.to_string())?;
+    drop(file);
+
+    // Rename
+    tokio::fs::rename(&temp_path, &file_path).await.map_err(|e| e.to_string())?;
+
+    println!("[Speech] 模型下载完成并重命名: {:?}", file_path);
     Ok(file_path.to_string_lossy().to_string())
 }

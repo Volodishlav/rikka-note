@@ -43,11 +43,17 @@ pub async fn download_local_model(
     }
 
     let file_path = app_dir.join(&filename);
+    let temp_path = app_dir.join(format!("{}.downloading", filename));
     println!("Target path: {:?}", file_path);
 
-    if file_path.exists() {
-        println!("File already exists: {:?}", file_path);
+    if file_path.exists() && is_valid_gguf(&file_path) {
+        println!("File already exists and is valid: {:?}", file_path);
         return Ok(file_path.to_string_lossy().to_string());
+    }
+
+    // Clean up any stale temp file
+    if temp_path.exists() {
+        let _ = tokio::fs::remove_file(&temp_path).await;
     }
 
     let client = Client::new();
@@ -59,9 +65,9 @@ pub async fn download_local_model(
     
     let total_size = res.content_length();
 
-    let mut file = tokio::fs::File::create(&file_path)
+    let mut file = tokio::fs::File::create(&temp_path)
         .await
-        .map_err(|e| format!("Failed to create file: {}", e))?;
+        .map_err(|e| format!("Failed to create temp file: {}", e))?;
 
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
@@ -89,15 +95,53 @@ pub async fn download_local_model(
         }
     }
 
-    println!("=== [DEBUG] Download local model finished! ===");
+    file.sync_all().await.map_err(|e| format!("Failed to sync file: {}", e))?;
+    drop(file);
+
+    // Rename temp to target
+    tokio::fs::rename(&temp_path, &file_path)
+        .await
+        .map_err(|e| format!("Failed to rename model file: {}", e))?;
+
+    println!("=== [DEBUG] Download local model finished and renamed! ===");
     Ok(file_path.to_string_lossy().to_string())
+}
+
+fn is_valid_gguf(path: &std::path::Path) -> bool {
+    use std::io::Read;
+    if !path.exists() {
+        return false;
+    }
+    // Only check .gguf extension files
+    if let Some(ext) = path.extension() {
+        if ext.to_string_lossy().to_lowercase() != "gguf" {
+            return true; // Assume other files are OK if they exist for now
+        }
+    } else {
+        return true;
+    }
+
+    let mut file = match std::fs::File::open(path) {
+        Ok(f) => f,
+        Err(_) => return false,
+    };
+    let mut header = [0u8; 4];
+    if file.read_exact(&mut header).is_err() {
+        return false;
+    }
+    &header == b"GGUF"
 }
 
 #[tauri::command]
 pub async fn check_model_exists(app: AppHandle, filename: String) -> Result<bool, String> {
     let app_dir = get_app_data_dir(&app)?;
     let file_path = app_dir.join(&filename);
-    Ok(file_path.exists())
+    
+    if !file_path.exists() {
+        return Ok(false);
+    }
+
+    Ok(is_valid_gguf(&file_path))
 }
 
 #[tauri::command]
@@ -129,6 +173,7 @@ pub async fn download_and_extract_llama_cpp(
     for url in urls {
         let filename = url.split('/').last().unwrap_or("unknown.zip").to_string();
         let file_path = engine_dir.join(&filename);
+        let temp_path = engine_dir.join(format!("{}.downloading", filename));
 
         println!("=== [DEBUG] Start downloading engine file: {} ===", filename);
 
@@ -138,9 +183,9 @@ pub async fn download_and_extract_llama_cpp(
         }
 
         let total_size = res.content_length();
-        let mut file = tokio::fs::File::create(&file_path)
+        let mut file = tokio::fs::File::create(&temp_path)
             .await
-            .map_err(|e| format!("Failed to create file: {}", e))?;
+            .map_err(|e| format!("Failed to create temp file: {}", e))?;
 
         let mut downloaded: u64 = 0;
         let mut stream = res.bytes_stream();
@@ -168,6 +213,9 @@ pub async fn download_and_extract_llama_cpp(
 
         file.sync_all().await.map_err(|e| e.to_string())?;
         drop(file); // explicit drop to release lock
+
+        // Rename temp to target zip
+        tokio::fs::rename(&temp_path, &file_path).await.map_err(|e| e.to_string())?;
 
         println!("=== [DEBUG] Extracting {} ===", filename);
         let file_path_clone = file_path.clone();
