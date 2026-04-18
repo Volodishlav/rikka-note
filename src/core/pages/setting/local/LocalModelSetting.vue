@@ -16,7 +16,7 @@
         <Cpu class="w-24 h-24" />
       </div>
       
-      <div class="flex items-center gap-3 font-bold text-xl text-card-foreground">
+      <div class="flex items-center gap-3 font-bold text-xl text-card-foreground !mt-0">
         <div class="p-2.5 rounded-2xl bg-primary/10 text-primary shadow-inner">
           <Cpu class="w-6 h-6" />
         </div>
@@ -25,12 +25,7 @@
 
       <div class="grid md:grid-cols-2 gap-6 items-end">
         <div class="space-y-2.5">
-          <div class="flex items-center justify-between">
-            <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">{{ t('settings.rag.engineVersion') }}</Label>
-            <div v-if="detectedGpu" class="text-[10px] font-bold text-emerald-600 flex items-center bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 shadow-sm animate-in fade-in zoom-in duration-300">
-              <CheckCircle2 class="w-3 h-3 mr-1" /> {{ t('settings.rag.gpuDetectedRecommend', { gpu: detectedGpu }) }}
-            </div>
-          </div>
+          <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">{{ t('settings.rag.engineVersion') }}</Label>
           <Select :model-value="selectedEngineName" @update:model-value="selectedEngineName = $event as string">
             <SelectTrigger class="h-11 rounded-xl border-muted-foreground/20 bg-muted/20 hover:bg-muted/40 transition-colors">
               <SelectValue :placeholder="t('settings.rag.selectEngineVersion')" />
@@ -43,12 +38,19 @@
           </Select>
         </div>
 
-        <div class="flex items-center gap-3">
-          <Button @click="downloadEngine" :disabled="isEngineDownloading || (embeddingState.isEngineExists || chatState.isEngineExists)" variant="secondary" class="flex-1 h-11 font-bold rounded-xl shadow-sm hover:shadow transition-all">
-            <Download v-if="!isEngineDownloading" class="w-4 h-4 mr-2" />
-            <Loader2 v-else class="w-4 h-4 mr-2 animate-spin" />
-            {{ (embeddingState.isEngineExists || chatState.isEngineExists) ? t('settings.rag.engineReady') : t('settings.rag.downloadAndConfigEngine') }}
-          </Button>
+        <div class="flex flex-col gap-2">
+          <div class="flex justify-end">
+            <div v-if="detectedGpu" class="text-[10px] font-bold text-emerald-600 flex items-center bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 shadow-sm animate-in fade-in zoom-in duration-300">
+              <CheckCircle2 class="w-3 h-3 mr-1" /> {{ t('settings.rag.gpuDetectedRecommend', { gpu: detectedGpu }) }}
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <Button @click="downloadEngine" :disabled="isEngineDownloading || (embeddingState.isEngineExists || chatState.isEngineExists)" variant="secondary" class="flex-1 h-11 font-bold rounded-xl shadow-sm hover:shadow transition-all">
+              <Download v-if="!isEngineDownloading" class="w-4 h-4 mr-2" />
+              <Loader2 v-else class="w-4 h-4 mr-2 animate-spin" />
+              {{ (embeddingState.isEngineExists || chatState.isEngineExists) ? t('settings.rag.engineReady') : t('settings.rag.downloadAndConfigEngine') }}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -79,7 +81,7 @@
             <div class="p-2 rounded-xl bg-orange-100 text-orange-600">
               <Bot class="w-5 h-5" />
             </div>
-            Embedding 向量模型
+            {{ t('settings.rag.embeddingModelTitle') }}
          </div>
          <Switch
             id="local-embedding-switch"
@@ -99,21 +101,21 @@
             >
               <Loader2 v-if="embeddingState.isStarting" class="w-4 h-4 mr-2 animate-spin" />
               <Play v-else class="w-4 h-4 mr-2 fill-current" />
-              {{ embeddingState.isStarting ? '启动中...' : '启动 Embedding 服务' }}
+              {{ embeddingState.isStarting ? t('settings.rag.starting') : t('settings.rag.startEmbeddingService') }}
             </Button>
             <Button v-else variant="destructive" @click="stopServer('embedding')" class="rounded-xl h-10 px-6 font-bold shadow-lg shadow-red-600/10 active:scale-95 transition-all">
-               <Square class="w-4 h-4 mr-2 fill-current" /> 停止服务
+               <Square class="w-4 h-4 mr-2 fill-current" /> {{ t('settings.rag.stopServer') }}
             </Button>
             
             <div v-if="embeddingState.isRunning" class="px-4 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-bold flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              在线: http://127.0.0.1:{{ settingStore.localEmbeddingPort }}/v1/embeddings
+              {{ t('settings.rag.onlineStatus', { url: `http://127.0.0.1:${settingStore.localEmbeddingPort}/v1/embeddings` }) }}
             </div>
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
           <div class="flex flex-col gap-3">
-            <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">配置模型路径 (支持 GGUF)</Label>
+            <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">{{ t('settings.rag.modelPathConfig') }}</Label>
             <div class="flex gap-2">
               <Input 
                 :model-value="settingStore.localEmbeddingModelStr" 
@@ -130,7 +132,7 @@
           <div class="flex items-end gap-3">
              <Button @click="downloadModel('embedding')" :disabled="embeddingState.isDownloading || embeddingState.isFileExists" variant="secondary" class="flex-1 h-11 font-bold rounded-xl shadow-sm">
               <Download class="w-4 h-4 mr-2" /> 
-              {{ embeddingState.isFileExists ? '模型已就绪 (可直接启动)' : '下载预设模型' }}
+              {{ embeddingState.isFileExists ? t('settings.rag.modelReady') : t('settings.rag.downloadPresetModel') }}
             </Button>
           </div>
         </div>
@@ -138,7 +140,7 @@
         <!-- 进度条 -->
         <div v-if="embeddingState.isDownloading" class="space-y-2.5 p-4 rounded-2xl bg-muted/40 border">
           <div class="flex justify-between items-center text-xs font-bold">
-            <span class="flex items-center gap-2">下载中 ({{ ((embeddingState.downloadedBytes ?? 0)/1024/1024).toFixed(1) }}MB)</span>
+            <span class="flex items-center gap-2">{{ t('settings.rag.downloadingWithSize', { size: ((embeddingState.downloadedBytes ?? 0)/1024/1024).toFixed(1) }) }}</span>
             <span class="font-mono">{{ (embeddingState.downloadProgress ?? 0).toFixed(1) }}%</span>
           </div>
           <div class="w-full h-1.5 bg-muted rounded-full overflow-hidden">
@@ -150,7 +152,7 @@
         <div class="space-y-4">
           <button @click="showAdvancedEmbedding = !showAdvancedEmbedding" class="flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-primary transition-colors py-1">
             <ChevronDown :class="['w-4 h-4 transition-transform duration-300', showAdvancedEmbedding ? 'rotate-180' : '']" />
-            高级配置 (维度、池化、硬件)
+            {{ t('settings.rag.advancedConfig') }}
           </button>
           
           <div v-if="showAdvancedEmbedding" class="space-y-6 p-5 rounded-2xl bg-muted/30 border border-dashed animate-in slide-in-from-top-2 duration-300">
@@ -158,7 +160,7 @@
             <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
               <div class="space-y-3">
                 <div class="flex justify-between items-center">
-                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">监听端口</Label>
+                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.listenPort') }}</Label>
                   <span class="text-[10px] font-mono text-primary">{{ settingStore.localEmbeddingPort }}</span>
                 </div>
                 <Input type="number" :model-value="settingStore.localEmbeddingPort" @update:model-value="settingStore.setLocalEmbeddingPort(Number($event))" :disabled="embeddingState.isRunning" class="h-9 rounded-lg" />
@@ -166,7 +168,7 @@
               
               <div class="space-y-3">
                 <div class="flex justify-between items-center">
-                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">CPU 线程数</Label>
+                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.cpuThreads') }}</Label>
                   <span class="text-[10px] font-mono text-primary">{{ settingStore.localEmbeddingThreads }}</span>
                 </div>
                 <Slider :min="1" :max="32" :step="1" :model-value="[settingStore.localEmbeddingThreads]" @update:model-value="settingStore.setLocalEmbeddingThreads($event[0])" />
@@ -174,7 +176,7 @@
 
               <div class="space-y-3">
                 <div class="flex justify-between items-center">
-                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">GPU 层数 (NGL)</Label>
+                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.gpuLayers') }}</Label>
                   <span class="text-[10px] font-mono text-primary">{{ settingStore.localEmbeddingGpuLayers }}</span>
                 </div>
                 <Slider :min="0" :max="100" :step="1" :model-value="[settingStore.localEmbeddingGpuLayers]" @update:model-value="settingStore.setLocalEmbeddingGpuLayers($event[0])" />
@@ -185,20 +187,20 @@
             <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
               <div class="space-y-3">
                 <div class="flex justify-between items-center">
-                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">最大序列长度</Label>
+                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.maxSeqLength') }}</Label>
                   <span class="text-[10px] font-mono text-primary">{{ settingStore.localEmbeddingMaxSeq }}</span>
                 </div>
                 <Slider :min="128" :max="2048" :step="128" :model-value="[settingStore.localEmbeddingMaxSeq]" @update:model-value="settingStore.setLocalEmbeddingMaxSeq($event[0])" />
               </div>
 
               <div class="space-y-3">
-                <Label class="text-[10px] font-bold uppercase text-muted-foreground block">池化策略 (Pooling)</Label>
+                <Label class="text-[10px] font-bold uppercase text-muted-foreground block">{{ t('settings.rag.poolingStrategy') }}</Label>
                 <Select :model-value="settingStore.localEmbeddingPooling" @update:model-value="settingStore.setLocalEmbeddingPooling($event as string)">
                   <SelectTrigger class="h-9 rounded-lg">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="mean">Mean (推荐)</SelectItem>
+                    <SelectItem value="mean">Mean ({{ t('settings.rag.recommended') }})</SelectItem>
                     <SelectItem value="cls">CLS</SelectItem>
                     <SelectItem value="last">Last</SelectItem>
                   </SelectContent>
@@ -207,7 +209,7 @@
 
               <div class="flex items-center gap-2 pt-6">
                 <Checkbox id="norm-check" :checked="settingStore.localEmbeddingNorm" @update:checked="settingStore.setLocalEmbeddingNorm($event)" />
-                <Label for="norm-check" class="text-[10px] font-bold uppercase text-muted-foreground cursor-pointer">向量归一化 (L2)</Label>
+                <Label for="norm-check" class="text-[10px] font-bold uppercase text-muted-foreground cursor-pointer">{{ t('settings.rag.vectorNormalization') }}</Label>
               </div>
             </div>
           </div>
@@ -222,7 +224,7 @@
             <div class="p-2 rounded-xl bg-purple-100 text-purple-600">
               <MessageSquareText class="w-5 h-5" />
             </div>
-            本地推理模型 (Chat)
+            {{ t('settings.rag.localChatModelTitle') }}
          </div>
          <Switch
             id="local-chat-switch"
@@ -242,7 +244,7 @@
             >
               <Loader2 v-if="chatState.isStarting" class="w-4 h-4 mr-2 animate-spin" />
               <Play v-else class="w-4 h-4 mr-2 fill-current" />
-              {{ chatState.isStarting ? '启动中...' : '启动对话推理服务' }}
+              {{ chatState.isStarting ? t('settings.rag.starting') : t('settings.rag.startChatService') }}
             </Button>
             <Button v-else variant="destructive" @click="stopServer('chat')" class="rounded-xl h-10 px-6 font-bold shadow-lg shadow-red-600/10 active:scale-95 transition-all">
                <Square class="w-4 h-4 mr-2 fill-current" /> 停止服务
@@ -250,13 +252,13 @@
             
             <div v-if="chatState.isRunning" class="px-4 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-bold flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              在线: http://127.0.0.1:{{ settingStore.localChatPort }} (OpenAI 兼容)
+              {{ t('settings.rag.onlineStatus', { url: `http://127.0.0.1:${settingStore.localChatPort}` }) }}
             </div>
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
           <div class="flex flex-col gap-3">
-            <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">配置对话模型路径 (支持 GGUF)</Label>
+            <Label class="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">{{ t('settings.rag.chatModelPathConfig') }}</Label>
             <div class="flex gap-2">
               <Input 
                 :model-value="settingStore.localChatModelStr" 
@@ -273,7 +275,7 @@
           <div class="flex items-end gap-3">
              <Button @click="downloadModel('chat')" :disabled="chatState.isDownloading || chatState.isFileExists" variant="secondary" class="flex-1 h-11 font-bold rounded-xl shadow-sm hover:bg-muted-foreground hover:text-white transition-all">
               <Download class="w-4 h-4 mr-2" /> 
-              {{ chatState.isFileExists ? '模型已就绪 (可直接启动)' : '下载预设模型' }}
+              {{ chatState.isFileExists ? t('settings.rag.modelReady') : t('settings.rag.downloadPresetModel') }}
             </Button>
           </div>
         </div>
@@ -281,7 +283,7 @@
         <!-- 进度条 -->
         <div v-if="chatState.isDownloading" class="space-y-2.5 p-4 rounded-2xl bg-muted/40 border">
           <div class="flex justify-between items-center text-xs font-bold">
-            <span class="flex items-center gap-2">模型下载中 (共计约 3-5 GB)...</span>
+            <span class="flex items-center gap-2">{{ t('settings.rag.modelDownloadingLarge') }}</span>
             <span class="font-mono">{{ (chatState.downloadProgress ?? 0).toFixed(1) }}%</span>
           </div>
           <div class="w-full h-1.5 bg-muted rounded-full overflow-hidden">
@@ -293,7 +295,7 @@
         <div class="space-y-4">
           <button @click="showAdvancedChat = !showAdvancedChat" class="flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-primary transition-colors py-1">
             <ChevronDown :class="['w-4 h-4 transition-transform duration-300', showAdvancedChat ? 'rotate-180' : '']" />
-            高级配置 (生成、性能、硬件)
+            {{ t('settings.rag.advancedConfig') }}
           </button>
           
           <div v-if="showAdvancedChat" class="space-y-8 p-6 rounded-2xl bg-muted/30 border border-dashed animate-in slide-in-from-top-2 duration-300">
@@ -301,15 +303,15 @@
             <div class="space-y-5">
               <div class="flex items-center gap-2 text-xs font-bold text-primary">
                 <div class="w-1 h-3 bg-primary rounded-full"></div>
-                生成控制 (Runtime)
+                {{ t('settings.rag.generationControl') }}
               </div>
               <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-6">
                 <!-- Temperature -->
                 <div class="space-y-3">
                   <div class="flex justify-between items-center">
                     <div class="flex flex-col">
-                      <Label class="text-[10px] font-bold uppercase text-muted-foreground">温度系数 (Temperature)</Label>
-                      <span class="text-[9px] text-muted-foreground/60 italic">越高越有创意，0为精准。</span>
+                      <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.temperature') }}</Label>
+                      <span class="text-[9px] text-muted-foreground/60 italic">{{ t('settings.rag.temperatureDesc') }}</span>
                     </div>
                     <span class="text-[10px] font-mono font-bold text-primary">{{ (settingStore.localChatTemp ?? 0.7).toFixed(1) }}</span>
                   </div>
@@ -320,8 +322,8 @@
                 <div class="space-y-3">
                   <div class="flex justify-between items-center">
                     <div class="flex flex-col">
-                      <Label class="text-[10px] font-bold uppercase text-muted-foreground">核采样 (Top-p)</Label>
-                      <span class="text-[9px] text-muted-foreground/60 italic">采样范围百分比。</span>
+                      <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.topP') }}</Label>
+                      <span class="text-[9px] text-muted-foreground/60 italic">{{ t('settings.rag.topPDesc') }}</span>
                     </div>
                     <span class="text-[10px] font-mono font-bold text-primary">{{ (settingStore.localChatTopP ?? 1.0).toFixed(2) }}</span>
                   </div>
@@ -332,7 +334,7 @@
                 <div class="space-y-3">
                   <div class="flex justify-between items-center">
                     <div class="flex flex-col">
-                      <Label class="text-[10px] font-bold uppercase text-muted-foreground">最大生成长度 (Tokens)</Label>
+                      <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.maxTokens') }}</Label>
                     </div>
                     <span class="text-[10px] font-mono font-bold text-primary">{{ settingStore.localChatMaxTokens }}</span>
                   </div>
@@ -344,7 +346,7 @@
                  <!-- Frequency Penalty -->
                  <div class="space-y-3">
                   <div class="flex justify-between items-center">
-                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">频率惩罚 (Frequency Penalty)</Label>
+                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.frequencyPenalty') }}</Label>
                     <span class="text-[10px] font-mono font-bold text-primary">{{ (settingStore.localChatFreqPen ?? 0.0).toFixed(1) }}</span>
                   </div>
                   <Slider :min="-2.0" :max="2.0" :step="0.1" :model-value="[settingStore.localChatFreqPen]" @update:model-value="settingStore.setLocalChatFreqPen($event[0])" />
@@ -353,15 +355,15 @@
                 <!-- Presence Penalty -->
                 <div class="space-y-3">
                   <div class="flex justify-between items-center">
-                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">存在惩罚 (Presence Penalty)</Label>
+                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.presencePenalty') }}</Label>
                     <span class="text-[10px] font-mono font-bold text-primary">{{ (settingStore.localChatPresPen ?? 0.0).toFixed(1) }}</span>
                   </div>
                   <Slider :min="-2.0" :max="2.0" :step="0.1" :model-value="[settingStore.localChatPresPen]" @update:model-value="settingStore.setLocalChatPresPen($event[0])" />
                 </div>
 
                 <div class="space-y-2">
-                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">停止序列 (逗号分隔)</Label>
-                  <Input :model-value="settingStore.localChatStop" @update:model-value="settingStore.setLocalChatStop($event as string)" placeholder="##, ---" class="h-8 text-xs rounded-lg" />
+                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.stopSequences') }}</Label>
+                  <Input :model-value="settingStore.localChatStop" @update:model-value="settingStore.setLocalChatStop($event as string)" :placeholder="t('settings.rag.stopSequencesPlaceholder')" class="h-8 text-xs rounded-lg" />
                 </div>
               </div>
             </div>
@@ -370,13 +372,13 @@
             <div class="space-y-5 pt-4 border-t border-muted-foreground/10">
               <div class="flex items-center gap-2 text-xs font-bold text-primary">
                 <div class="w-1 h-3 bg-amber-500 rounded-full"></div>
-                推理优化与硬件 (需重启生效)
+                {{ t('settings.rag.inferenceOptimization') }}
               </div>
               <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Context Size -->
                 <div class="space-y-3">
                   <div class="flex justify-between items-center">
-                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">上下文窗口</Label>
+                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.contextWindow') }}</Label>
                     <span class="text-[10px] font-mono font-bold text-primary">{{ settingStore.localChatContextSize }}</span>
                   </div>
                   <Slider :min="512" :max="32768" :step="512" :model-value="[settingStore.localChatContextSize]" @update:model-value="settingStore.setLocalChatContextSize($event[0])" />
@@ -385,8 +387,8 @@
                 <!-- GPU Layers -->
                 <div class="space-y-3">
                   <div class="flex justify-between items-center">
-                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">GPU 层数 (NGL)</Label>
-                    <span class="text-[10px] font-mono font-bold text-primary">{{ settingStore.localChatGpuLayers === -1 ? '全量 (Max)' : settingStore.localChatGpuLayers }}</span>
+                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.gpuLayersNGL') }}</Label>
+                    <span class="text-[10px] font-mono font-bold text-primary">{{ settingStore.localChatGpuLayers === -1 ? t('settings.rag.gpuLayersMax') : settingStore.localChatGpuLayers }}</span>
                   </div>
                   <Slider :min="-1" :max="100" :step="1" :model-value="[settingStore.localChatGpuLayers]" @update:model-value="settingStore.setLocalChatGpuLayers($event[0])" />
                 </div>
@@ -394,7 +396,7 @@
                 <!-- Threads -->
                 <div class="space-y-3">
                   <div class="flex justify-between items-center">
-                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">CPU 线程数</Label>
+                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.cpuThreads') }}</Label>
                     <span class="text-[10px] font-mono font-bold text-primary">{{ settingStore.localChatThreads }}</span>
                   </div>
                   <Slider :min="1" :max="32" :step="1" :model-value="[settingStore.localChatThreads]" @update:model-value="settingStore.setLocalChatThreads($event[0])" />
@@ -403,7 +405,7 @@
                 <!-- Batch Size -->
                 <div class="space-y-3">
                   <div class="flex justify-between items-center">
-                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">批处理大小 (Batch)</Label>
+                    <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.batchSize') }}</Label>
                     <span class="text-[10px] font-mono font-bold text-primary">{{ settingStore.localChatBatchSize }}</span>
                   </div>
                   <Slider :min="128" :max="2048" :step="128" :model-value="[settingStore.localChatBatchSize]" @update:model-value="settingStore.setLocalChatBatchSize($event[0])" />
@@ -413,10 +415,10 @@
               <div class="flex items-center gap-6">
                 <div class="flex items-center gap-2">
                   <Checkbox id="chat-flash-attn" :checked="settingStore.localChatFlashAttn" @update:checked="settingStore.setLocalChatFlashAttn($event)" />
-                  <Label for="chat-flash-attn" class="text-[10px] font-bold uppercase text-muted-foreground cursor-pointer">开启 Flash Attention (推荐)</Label>
+                  <Label for="chat-flash-attn" class="text-[10px] font-bold uppercase text-muted-foreground cursor-pointer">{{ t('settings.rag.flashAttention') }}</Label>
                 </div>
                 <div class="flex items-center gap-2">
-                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">监听端口</Label>
+                  <Label class="text-[10px] font-bold uppercase text-muted-foreground">{{ t('settings.rag.listenPort') }}</Label>
                   <Input type="number" :model-value="settingStore.localChatPort" @update:model-value="settingStore.setLocalChatPort(Number($event))" :disabled="chatState.isRunning" class="h-8 w-20 text-xs rounded-lg text-center" />
                 </div>
               </div>
@@ -609,7 +611,7 @@ const updateDownloadState = (state: ModelServiceState, payload: ModelDownloadPay
     state.isDownloading = false
     state.isFileExists = true
     state.downloadProgress = 100
-    success(`${payload.filename} 下载完成`)
+    success(t('settings.rag.downloadCompleteWithFilename', { filename: payload.filename }))
   }
 }
 
@@ -691,7 +693,7 @@ const downloadEngine = async () => {
   isEngineDownloading.value = true
   engineDownloadProgress.value = 0
   engineDownloadedBytes.value = 0
-  currentDownloadingEngineFile.value = '即将开始...'
+  currentDownloadingEngineFile.value = t('settings.rag.aboutToStart')
   
   try {
     info(t('settings.rag.engineDownloadStartToast'))
@@ -717,7 +719,7 @@ const downloadModel = async (purpose: 'embedding' | 'chat') => {
   }
 
   if (!url || !filename) {
-    error('缺少下载链接或文件名')
+    error(t('settings.rag.missingUrlOrFilename'))
     return
   }
 
@@ -726,10 +728,10 @@ const downloadModel = async (purpose: 'embedding' | 'chat') => {
   state.downloadedBytes = 0
   
   try {
-    info('开始下载模型，请保持网络连接...')
+    info(t('settings.rag.startDownloadModel'))
     await invoke<string>('download_local_model', { url, filename })
   } catch (e: any) {
-    error(`下载失败: ${e}`)
+    error(t('settings.rag.downloadFailed', { error: e }))
     state.isDownloading = false
   }
 }
@@ -793,7 +795,7 @@ const selectModelFile = async (purpose: 'embedding' | 'chat') => {
       } else {
         settingStore.setLocalChatModelStr(selected)
       }
-      success('已选择本地模型文件')
+      success(t('settings.rag.modelFileSelected'))
     }
   } catch (e) {
     logger.ai.error('Picker error', e)
