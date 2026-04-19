@@ -47,10 +47,71 @@ export const useEvaluationStore = defineStore('evaluation', () => {
       avgFaithfulness: avg(valid.map(e => e.faithfulness)),
       avgRelevance: avg(valid.map(e => e.answerRelevance)),
       avgPrecision: avg(valid.map(e => e.contextPrecision)),
+      // 新增维度（兼容旧数据：过滤掉无该字段的记录）
+      avgRecall: avg(valid.filter(e => (e.contextRecall ?? -1) >= 0).map(e => e.contextRecall!)),
+      avgCompleteness: avg(valid.filter(e => (e.answerCompleteness ?? -1) >= 0).map(e => e.answerCompleteness!)),
       avgLatency: avg(valid.map(e => e.retrievalLatencyMs)),
       rerankUsageRate: valid.length > 0
         ? valid.filter(e => e.rerankApplied).length / valid.length
         : 0
+    }
+  })
+
+  // ==========================================
+  // 计算属性 — 趋势分析（最近10条 vs 之前10条）
+  // ==========================================
+  const trends = computed(() => {
+    const valid = evaluations.value.filter(
+      e => e.faithfulness >= 0 && e.answerRelevance >= 0 && e.contextPrecision >= 0
+    )
+    if (valid.length < 6) return null // 数据太少无法判断趋势
+
+    const avg = (arr: number[]) => arr.length > 0
+      ? arr.reduce((a, b) => a + b, 0) / arr.length
+      : 0
+
+    const halfPoint = Math.floor(valid.length / 2)
+    const recent = valid.slice(halfPoint)
+    const previous = valid.slice(0, halfPoint)
+
+    const calcTrend = (recentVal: number, prevVal: number): 'up' | 'down' | 'stable' => {
+      const diff = recentVal - prevVal
+      if (diff > 0.03) return 'up'    // 上升超过 3%
+      if (diff < -0.03) return 'down' // 下降超过 3%
+      return 'stable'
+    }
+
+    return {
+      faithfulness: calcTrend(avg(recent.map(e => e.faithfulness)), avg(previous.map(e => e.faithfulness))),
+      relevance: calcTrend(avg(recent.map(e => e.answerRelevance)), avg(previous.map(e => e.answerRelevance))),
+      precision: calcTrend(avg(recent.map(e => e.contextPrecision)), avg(previous.map(e => e.contextPrecision))),
+      recall: calcTrend(
+        avg(recent.filter(e => (e.contextRecall ?? -1) >= 0).map(e => e.contextRecall!)),
+        avg(previous.filter(e => (e.contextRecall ?? -1) >= 0).map(e => e.contextRecall!))
+      ),
+      completeness: calcTrend(
+        avg(recent.filter(e => (e.answerCompleteness ?? -1) >= 0).map(e => e.answerCompleteness!)),
+        avg(previous.filter(e => (e.answerCompleteness ?? -1) >= 0).map(e => e.answerCompleteness!))
+      ),
+    }
+  })
+
+  // ==========================================
+  // 计算属性 — 回归测试 diff 对比
+  // ==========================================
+  const latestRunDiff = computed(() => {
+    if (benchmarkRuns.value.length < 2) return null
+    const sorted = [...benchmarkRuns.value].sort((a, b) => b.createdAt - a.createdAt)
+    const current = sorted[0]
+    const previous = sorted[1]
+    return {
+      faithfulness: current.avgFaithfulness - previous.avgFaithfulness,
+      relevance: current.avgRelevance - previous.avgRelevance,
+      precision: current.avgPrecision - previous.avgPrecision,
+      recall: (current.avgRecall ?? 0) - (previous.avgRecall ?? 0),
+      correctness: (current.avgCorrectness ?? 0) - (previous.avgCorrectness ?? 0),
+      completeness: (current.avgCompleteness ?? 0) - (previous.avgCompleteness ?? 0),
+      latency: current.avgLatencyMs - previous.avgLatencyMs,
     }
   })
 
@@ -217,6 +278,8 @@ export const useEvaluationStore = defineStore('evaluation', () => {
     generationProgress,
     benchmarkProgress,
     stats,
+    trends,
+    latestRunDiff,
     // Actions
     loadAll,
     loadEvaluations,

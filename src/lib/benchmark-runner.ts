@@ -2,7 +2,12 @@ import { logger } from '@/utils/logger'
 import { Store } from '@tauri-apps/plugin-store'
 import { invoke } from '@tauri-apps/api/core'
 import { getRetrievedDocsWithMetrics, type Keyword } from './rag'
-import { evaluateRAGTriad } from './rag-evaluator'
+import {
+  evaluateRAGTriad,
+  evaluateContextRecall,
+  evaluateAnswerCorrectness,
+  getJudgeModelName
+} from './rag-evaluator'
 import { fetchAiStream } from './ai'
 import {
   type BenchmarkItem,
@@ -32,7 +37,7 @@ async function getConfigSnapshot() {
 }
 
 /**
- * 对单个测试用例执行 RAG 查询 + 评估
+ * 对单个测试用例执行 RAG 查询 + 多维度评估
  */
 async function runSingleCase(
   benchmark: BenchmarkItem
@@ -72,7 +77,7 @@ async function runSingleCase(
 
     const totalLatency = Math.round(performance.now() - startTime)
 
-    // 4. 三元组评估
+    // 4. 三元组评估（含上下文召回率实时模式和答案完整性）
     const evalResult = await evaluateRAGTriad(query, answer, contexts, {
       retrievalLatencyMs: metrics.totalLatencyMs,
       totalLatencyMs: totalLatency,
@@ -80,6 +85,10 @@ async function runSingleCase(
       fuzzyCount: metrics.fuzzyCount,
       rerankApplied: metrics.rerankApplied
     })
+
+    // 5. 回归测试独有的额外指标（需要 ground truth）——串行执行
+    const contextRecallGT = await evaluateContextRecall(answer, contexts, benchmark.expectedAnswer)
+    const answerCorrectness = await evaluateAnswerCorrectness(answer, benchmark.expectedAnswer)
 
     return {
       benchmarkId: benchmark.id,
@@ -89,6 +98,9 @@ async function runSingleCase(
       faithfulness: evalResult?.faithfulness ?? -1,
       answerRelevance: evalResult?.answerRelevance ?? -1,
       contextPrecision: evalResult?.contextPrecision ?? -1,
+      contextRecall: contextRecallGT,
+      answerCorrectness,
+      answerCompleteness: evalResult?.answerCompleteness ?? -1,
       latencyMs: totalLatency
     }
   } catch (e) {
@@ -139,6 +151,13 @@ export async function runBenchmark(
     // 计算聚合指标
     const validResults = results.filter(r => r.faithfulness >= 0)
     const avg = (arr: number[]) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0
+    // 过滤有效值（>= 0）后再平均
+    const avgValid = (arr: (number | undefined)[]) => {
+      const valid = arr.filter((v): v is number => v !== undefined && v >= 0)
+      return valid.length > 0 ? valid.reduce((a, b) => a + b, 0) / valid.length : 0
+    }
+
+    const judgeModel = await getJudgeModelName()
 
     const run: BenchmarkRun = {
       id: generateEvalId(),
@@ -147,6 +166,10 @@ export async function runBenchmark(
       avgFaithfulness: avg(validResults.map(r => r.faithfulness)),
       avgRelevance: avg(validResults.map(r => r.answerRelevance)),
       avgPrecision: avg(validResults.map(r => r.contextPrecision)),
+      avgRecall: avgValid(results.map(r => r.contextRecall)),
+      avgCorrectness: avgValid(results.map(r => r.answerCorrectness)),
+      avgCompleteness: avgValid(results.map(r => r.answerCompleteness)),
+      judgeModel,
       avgLatencyMs: avg(results.map(r => r.latencyMs)),
       totalCases: casesToRun.length,
       results,
@@ -160,6 +183,9 @@ export async function runBenchmark(
       `回归测试完成 — 忠实度: ${run.avgFaithfulness.toFixed(2)}, ` +
       `相关性: ${run.avgRelevance.toFixed(2)}, ` +
       `精度: ${run.avgPrecision.toFixed(2)}, ` +
+      `召回: ${(run.avgRecall ?? 0).toFixed(2)}, ` +
+      `正确性: ${(run.avgCorrectness ?? 0).toFixed(2)}, ` +
+      `完整性: ${(run.avgCompleteness ?? 0).toFixed(2)}, ` +
       `平均延迟: ${run.avgLatencyMs.toFixed(0)}ms`
     )
 

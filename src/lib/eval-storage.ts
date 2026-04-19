@@ -16,6 +16,9 @@ export interface RagEvaluation {
   faithfulness: number
   answerRelevance: number
   contextPrecision: number
+  contextRecall?: number          // 上下文召回率 [-1, 0~1]
+  answerCompleteness?: number     // 答案完整性 [-1, 0~1]
+  judgeModel?: string             // 评审使用的模型名称
   retrievalLatencyMs: number
   totalLatencyMs: number
   vectorCount: number
@@ -30,6 +33,8 @@ export interface BenchmarkItem {
   question: string
   expectedAnswer: string
   sourceFile: string
+  difficulty?: 'easy' | 'medium' | 'hard'            // 难度分级
+  type?: 'factual' | 'conceptual' | 'relational'      // 问题类型
   createdAt: number
 }
 
@@ -42,6 +47,9 @@ export interface BenchmarkRunDetail {
   faithfulness: number
   answerRelevance: number
   contextPrecision: number
+  contextRecall?: number          // 上下文召回率
+  answerCorrectness?: number      // 答案正确性（与 expectedAnswer 比较）
+  answerCompleteness?: number     // 答案完整性
   latencyMs: number
 }
 
@@ -58,6 +66,10 @@ export interface BenchmarkRun {
   avgFaithfulness: number
   avgRelevance: number
   avgPrecision: number
+  avgRecall?: number              // 平均上下文召回率
+  avgCorrectness?: number         // 平均答案正确性
+  avgCompleteness?: number        // 平均答案完整性
+  judgeModel?: string             // 评审模型名称
   avgLatencyMs: number
   totalCases: number
   results: BenchmarkRunDetail[]
