@@ -64,7 +64,7 @@ pub fn screenshot(app: AppHandle) -> Vec<ScreenshotImage> {
         let x = window.x().unwrap_or(0);
         let y = window.y().unwrap_or(0);
         let z = window.z().unwrap_or(0);
-        let system_titles = vec!["Dock", "Menu Bar", "MenuBar", "Status", "Notification Center", "", "Desktop", "NoteGen"];
+        let system_titles = vec!["Dock", "Menu Bar", "MenuBar", "Status", "Notification Center", "", "Desktop", "rikka-note"];
         
         if system_titles.contains(&title.as_str()) || 
            title.len() < 2 ||
