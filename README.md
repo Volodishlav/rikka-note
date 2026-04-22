@@ -1,27 +1,82 @@
 # Rikka Note
 
-一个使用 Vue 3 + Tauri 2.x 开发的跨平台笔记应用，支持桌面端和浏览器端，具备主题切换和多语言支持。
+一个使用 Vue 3 + Tauri 2.x 开发的跨平台笔记应用，目前只支持桌面端。
+
+## 核心特色
+
+面向普通个人用户、隐私、智能、本地化
+
+![img.png](public/img_12.png)
+
+![img.png](public/img_13.png)
+
+![img_1.png](public/img_1.png)
+
+![img_2.png](public/img_2.png)
+
+![img_3.png](public/img_3.png)
+
+![img_4.png](public/img_4.png)
+
+![img_5.png](public/img_5.png)
+
+![img_6.png](public/img_6.png)
+
+![img_7.png](public/img_7.png)
+
+![img_8.png](public/img_8.png)
+
+![img_9.png](public/img_9.png)
+
+![img_10.png](public/img_10.png)
+
+![img_11.png](public/img_11.png)
+
+
+
+### 1 AI笔记助手
+*   **双模式编辑器**：高性能 Markdown 编辑器，支持 KaTeX 算式、Mermaid 图表与多层级标题导航。
+*   **AI 编辑协同**：
+    *   **智能提案模式**：基于 AI 生成 Diff 差异，对比与一键“应用/撤销”。
+    *   **Prompt 预设库**：内置知识提取、多语言翻译、结构化扩充等场景化指令流。
+
+### 2 多模态输入
+*   **离线 OCR**：windows api。
+*   **离线实时语音输入 (ASR)**：集成 Sherpa-ONNX 引擎与 Rust 驱动的 VAD（语音活动检测），实现高精度、低延迟的离线语音转文字。
+*   **AI 视觉增强 (VLM)**：自动分析笔记内图片视觉特征，生成结构化文本描述，让非结构化媒体数据可检索、可理解。
+
+### 3 RAG 检索增强系统
+*   **隐私确认流 (Confirmation UI)**：在将本地知识发送至 LLM 前，可视化展示检索到的笔记分块，用户可点击跳转查阅或一键剔除，确保隐私完全受控。
+*   **混合检索架构**：向量搜索 (Dense) 与关键词搜索 (BM25) 深度融合，利用 RRF 算法提升生僻词与专业术语的召回精度。
+*   **评测框架**：实时监控忠实度、回答相关性、上下文精度等指标，量化 AI 回答质量。
+
+### 2.4 用户隐私保护
+*   **Rust 级全链路加密**：DEK/KEK 两级密钥模型。密码通过 Rust 进程内存严格管控，笔记密文存储。
+*   **本地并行推理引擎**：内置 `llama.cpp` 管理器，实现 embedding模型、LLM/SLM、ASR模型 的“零配置”傻瓜式一键部署及运行。
+
 
 ## 技术栈
 
-### 前端
 - **Vue 3**
 - **TypeScript**
 - **Vite**
 - **Tailwind CSS**
-- **Pinia**
-- **Vue Router**
-- **Vue I18n**
-
-### 桌面端
-- **Tauri 2.x**
+- **Tauri 2**
 - **Rust**
-- 
-### 图标与样式
-- **Lucide Vue Next**
-- **PostCSS**
 
-## 项目结构树
+---
+
+##  环境配置
+
+- **Node.js**: `v22.20.0`
+- **NPM**: `v10.9.3`
+- **Rust**: `1.81.0`
+- **Cargo**: `1.81.0`
+- **Java**: `OpenJDK 21.0.2`
+
+---
+
+## 项目结构树（待完善）
 ```
 d:\graduation_project\project\rikka-note
 ├── public/                     # 静态资源
@@ -76,67 +131,10 @@ d:\graduation_project\project\rikka-note
 └── tsconfig.json               # TypeScript 配置
 ```
 
----
 
-## 📝 核心文件说明
 
-### 1. 前端架构文件
-- **src/main.ts**: Vue 应用初始化入口。
-- **src/router/index.ts**: 定义应用全局路由映射。
-- **src/core/layouts/CoreLayout.vue**: 桌面端三栏协作核心布局。
-- **src/db/index.ts**: 基于 `tauri-plugin-sql` 的数据库连接与初始化管理。
+## 开发指南
 
-### 2. 状态与逻辑管理
-- **src/stores/setting.ts**: 管理主题、界面缩放、AI 偏好等持久化配置。
-- **src/lib/ai.ts**: 封装 AI 调用接口、Prompt 管理及流式响应逻辑。
-- **src/lib/workspace.ts**: 管理多工作区切换、路径解析及独立数据库连接。
-
-### 3. 数据存取模块
-- **src/db/notes.ts**: 笔记及其 Frontmatter 数据的 CRUD 操作。
-- **src/db/vector.ts**: 实现笔记内容的向量化存储，支撑 RAG 功能。
-
----
-
-## 💻 环境配置要求
-
-项目开发需预先配置以下开发环境并保证版本符合要求：
-
-### 系统组件版本
-- **Node.js**: `v22.20.0` 或更高版本
-- **NPM**: `v10.9.3` 或更高版本
-- **Rust**: `1.81.0` (推荐 Rust 2021 edition)
-- **Cargo**: `1.81.0` 或更高版本
-- **Java**: `OpenJDK 21.0.2` (相关构建链依赖)
-- **Python**: `3.13.9` 或更高版本
-
-### 核心技术栈
-| 技术/依赖 | 版本 | 用途 |
-| --- | --- | --- |
-| Vue | `^3.5.13` | 渐进式 JavaScript 框架 |
-| TypeScript | `~5.6.2` | 静态类型支持 |
-| Vite | `^6.0.3` | 高度性能的构建工具 |
-| Tauri | `^2.x` | 跨平台桌面应用开发框架 |
-
----
-
-## ⚙️ 开发指南
-
-### 端口与访问配置
-- **开发服务器端口**: `1420`
-- **HMR 端口**: `1421`
-- **开发 URL**: `http://localhost:1420`
-- **构建输出目录**: `./dist`
-
-### 指令集
-- **安装依赖**: `npm install`
-- **开发模式运行**: `npm run dev` 或 `npx tauri dev`
-- **生产环境构建**: `npm run build`
-
----
-
-## ⚠️ 备注
-- 本项目为毕业设计项目，代码与文档描述遵循客观事实原则。
-- 文档中的部分功能（如 OCR 与加密）严重依赖 Windows 系统原生组件及特定的 Rust 库环境。
-
----
-> Rikka Note - 致力于打造高效、隐私、智能的个人数字笔记中心。
+ `npm install`
+ `npm run dev`
+ `npm run build`
