@@ -20,6 +20,12 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
+            '@router': path.resolve(
+                __dirname,
+                process.env.TAURI_ENV_PLATFORM === 'android' || process.env.TAURI_ENV_PLATFORM === 'ios'
+                    ? './src/router/mobile.ts'
+                    : './src/router/desktop.ts'
+            ),
         },
     },
     css: {

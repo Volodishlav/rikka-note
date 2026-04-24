@@ -17,7 +17,8 @@
     /* 路径配置 */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@router": ["./src/router/desktop.ts", "./src/router/mobile.ts"]
     },
 
     /* 核心类型支持 */

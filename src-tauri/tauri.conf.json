@@ -3,12 +3,14 @@
   "productName": "rikka-note",
   "version": "0.1.0",
   "identifier": "com.RemnantSong.rikka-note",
+
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
+
   "app": {
     "windows": [
       {
@@ -31,7 +33,7 @@
       },
       "devCsp": {
         "default-src": "'self' ipc: http://ipc.localhost",
-        "connect-src": "'self' ipc: http://ipc.localhost ws://localhost:1420",
+        "connect-src": "'self' ipc: http://ipc.localhost *://localhost:*",
         "img-src": "'self' asset: http://asset.localhost data: blob:",
         "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src": "'self' https://fonts.gstatic.com",
@@ -43,6 +45,7 @@
       }
     }
   },
+
   "bundle": {
     "active": true,
     "targets": "all",
@@ -62,4 +65,5 @@
       }
     }
   }
+
 }

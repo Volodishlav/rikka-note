@@ -5,7 +5,7 @@ import './shared/globals.scss'
 import i18n from './locales'
 import dayjs from 'dayjs'
 import { initStores } from './stores'
-import router from './router'
+import router from '@router'
 
 // 设置 dayjs locale 与初始值（从 localStorage 读取）
 const saved = localStorage.getItem('locale') || 'zh'
