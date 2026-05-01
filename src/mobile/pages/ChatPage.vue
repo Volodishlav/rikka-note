@@ -1,7 +1,10 @@
-<!-- src/mobile/pages/ChatPage.vue（极简占位） -->
+<script setup lang="ts">
+import ChatPanel from '@/core/panels/assistant/ChatPanel.vue'
+</script>
+
 <template>
-  <div class="p-4">
-    <h2>Mobile Chat Page（移动端 - 聊天）</h2>
-    <p>这里将放置移动端聊天组件</p>
+  <div class="h-full w-full">
+    <!-- 直接挂载桌面端的聊天面板组件 -->
+    <ChatPanel />
   </div>
 </template>

@@ -1,25 +1,38 @@
 <script setup lang="ts">
-import { Settings, PenTool, RefreshCw, Cpu, Box, MessageSquareCode, Settings2, ChevronRight } from 'lucide-vue-next'
+import { Settings, PenTool, RefreshCw, Cpu, Box, MessageSquareCode, Settings2, ChevronRight, Eye, Shield, Mic } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
+import { useSettingStore } from '@/stores/setting'
+import { computed } from 'vue'
 
-const settingsGroups = [
+const router = useRouter()
+const settingStore = useSettingStore()
+
+const openSettingDetail = (id: string) => {
+  router.push(`/mobile/setting/${id}`)
+}
+
+const settingsGroups = computed(() => [
   {
     title: '',
     items: [
       { id: 'general', icon: Settings, label: '常规', value: '' },
       { id: 'editor', icon: PenTool, label: '编辑器', value: '' },
-      { id: 'sync', icon: RefreshCw, label: '同步', value: '' }
+      { id: 'sync', icon: RefreshCw, label: '同步', value: '' },
+      { id: 'encryption', icon: Shield, label: '加密与安全', value: '' }
     ]
   },
   {
     title: '核心 AI 功能',
     items: [
-      { id: 'local-model', icon: Box, label: '本地模型', value: '已就绪 (Llama.cpp)' },
-      { id: 'ai-config', icon: Cpu, label: 'AI 模型配置', value: '' },
-      { id: 'prompt-manage', icon: MessageSquareCode, label: 'Prompt 管理', value: '' },
-      { id: 'rag-setting', icon: Settings2, label: 'RAG 设置', value: '评估面板' }
+      { id: 'local', icon: Box, label: '本地模型', value: settingStore.localModelName ? '已配置' : '未就绪' },
+      { id: 'ai', icon: Cpu, label: 'AI 模型配置', value: '' },
+      { id: 'prompt', icon: MessageSquareCode, label: 'Prompt 管理', value: '' },
+      { id: 'rag', icon: Settings2, label: 'RAG 设置', value: '评估面板' },
+      { id: 'vision', icon: Eye, label: 'OCR 与视觉', value: '' },
+      { id: 'speech', icon: Mic, label: '语音输入', value: '' }
     ]
   }
-]
+])
 </script>
 
 <template>
@@ -40,8 +53,9 @@ const settingsGroups = [
         <!-- 设置卡片组 -->
         <div class="bg-white dark:bg-slate-800 rounded-2xl p-2 shadow-sm border border-slate-100 dark:border-slate-700">
           <button 
-            v-for="(item, itemIndex) in group.items" 
+            v-for="item in group.items" 
             :key="item.id"
+            @click="openSettingDetail(item.id)"
             class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 active:bg-slate-100 dark:active:bg-slate-700 transition-colors"
           >
             <div class="flex items-center gap-4">

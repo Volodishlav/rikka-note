@@ -6,6 +6,8 @@ import MobileLayout from '@/mobile/layouts/MobileLayout.vue'
 import ChatPage from '@/mobile/pages/ChatPage.vue'
 import NoteListPage from '@/mobile/pages/NoteListPage.vue'
 import MobileSettingPage from '@/mobile/pages/SettingPage.vue'
+import MobileEditorPage from '@/mobile/pages/MobileEditorPage.vue'
+import SettingDetailPage from '@/mobile/pages/SettingDetailPage.vue'
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -33,6 +35,8 @@ const routes: Array<RouteRecordRaw> = [
             { path: 'notes', name: 'mobile-notes', component: NoteListPage },
             { path: 'chat', name: 'mobile-chat', component: ChatPage },
             { path: 'setting', name: 'mobile-setting', component: MobileSettingPage },
+            { path: 'editor', name: 'mobile-editor', component: MobileEditorPage },
+            { path: 'setting/:id', name: 'mobile-setting-detail', component: SettingDetailPage },
             { path: ':pathMatch(.*)*', redirect: '/mobile/notes' },
         ]
     }

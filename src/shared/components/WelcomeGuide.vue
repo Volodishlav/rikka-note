@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <Teleport to="body">
     <div v-if="isVisible" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm text-foreground animate-in fade-in duration-300">
     <div class="relative max-w-md w-full p-8 shadow-2xl rounded-2xl bg-card border border-border text-center space-y-6">
