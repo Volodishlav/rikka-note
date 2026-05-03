@@ -215,6 +215,39 @@
       }
     }
   },
+  "graph": {
+    "title": "Knowledge Graph",
+    "noActiveFile": "Please open a note first to view the graph",
+    "emptyTitle": "No Graph Generated",
+    "emptyDesc": "Let AI analyze your note and generate a visual knowledge graph with one click",
+    "generateBtn": "Generate Graph Now",
+    "generating": "AI is drawing the graph...",
+    "generatingDesc": "Analyzing note logic and building Mermaid structure, please wait",
+    "refresh": "Regenerate",
+    "type": "Diagram Type",
+    "granularity": "Granularity",
+    "granularityLabels": {
+      "coarse": "Coarse",
+      "medium": "Medium",
+      "fine": "Fine"
+    },
+    "types": {
+      "auto": "Auto Adapt",
+      "flowchart": "Flowchart",
+      "mindmap": "Mindmap",
+      "sequenceDiagram": "Sequence",
+      "classDiagram": "Class",
+      "stateDiagram": "State",
+      "erDiagram": "ER Diagram",
+      "gantt": "Gantt",
+      "pie": "Pie",
+      "quadrantChart": "Quadrant",
+      "timeline": "Timeline",
+      "sankey": "Sankey",
+      "gitGraph": "Git Graph",
+      "journey": "User Journey"
+    }
+  },
   "settings": {
     "title": "Settings",
     "general": {

@@ -171,6 +171,21 @@ watch(() => chatStore.isEditMode, (enabled: boolean) => {
     if (enabled) updateSelection();
 });
 
+// 监听 matchPosition 变化，自动滚动到指定行
+watch(() => articleStore.matchPosition, (line) => {
+  if (line !== null && editorRef.value) {
+    logger.editor.info(`[MdEditor] 收到跳转指令，跳转到行: ${line}`);
+    // md-editor-v3 的实例提供了 scrollIntoView 方法，传入行号
+    try {
+      editorRef.value.scrollIntoView(line);
+      // 跳转后清空标记，防止下次无法触发相同行的跳转
+      articleStore.setMatchPosition(null);
+    } catch (e) {
+      logger.editor.warn('[MdEditor] 跳转失败，实例可能未完全就绪:', e);
+    }
+  }
+});
+
 onUnmounted(() => {
   if (saveTimer) clearTimeout(saveTimer);
   observer.disconnect();

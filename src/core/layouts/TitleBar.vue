@@ -4,7 +4,7 @@ import {onMounted, onUnmounted, ref, computed} from 'vue';
 import ArtTitle from "@/shared/components/ArtTitle.vue";
 import { useLayoutStore } from '@/stores/layout';
 import EditorTabs from '@/core/panels/editor/EditorTabs.vue';
-import {ScanText} from "lucide-vue-next";
+import {ScanText, Share2} from "lucide-vue-next";
 import { logger } from '@/utils/logger';
 
 // 初始化布局状态
@@ -37,10 +37,21 @@ const handleEditor = () => {
   layoutStore.toggleEditor();
 };
 const handleRightSiderbar = () => {
-  layoutStore.toggleRightSidebar();
+  if (layoutStore.rightPanelType === 'chat' && layoutStore.isRightSidebarVisible) {
+    layoutStore.toggleRightSidebar();
+  } else {
+    layoutStore.setRightPanelType('chat');
+  }
 };
 const handleOcr = () => {
   layoutStore.toggleOcr();
+};
+const handleGraph = () => {
+  if (layoutStore.rightPanelType === 'graph' && layoutStore.isRightSidebarVisible) {
+    layoutStore.toggleRightSidebar();
+  } else {
+    layoutStore.setRightPanelType('graph');
+  }
 };
 const handleMinimize = async () => {
   try {
@@ -129,6 +140,15 @@ onUnmounted(() => {
       >
         <ScanText :size="20" />
       </button>
+      <!-- 图谱按钮 -->
+      <button
+          @click="handleGraph"
+          title="知识图谱"
+          class="panel-btn"
+          :class="{ 'active-btn': layoutStore.isRightSidebarVisible && layoutStore.rightPanelType === 'graph' }"
+      >
+        <Share2 :size="20" />
+      </button>
       <!-- 搜索按钮 -->
       <button
           @click="handleSearch"
@@ -182,7 +202,7 @@ onUnmounted(() => {
           @click="handleRightSiderbar"
           title="右侧侧边栏"
           class="panel-btn"
-          :class="{ 'active-btn': layoutStore.isRightSidebarVisible }"
+          :class="{ 'active-btn': layoutStore.isRightSidebarVisible && layoutStore.rightPanelType === 'chat' }"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 38" fill="currentColor">
           <rect x="6" y="6" width="32" height="26" rx="4" ry="4" stroke="currentColor" stroke-width="2" fill="none"/>

@@ -67,6 +67,12 @@ export const LOG_MODULES: LogModuleConfig[] = [
     files: ['rag-evaluator.ts', 'benchmark-generator.ts', 'benchmark-runner.ts', 'eval-storage.ts', 'RagEvaluation.vue']
   },
   {
+    id: 'graph',
+    color: '#8b5cf6', // purple (same as assistant/brand)
+    defaultEnabled: true,
+    files: ['GraphPanel.vue', 'stores/graph.ts', 'db/graph.ts']
+  },
+  {
     id: 'default',
     color: '#6366f1', // indigo
     defaultEnabled: true,

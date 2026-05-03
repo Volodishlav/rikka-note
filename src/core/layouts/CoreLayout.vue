@@ -9,6 +9,7 @@ import 'splitpanes/dist/splitpanes.css'
 import FileSidebar from '@/core/panels/explorer/FileSidebar.vue' // 左侧面板：文件和标签导航
 import LayoutNode from '@/core/panels/editor/LayoutNode.vue' // 递归编辑器布局
 import ChatPanel from '@/core/panels/assistant/ChatPanel.vue' // 右侧面板：AI 聊天
+import GraphPanel from '@/core/panels/assistant/GraphPanel.vue' // 右侧面板：知识图谱
 import SearchPanel from '@/core/pages/search/SearchPanel.vue' // 搜索面板
 import SettingPage from '@/core/pages/setting/SettingPage.vue' // 设置页面（独占窗口）
 import Start from '@/shared/pages/start.vue'
@@ -94,9 +95,10 @@ const handleSelectionDone = (bytes: number[]) => {
           </div>
         </pane>
 
-        <!-- 右侧 AI 聊天面板 -->
+        <!-- 右侧面板 (AI 聊天 / 知识图谱) -->
         <pane v-if="layoutStore.isRightSidebarVisible" size="30" min-size="20" class="bg-background">
-          <ChatPanel/>
+          <ChatPanel v-if="layoutStore.rightPanelType === 'chat'" />
+          <GraphPanel v-else-if="layoutStore.rightPanelType === 'graph'" />
         </pane>
         <!-- 没有面板处于打开状态时显示应用图标+应用名 -->
         <pane v-if="!layoutStore.isLeftSidebarVisible&&!layoutStore.isRightSidebarVisible&&!layoutStore.isEditorVisible" size="100" class="!bg-transparent">

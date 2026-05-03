@@ -116,9 +116,21 @@ export const useLayoutStore = defineStore('layout', () => {
         screenImageData.value = imageData
     }
 
+    // 控制右侧面板显示内容：'chat' (AI 聊天) 或 'graph' (知识图谱)
+    const rightPanelType = ref<'chat' | 'graph'>('chat')
+
     // Action to toggle the visibility of the about page
     function toggleAboutPage() {
         isAboutVisible.value = !isAboutVisible.value
+    }
+
+    // 设置右侧面板类型
+    function setRightPanelType(type: 'chat' | 'graph') {
+        rightPanelType.value = type
+        // 如果右侧栏未打开，自动打开它
+        if (!isRightSidebarVisible.value) {
+            isRightSidebarVisible.value = true
+        }
     }
 
     return {
@@ -131,6 +143,7 @@ export const useLayoutStore = defineStore('layout', () => {
         isScreenSelecting,
         screenImageData,
         isAboutVisible,
+        rightPanelType,
         toggleLeftSidebar,
         toggleEditor,
         toggleRightSidebar,
@@ -138,6 +151,7 @@ export const useLayoutStore = defineStore('layout', () => {
         toggleSettingPage,
         toggleOcr,
         setScreenSelecting,
-        toggleAboutPage
+        toggleAboutPage,
+        setRightPanelType
     }
 })

@@ -220,6 +220,39 @@
       }
     }
   },
+  "graph": {
+    "title": "知识图谱",
+    "noActiveFile": "请先打开一篇笔记以查看图谱",
+    "emptyTitle": "尚未生成图谱",
+    "emptyDesc": "让 AI 深度解析笔记内容，一键生成可视化知识图谱",
+    "generateBtn": "立即生成图谱",
+    "generating": "AI 正在绘制图谱...",
+    "generatingDesc": "正在分析笔记逻辑并构建 Mermaid 结构，请稍候",
+    "refresh": "重新生成",
+    "type": "图表类型",
+    "granularity": "详细程度",
+    "granularityLabels": {
+      "coarse": "粗略",
+      "medium": "中等",
+      "fine": "详细"
+    },
+    "types": {
+      "auto": "智能适配",
+      "flowchart": "流程图",
+      "mindmap": "思维导图",
+      "sequenceDiagram": "时序图",
+      "classDiagram": "类图",
+      "stateDiagram": "状态图",
+      "erDiagram": "实体关系图",
+      "gantt": "甘特图",
+      "pie": "饼图",
+      "quadrantChart": "象限图",
+      "timeline": "时间线",
+      "sankey": "桑基图",
+      "gitGraph": "Git 图",
+      "journey": "用户旅程图"
+    }
+  },
   "settings": {
     "title": "设置",
     "general": {
@@ -543,6 +576,7 @@
         "auth": "权限与加密",
         "general": "全局底层 (DB/布局)",
         "evaluation": "RAG 评估系统",
+        "graph": "知识图谱系统",
         "default": "其他/未分类"
       },
       "evaluation": {
