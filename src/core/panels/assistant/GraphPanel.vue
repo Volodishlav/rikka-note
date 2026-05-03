@@ -59,6 +59,7 @@
       @mousemove="onPan"
       @mouseup="endPan"
       @mouseleave="endPan"
+      @wheel.prevent="handleWheel"
     >
       <!-- 无笔记打开 -->
       <div v-if="!articleStore.activeFilePath" class="flex flex-col items-center gap-4 text-muted-foreground opacity-60">
@@ -172,6 +173,12 @@ const onPan = (e: MouseEvent) => {
 
 const endPan = () => {
   isPanning.value = false
+}
+
+const handleWheel = (e: WheelEvent) => {
+  if (!graphStore.currentGraph) return
+  const delta = e.deltaY > 0 ? -0.1 : 0.1
+  zoom.value = Math.min(Math.max(zoom.value + delta, 0.3), 3)
 }
 
 // ============================================
