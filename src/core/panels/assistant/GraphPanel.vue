@@ -187,30 +187,49 @@ const handleWheel = (e: WheelEvent) => {
 const setupNodeClickHandlers = () => {
   if (!graphContainer.value) return
   
-  // 查找所有包含 #行号 的文本元素
   const svg = graphContainer.value.querySelector('svg')
   if (!svg) return
 
-  const labels = svg.querySelectorAll('.label, text, tspan')
+  // 查找所有可能的文本节点
+  const labels = svg.querySelectorAll('.label, text, tspan, .actor')
+  
   labels.forEach(label => {
     const text = label.textContent || ''
-    const match = text.match(/#(\d+)/)
+    
+    // 匹配我们的专属格式：【L数字】
+    const match = text.match(/【L(\d+)】/)
+    
     if (match) {
       const line = parseInt(match[1])
       
-      // 找到最近的祖先节点元素 (.node)
+      // 视觉优化：将 【Lxx】 从图表中移除，让用户看不到这个标记
+      if (label.childNodes.length > 0) {
+          // 如果是复杂的 text/tspan 结构，安全地替换文本节点内容
+          label.childNodes.forEach(child => {
+              if (child.nodeType === Node.TEXT_NODE && child.textContent) {
+                  child.textContent = child.textContent.replace(/【L\d+】/, '')
+              }
+          })
+      } else {
+          label.textContent = text.replace(/【L\d+】/, '')
+      }
+      
+      // 找到最近的祖先交互节点元素 (.node, .actor 等)
       let nodeEl = label.parentElement
-      while (nodeEl && !nodeEl.classList.contains('node') && nodeEl !== svg) {
+      while (nodeEl && !nodeEl.classList.contains('node') && !nodeEl.classList.contains('actor') && nodeEl !== svg) {
         nodeEl = nodeEl.parentElement
       }
 
-      if (nodeEl && nodeEl.classList.contains('node')) {
+      // 绑定点击事件
+      if (nodeEl && (nodeEl.classList.contains('node') || nodeEl.classList.contains('actor'))) {
         nodeEl.style.cursor = 'pointer'
+        // 添加悬浮反馈
+        nodeEl.addEventListener('mouseenter', () => (nodeEl as HTMLElement).style.opacity = '0.8')
+        nodeEl.addEventListener('mouseleave', () => (nodeEl as HTMLElement).style.opacity = '1')
+
         nodeEl.onclick = (e) => {
           e.stopPropagation()
-          logger.graph.info(`[GraphPanel] 点击节点，尝试跳转到行: ${line}`)
-          // TODO: 触发编辑器跳转逻辑
-          // 目前通过 articleStore 广播行号信息，需要 MdEditor 监听
+          logger.graph.info(`[GraphPanel] 点击节点，精确跳转到行: ${line}`)
           articleStore.setMatchPosition(line) 
         }
       }

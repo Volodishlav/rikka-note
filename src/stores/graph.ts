@@ -49,7 +49,9 @@ export const useGraphStore = defineStore('graph', () => {
     isGenerating.value = true
     logger.graph.info(`[GraphStore] 开始为笔记生成图谱: ${path}`)
     try {
-      const typeDesc = selectedType.value === 'auto' ? '自主选择最合适的图表类型' : `强制使用 Mermaid 的 ${selectedType.value} 类型`
+      const typeDesc = selectedType.value === 'auto' 
+        ? '从以下 Mermaid 支持的类型中自主选择最合适的一种：flowchart, sequenceDiagram, mindmap, timeline, classDiagram, stateDiagram-v2, erDiagram, journey, gantt, pie, quadrantChart, requirementDiagram, gitGraph, block-beta' 
+        : `强制使用 Mermaid 的 ${selectedType.value} 类型`
       const granularityDesc = {
         coarse: '大纲级别，只保留核心概念和主线逻辑，节点数量控制在 5-8 个',
         medium: '标准级别，展示主要逻辑、关键步骤和重要关联，节点数量控制在 10-20 个',
@@ -63,39 +65,27 @@ export const useGraphStore = defineStore('graph', () => {
 1. **图表类型**：${typeDesc}。
 2. **详细程度**：${granularityDesc}。
 
-**关键指令（交互增强）：**
-- 请在生成的 Mermaid 节点文本中包含该内容在原笔记中对应的行号（如果能大致估算），格式为：[节点文本 #行号]。
-- 例如：\`A[生命周期 #15] --> B[销毁阶段 #80]\`。
-- 这非常重要，用户需要点击节点跳转到源码。
+**关键指令（行号映射，极其重要）：**
+- 请务必在每个节点/参与者的显示文本末尾，附加该内容在原笔记中对应的行号。
+- **格式严格为：\`【L行号】\`**（请严格使用中文全角方括号，绝对不要使用英文 []，以免破坏语法）。
+- 无论你选择哪种图表类型，行号标记都必须作为纯文本的一部分。
 
 **通用要求：**
 - 确保生成的代码语法标准，能够被最新版本的 Mermaid 渲染。
-- 只输出 Mermaid 代码块内容，不要包含任何解释性文字或 Markdown 代码块标记（如 \`\`\`mermaid）。
+- 只输出 Mermaid 代码块内容，不要包含解释性文字。
 
 **笔记内容：**
 ${content}
 `
       logger.graph.debug(`[GraphStore] 发送 AI 请求，Prompt 长度: ${prompt.length}`)
       const aiResponse = await fetchAi(prompt)
-      logger.graph.debug(`[GraphStore] AI 响应原始内容: ${aiResponse}`)
+      logger.graph.debug(`[GraphStore] AI 响应原始内容: \n${aiResponse}`)
       
-      let mermaidCode = aiResponse.trim().replace(/^```mermaid\n?/, '').replace(/\n?```$/, '')
+      // 只需要保留基础的 Markdown 代码块清理，兼容大模型可能多输出的 ```mermaid 标记
+      // 注意：加了 /i 忽略大小写，且兼容有些模型不写 mermaid 的情况
+      let mermaidCode = aiResponse.trim().replace(/^```(?:mermaid)?\s*\n?/i, '').replace(/\n?\s*```$/i, '')
 
       if (mermaidCode) {
-        // 强力修复：自动为所有 Mermaid 节点标签添加双引号，防止标点符号导致渲染失败
-        // 匹配模式：节点ID[文本] 或 节点ID(文本) 等
-        mermaidCode = mermaidCode.replace(/([\w-]+)(\[|\(|\{\{|\(\(|\>)(.*?)(\]|\)|\}\}\)\)|\s|;|$)/g, (match, id, open, content, close) => {
-          const lowerId = id.toLowerCase();
-          // 跳过关键字
-          if (['style', 'subgraph', 'end', 'click', 'callback', 'class'].includes(lowerId)) return match;
-          // 如果内容已经包含引号，不再重复添加
-          const trimmedContent = content.trim();
-          if (trimmedContent.startsWith('"') && trimmedContent.endsWith('"')) return match;
-          // 加上引号并保留原始形状括号
-          return `${id}${open}"${trimmedContent}"${close}`;
-        });
-
-        logger.graph.info(`[GraphStore] Mermaid 代码加固完成，长度: ${mermaidCode.length}`)
         const newGraph: Graph = {
           articlePath: path,
           content: mermaidCode,
