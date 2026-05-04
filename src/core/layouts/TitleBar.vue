@@ -346,7 +346,7 @@ onUnmounted(() => {
   padding: 0;
   margin: 0;
   border: none;
-  @apply inline-flex justify-center items-center w-[36px] h-[36px] bg-transparent text-muted-foreground cursor-pointer transition-colors duration-200; /* 按钮尺寸随标题栏高度调整 */
+  @apply inline-flex justify-center items-center w-[28px] h-[36px] bg-transparent text-muted-foreground cursor-pointer transition-colors duration-200; /* 按钮宽度进一步减小至28px，更加紧凑 */
 }
 .panel-btn:hover{
   @apply bg-secondary;
