@@ -23,6 +23,10 @@
     "clipboard-manager:allow-write-text",
     "clipboard-manager:allow-read-text",
     "process:default",
+    "dialog:default",
+    "dialog:allow-ask",
+    "dialog:allow-message",
+    "dialog:allow-confirm",
     "core:window:allow-unminimize"
   ]
 }

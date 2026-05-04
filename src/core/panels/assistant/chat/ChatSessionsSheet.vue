@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <Sheet :open="isOpen" @update:open="emit('update:open', $event)">
     <!-- 1. 删除手动添加的 aria-describedby -->
     <SheetContent side="right" class="w-[300px] sm:w-[400px] flex flex-col p-0">
@@ -34,6 +34,7 @@
                   class="flex-1 bg-transparent border-none outline-none text-sm font-medium focus:ring-0 p-0"
                   @blur="saveEditTitle(session.id)"
                   @keyup.enter="saveEditTitle(session.id)"
+                  @click.stop
                   ref="editInput"
               />
               <span v-else class="truncate text-sm font-medium">{{ session.title }}</span>
@@ -69,6 +70,26 @@
       </div>
     </SheetContent>
   </Sheet>
+
+  <!-- 删除确认对话框 -->
+  <Dialog :open="isDeleteDialogOpen" @update:open="isDeleteDialogOpen = $event">
+    <DialogContent class="sm:max-w-[425px]">
+      <DialogHeader>
+        <DialogTitle>{{ t('record.chat.sessions.deleteTitle') }}</DialogTitle>
+        <DialogDescription>
+          {{ t('record.chat.sessions.deleteConfirm') }}
+        </DialogDescription>
+      </DialogHeader>
+      <DialogFooter class="gap-2 sm:gap-0">
+        <Button variant="ghost" @click="isDeleteDialogOpen = false">
+          {{ t('common.cancel') }}
+        </Button>
+        <Button variant="destructive" @click="confirmDelete">
+          {{ t('common.confirm') }}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
@@ -83,7 +104,14 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet'
-import { ask } from '@tauri-apps/plugin-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { useI18n } from '@/composables/useI18n'
 
 defineProps<{
@@ -101,19 +129,30 @@ const editingId = ref<number | null>(null)
 const editTitleValue = ref('')
 const editInput = ref<HTMLInputElement[] | null>(null)
 
+// 删除相关状态
+const isDeleteDialogOpen = ref(false)
+const sessionIdToDelete = ref<number | null>(null)
+
 const startEditTitle = async (session: { id: number, title: string }) => {
+  console.log('startEditTitle called for session:', session)
   editingId.value = session.id
   editTitleValue.value = session.title
   await nextTick()
+  // Vue 3 中 ref 在 v-for 中会变成数组，且因为使用了 v-if，该数组应该只有一个匹配当前 editingId 的元素
   if (editInput.value && editInput.value.length > 0) {
+    console.log('Focusing input...')
     editInput.value[0].focus()
+    editInput.value[0].select() // 选中文字方便重命名
+  } else {
+    console.warn('editInput ref not found or empty')
   }
 }
 
 const saveEditTitle = async (id: number) => {
+  console.log('saveEditTitle called for id:', id, 'newTitle:', editTitleValue.value)
   if (editingId.value === id) {
     const newTitle = editTitleValue.value.trim()
-    if (newTitle) {
+    if (newTitle && newTitle !== chatStore.sessions.find(s => s.id === id)?.title) {
       await chatStore.editSessionTitle(id, newTitle)
     }
     editingId.value = null
@@ -138,14 +177,22 @@ const selectSession = async (id: number) => {
   emit('update:open', false)
 }
 
-const deleteSession = async (id: number) => {
-  const confirmed = await ask(t('record.chat.sessions.deleteConfirm'), {
-    title: t('record.chat.sessions.deleteTitle'),
-    kind: 'warning'
-  })
+const deleteSession = (id: number) => {
+  console.log('Preparing to delete session id:', id)
+  sessionIdToDelete.value = id
+  isDeleteDialogOpen.value = true
+}
 
-  if (confirmed) {
-    await chatStore.removeSession(id)
+const confirmDelete = async () => {
+  if (sessionIdToDelete.value !== null) {
+    console.log('Confirming delete for id:', sessionIdToDelete.value)
+    try {
+      await chatStore.removeSession(sessionIdToDelete.value)
+      isDeleteDialogOpen.value = false
+      sessionIdToDelete.value = null
+    } catch (error) {
+      console.error('Failed to delete session:', error)
+    }
   }
 }
 </script>

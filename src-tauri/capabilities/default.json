@@ -116,6 +116,9 @@
     },
     "os:default",
     "dialog:default",
+    "dialog:allow-ask",
+    "dialog:allow-message",
+    "dialog:allow-confirm",
     "http:default",
     {
       "identifier": "opener:allow-open-path",
