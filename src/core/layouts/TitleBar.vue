@@ -4,7 +4,7 @@ import {onMounted, onUnmounted, ref, computed} from 'vue';
 import ArtTitle from "@/shared/components/ArtTitle.vue";
 import { useLayoutStore } from '@/stores/layout';
 import EditorTabs from '@/core/panels/editor/EditorTabs.vue';
-import {ScanText, Share2} from "lucide-vue-next";
+import {ScanText, Network} from "lucide-vue-next";
 import { logger } from '@/utils/logger';
 
 // 初始化布局状态
@@ -147,7 +147,7 @@ onUnmounted(() => {
           class="panel-btn"
           :class="{ 'active-btn': layoutStore.isRightSidebarVisible && layoutStore.rightPanelType === 'graph' }"
       >
-        <Share2 :size="20" />
+        <Network :size="20" />
       </button>
       <!-- 搜索按钮 -->
       <button
