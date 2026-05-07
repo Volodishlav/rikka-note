@@ -417,9 +417,4 @@ Rikka Note 的实现建立在众多优秀开源项目的基础之上：
 
 ---
 
-<div align="center">
 
-**Rikka Note** — 你的笔记，你的 AI，你的隐私。
-
-</div>
-```
