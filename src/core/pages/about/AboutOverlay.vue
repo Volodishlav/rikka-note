@@ -26,7 +26,7 @@
       <div class="relative z-10 flex flex-col items-center -mt-24 transition-all">
         <!-- 应用图标 -->
         <img
-            src="../../../assets/icon.png"
+            src="../../../assets/app-icon.png"
             class="w-20 h-20 mb-4 drop-shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700"
             alt="应用图标"
         />

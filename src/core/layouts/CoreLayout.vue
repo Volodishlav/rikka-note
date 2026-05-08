@@ -107,7 +107,7 @@ const handleSelectionDone = (bytes: number[]) => {
               <div class="flex flex-col items-center relative z-10">
                 <!-- 应用图标 -->
                 <img
-                    src="../../assets/icon.png"
+                    src="../../assets/app-icon.png"
                     class="w-24 h-24 mb-2 drop-shadow-lg"
                     alt="应用图标"
                 />

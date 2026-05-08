@@ -115,7 +115,7 @@ onUnmounted(() => {
       <!-- 应用信息区域 -->
       <div class="app-info" data-tauri-drag-region>
         <!-- 应用图标 -->
-        <img src="@/assets/icon.png" alt="应用图标" class="app-icon" data-tauri-drag-region />
+        <img src="@/assets/app-icon.png" alt="应用图标" class="app-icon" data-tauri-drag-region />
         <!-- 应用名称 -->
 <!--        <span class="app-name">rikka-note</span>-->
         <div class="art-title-container">

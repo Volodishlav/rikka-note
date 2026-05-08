@@ -42,7 +42,7 @@ logger.editor.debug(`[EditorGroupView] Initialized component`);
   >
     <div v-if="!activeTab" class="flex-1 flex items-center justify-center animate-in fade-in" :class="showEditorBackground ? 'bg-transparent' : 'bg-muted/40'">
         <div class="flex flex-col items-center space-y-2">
-            <img src="@/assets/icon.png" class="w-16 h-16 mb-2" alt="Logo" />
+            <img src="@/assets/app-icon.png" class="w-20 h-20 mb-2" alt="Logo" />
             <ArtTitle class="w-full max-w-md scale-90" :showBackground="showEditorBackground ? 'graphic' : null"/>
         </div>
     </div>
