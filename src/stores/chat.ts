@@ -159,6 +159,11 @@ export const useChatStore = defineStore('chat', () => {
             }
         }
 
+        if (!sessionId) {
+            logger.assistant.error("Null sessionId")
+            return null
+        }
+
         const res = await insertChat({
             ...chat,
             sessionId: sessionId
