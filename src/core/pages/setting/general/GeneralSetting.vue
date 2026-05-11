@@ -52,7 +52,44 @@
         </Button>
       </div>
     </div>
+
+    <!-- 更新设置 -->
+    <div class="space-y-4">
+      <h3 class="text-lg font-medium">{{ t('settings.general.update.title') }}</h3>
+      <p class="text-sm text-muted-foreground">{{ t('settings.general.update.description') }}</p>
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center gap-4">
+          <Button
+            @click="checkForUpdates(true)"
+            :disabled="isChecking || isDownloading"
+            class="flex items-center gap-2"
+          >
+            <RefreshCw v-if="isChecking" class="h-4 w-4 animate-spin" />
+            <Download v-else-if="pendingUpdate" class="h-4 w-4" />
+            <Search v-else class="h-4 w-4" />
+            {{ isChecking ? t('settings.general.update.checking') : t('settings.general.update.check') }}
+          </Button>
+          <span class="text-sm text-muted-foreground">
+            {{ t('settings.general.update.currentVersion', { version: currentVersion }) }}
+          </span>
+        </div>
+
+        <div v-if="pendingUpdate" class="p-4 rounded-lg border bg-card space-y-3">
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="font-medium">{{ t('settings.general.update.found', { version: pendingUpdate.version }) }}</h4>
+              <p class="text-xs text-muted-foreground mt-1">{{ pendingUpdate.body }}</p>
+            </div>
+            <Button size="sm" @click="installUpdate" :disabled="isDownloading">
+              <RefreshCw v-if="isDownloading" class="h-3 w-3 animate-spin mr-2" />
+              {{ t('settings.general.update.installNow') }}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
 
 </template>
 
@@ -63,7 +100,8 @@ import { useTheme, ThemeKey } from '@/composables/useTheme'
 import { useSettingStore } from '@/stores/setting'
 import { storeToRefs } from 'pinia'
 import { Button } from '@/components/ui/button'
-import { Sun, Moon, Monitor } from 'lucide-vue-next'
+import { Sun, Moon, Monitor, RefreshCw, Download, Search } from 'lucide-vue-next'
+import { useUpdater } from '@/composables/useUpdater'
 
 
 
@@ -73,6 +111,14 @@ const { theme, setTheme } = useTheme()
 const settingStore = useSettingStore()
 const { toastPosition } = storeToRefs(settingStore)
 const { setToastPosition } = settingStore
+const { 
+  isChecking, 
+  isDownloading, 
+  pendingUpdate, 
+  currentVersion, 
+  checkForUpdates, 
+  installUpdate 
+} = useUpdater()
 
 const currentLocale = computed(() => locale.value)
 

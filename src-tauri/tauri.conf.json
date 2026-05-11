@@ -63,7 +63,18 @@
       "wix": {
         "language": ["zh-CN"]
       }
+    },
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERCNDc1RTVGQjM0NDA1NTEKUldSUkJVU3pYMTVIMnhpQitndkVpMXNEUWpidi9xN1JkMEc2RUUyOTB6a0VSdEVtUjB0S0NxLzUK",
+      "endpoints": [
+        "https://github.com/remnant-song/rikka-note/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   }
-
 }

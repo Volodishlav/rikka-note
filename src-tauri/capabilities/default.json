@@ -120,6 +120,10 @@
     "dialog:allow-message",
     "dialog:allow-confirm",
     "http:default",
+    "updater:default",
+    "updater:allow-check",
+    "updater:allow-download-and-install",
+    "process:allow-restart",
     {
       "identifier": "opener:allow-open-path",
       "allow": [

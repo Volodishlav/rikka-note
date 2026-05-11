@@ -272,6 +272,18 @@
         "topRight": "Top Right",
         "bottomLeft": "Bottom Left",
         "bottomRight": "Bottom Right"
+      },
+      "update": {
+        "title": "Check for Updates",
+        "description": "Manually check for a new version of the application.",
+        "check": "Check for Updates",
+        "checking": "Checking...",
+        "found": "New version found: {version}",
+        "latest": "You are on the latest version",
+        "error": "Failed to check for updates",
+        "currentVersion": "Current Version: {version}",
+        "installNow": "Install & Relaunch",
+        "downloading": "Downloading... {progress}%"
       }
     },
     "editor": {
