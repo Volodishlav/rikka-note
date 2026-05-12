@@ -40,27 +40,26 @@ fn copy_sherpa_dlls() {
 
 #[cfg(target_os = "windows")]
 fn find_dll(name: &str) -> Option<PathBuf> {
-    // 搜索路径优先级：
+    println!("cargo:warning=Searching for DLL: {}", name);
     
-    // 1. 基于 OUT_DIR 逆向推导 (最可靠，支持自定义 target 路径)
-    // OUT_DIR 通常在 .../target/release/build/rikka-note-xxxx/out
+    // 1. 优先检查项目中的 bin/win64 目录 (CI 下载的 DLL 会在这里)
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+    let bin_dir = Path::new(&manifest_dir).join("bin").join("win64");
+    let local_path = bin_dir.join(name);
+    if local_path.exists() {
+        println!("cargo:warning=Found DLL in local bin directory: {:?}", local_path);
+        return Some(local_path);
+    }
+
+    // 2. 检查输出目录 (OUT_DIR) 的同级 release 目录 (本地编译产物)
     if let Ok(out_dir) = std::env::var("OUT_DIR") {
         let out_path = Path::new(&out_dir);
         let mut current = out_path;
         while let Some(parent) = current.parent() {
-            // 查找名为 release 或 debug 的父目录
             if parent.ends_with("release") || parent.ends_with("debug") {
                 let path = parent.join(name);
                 if path.exists() {
                     return Some(path);
-                }
-                // 某些情况下可能在 build 目录下
-                let build_path = parent.join("build");
-                if build_path.exists() {
-                     // 递归查找 build 目录 (限制深度)
-                     if let Some(p) = find_in_dir(&build_path, name, 3) {
-                         return Some(p);
-                     }
                 }
                 break;
             }
@@ -68,76 +67,7 @@ fn find_dll(name: &str) -> Option<PathBuf> {
         }
     }
 
-    // 2. 尝试环境变量 CARGO_TARGET_DIR
-    if let Ok(target_dir) = std::env::var("CARGO_TARGET_DIR") {
-        let base = Path::new(&target_dir);
-        for mode in &["release", "debug"] {
-            let path = base.join(mode).join(name);
-            if path.exists() {
-                return Some(path);
-            }
-        }
-    }
-
-    // 3. 尝试在项目根目录的 target 下查找 (默认路径)
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
-    let project_root = Path::new(&manifest_dir);
-    let target_dirs = vec![
-        project_root.join("target").join("release"),
-        project_root.join("target").join("debug"),
-        project_root.join("..").join("target").join("release"),
-        project_root.join("..").join("target").join("debug"),
-    ];
-    for dir in target_dirs {
-        let path = dir.join(name);
-        if path.exists() {
-            return Some(path);
-        }
-    }
-
-    // 4. 尝试在 Cargo Registry 中查找 (GitHub Actions 兜底)
-    if let Ok(home) = std::env::var("USERPROFILE") {
-        let registry_src = Path::new(&home).join(".cargo").join("registry").join("src");
-        if registry_src.exists() {
-            if let Ok(entries) = fs::read_dir(&registry_src) {
-                for entry in entries.flatten() {
-                    let path = entry.path();
-                    if path.is_dir() {
-                        if let Ok(sub_entries) = fs::read_dir(&path) {
-                            for sub_entry in sub_entries.flatten() {
-                                let sub_path = sub_entry.path();
-                                if sub_path.is_dir() && sub_path.to_string_lossy().contains("sherpa-onnx-sys") {
-                                    let dll_path = sub_path.join("sherpa-onnx").join("lib").join("x86_64-pc-windows-msvc").join(name);
-                                    if dll_path.exists() {
-                                        return Some(dll_path);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    None
-}
-
-#[cfg(target_os = "windows")]
-fn find_in_dir(dir: &Path, name: &str, depth: u8) -> Option<PathBuf> {
-    if depth == 0 { return None; }
-    if let Ok(entries) = fs::read_dir(dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_file() && path.file_name().and_then(|s| s.to_str()) == Some(name) {
-                return Some(path);
-            } else if path.is_dir() {
-                if let Some(p) = find_in_dir(&path, name, depth - 1) {
-                    return Some(p);
-                }
-            }
-        }
-    }
+    println!("cargo:warning=DLL {} not found in common locations.", name);
     None
 }
 

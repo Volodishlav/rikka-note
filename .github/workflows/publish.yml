@@ -33,6 +33,27 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
+      - name: Prepare ASR DLL
+        shell: pwsh
+        run: |
+          $version = "1.13.1"
+          $filename = "sherpa-onnx-$version-win-x64-shared-MD-Release"
+          $url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/v$version/$filename.tar.bz2"
+          
+          Write-Host "Downloading $url..."
+          Invoke-WebRequest -Uri $url -OutFile "sherpa.tar.bz2"
+          
+          Write-Host "Extracting..."
+          # Windows Runner 自带 tar (libarchive)，支持 bz2
+          tar -xf sherpa.tar.bz2
+          
+          if (-not (Test-Path "src-tauri/bin/win64")) {
+              mkdir -p src-tauri/bin/win64
+          }
+          
+          Copy-Item "$filename/bin/*.dll" -Destination "src-tauri/bin/win64/" -Force
+          Write-Host "DLL preparation complete."
+
       - name: Build and release
         uses: tauri-apps/tauri-action@v0.5
         env:
