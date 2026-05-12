@@ -147,8 +147,12 @@ watch(
       articleStore.updateFileBuffer(props.path, newContent);
       logger.editor.debug(`监听本地 text 变化，更新缓冲区并触发保存`);
       if (saveTimer) clearTimeout(saveTimer);
-      saveTimer = setTimeout(() => {
-        articleStore.saveArticle(props.path, newContent);
+      saveTimer = setTimeout(async () => {
+        try {
+          await articleStore.saveArticle(props.path, newContent);
+        } catch (err) {
+          logger.editor.error('Auto-save failed:', err);
+        }
       }, 300);
     }
   }
