@@ -40,56 +40,9 @@ src-tauri/.cargo/
 .env.development.local
 .env.test.local
 .env.production.local
-.gitnexus
 /AGENTS.md
 /public/app-icon.png
 /CLAUDE.md
-/.claude/skills/gitnexus/gitnexus-cli/SKILL.md
-/.claude/skills/gitnexus/gitnexus-debugging/SKILL.md
-/.claude/skills/gitnexus/gitnexus-exploring/SKILL.md
-/.claude/skills/gitnexus/gitnexus-guide/SKILL.md
-/.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md
-/.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md
-/doc/rag-test-cases.md
-/doc/RAG实战（一）处理文本Chunk的代码.md
-/doc/RAG实战（三A）综合方案处理文本Chunk的代码.md
-/doc/RAG实战（三）基于语义Embedding的分割文本Chunk.md
-/doc/RAG实战（二）基于规则处理文本Chunk.md
-/doc/RAG实战（五）处理多模态Chunk的代码.md
-/doc/rag改进walkthrough.md
-/doc/RAG评估框架技术报告.md
-/doc/Rikka_note_rag_analysis_report.md
-/doc/日志系统.md
-/doc/PIKE-RAG 专业知识和原理增强生成.md
-/doc/RAG实战 (七) -query改写策略.md
-/doc/RAG实战 (八) -Query+联网搜索策略.md
-/doc/RAG实战（六）文档多模态-表格识别.md
-/doc/rag改进个人总结.md
-/doc/walkthrough.md
-/doc/walkthrough_split_fix.md
-/doc/什么是混合搜索，何时应该使用它？.md
-/doc/documents/任务书.md
-/doc/documents/兰州交通大学毕业设计（论文）开题报告.md
-/doc/大模型之RAG的4种查询优化思路.md
-/doc/3.2 评价指标.md
-/doc/2026-04-24.md
-/doc/analysis_results.md
-/doc/加密/development_report.md
-/doc/加密/development_report_2.md
-/files.txt
-/doc/Gemma 4 全系列本地部署指南：Ollama lama.cpp MLX vLLM，附 TurboQuant 显存优化.md
-/doc/Gemma 4 部署保姆级教程：从零到跑通的完整指南（2026年4月）.md
-/doc/documents/project_intro_material.md
-/doc/documents/RAG 评估体系 - 全网最全解析.md
-/doc/RAG系统性能评估实验报告.md
-/doc/RAG评估框架升级优化工作报告.md
-/doc/RIKKA_NOTE_REQUIREMENTS.md
-/doc/documents/speech_recognition_report.md
-/doc/加密/加密功能初版development_report.md
-/doc/documents/工作总结.md
-/doc/工作总结.md
-/doc/documents/工作总结_02_引擎自动化部署.md
-/doc/工作总结_02_引擎自动化部署.md
-/doc/工作总结_03_Gemma4本地化部署技术汇报.md
-/doc/加密/现状总结报告.md
-/key/
+/doc/
+/key/rikka-key.key
+/src-tauri/bin/win64/sherpa-onnx-c-api.dll

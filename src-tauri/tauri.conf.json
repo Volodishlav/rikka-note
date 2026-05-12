@@ -64,7 +64,10 @@
         "language": ["zh-CN"]
       }
     },
-    "createUpdaterArtifacts": true
+    "createUpdaterArtifacts": true,
+    "resources": {
+      "bin/win64/*.dll": "./"
+    }
   },
   "plugins": {
     "updater": {
