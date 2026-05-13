@@ -28,11 +28,18 @@ fn copy_sherpa_dlls() {
     let dest_path = dest_dir.join(dll_name);
 
     // 如果 DLL 已经存在，可以跳过（或者强制更新）
-    // 这里我们选择总是尝试查找并更新，以防版本变化
     if let Some(src_path) = find_dll(dll_name) {
         println!("cargo:warning=Found {} at {:?}", dll_name, src_path);
-        fs::copy(&src_path, &dest_path).expect("复制 DLL 失败");
-        println!("cargo:warning=Successfully copied DLL to {:?}", dest_path);
+        if src_path != dest_path {
+            match fs::copy(&src_path, &dest_path) {
+                Ok(_) => println!("cargo:warning=Successfully copied DLL to {:?}", dest_path),
+                Err(e) => {
+                    // 如果文件被占用（Os Error 32），在 CI 环境下通常不影响打包，因为资源已经存在于 bin/win64
+                    println!("cargo:warning=Notice: Could not copy DLL to target directory (it might be in use): {}", e);
+                    println!("cargo:warning=This is expected on Windows during concurrent builds and usually doesn't affect bundling.");
+                }
+            }
+        }
     } else {
         println!("cargo:warning=Warning: Could not find {}. This might cause runtime errors in the bundled app.", dll_name);
     }
