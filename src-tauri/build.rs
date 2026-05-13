@@ -27,24 +27,31 @@ fn copy_sherpa_dlls() {
         fs::create_dir_all(&dest_dir).expect("无法创建 bin/win64 目录");
     }
 
-    let dll_name = "sherpa-onnx-c-api.dll";
-    let dest_path = dest_dir.join(dll_name);
+    let libs = [
+        "sherpa-onnx-c-api.dll",
+        "onnxruntime.dll",
+        "onnxruntime_providers_shared.dll",
+        "sherpa-onnx-cxx-api.dll"
+    ];
+    
+    for dll_name in libs {
+        let dest_path = dest_dir.join(dll_name);
 
-    // 如果 DLL 已经存在，可以跳过（或者强制更新）
-    if let Some(src_path) = find_dll(dll_name) {
-        println!("cargo:warning=Found {} at {:?}", dll_name, src_path);
-        if src_path != dest_path {
-            match fs::copy(&src_path, &dest_path) {
-                Ok(_) => println!("cargo:warning=Successfully copied DLL to {:?}", dest_path),
-                Err(e) => {
-                    // 如果文件被占用（Os Error 32），在 CI 环境下通常不影响打包，因为资源已经存在于 bin/win64
-                    println!("cargo:warning=Notice: Could not copy DLL to target directory (it might be in use): {}", e);
-                    println!("cargo:warning=This is expected on Windows during concurrent builds and usually doesn't affect bundling.");
+        // 如果 DLL 已经存在，可以跳过（或者强制更新）
+        if let Some(src_path) = find_dll(dll_name) {
+            println!("cargo:warning=Found {} at {:?}", dll_name, src_path);
+            if src_path != dest_path {
+                match fs::copy(&src_path, &dest_path) {
+                    Ok(_) => println!("cargo:warning=Successfully copied {} to {:?}", dll_name, dest_path),
+                    Err(e) => {
+                        // 如果文件被占用（Os Error 32），在 CI 环境下通常不影响打包，因为资源已经存在于 bin/win64
+                        println!("cargo:warning=Notice: Could not copy {} to target directory: {}", dll_name, e);
+                    }
                 }
             }
+        } else {
+            println!("cargo:warning=Warning: Could not find {}. This might cause runtime errors.", dll_name);
         }
-    } else {
-        println!("cargo:warning=Warning: Could not find {}. This might cause runtime errors in the bundled app.", dll_name);
     }
 }
 
