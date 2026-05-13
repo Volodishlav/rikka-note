@@ -19,6 +19,9 @@ fn copy_sherpa_dlls() {
     let src_tauri = Path::new(&manifest_dir);
     let dest_dir = src_tauri.join("bin").join("win64");
 
+    // 关键修复：告诉编译器去 bin/win64 寻找 .lib 文件以进行链接
+    println!("cargo:rustc-link-search=native={}", dest_dir.display());
+
     // 确保目标目录存在
     if !dest_dir.exists() {
         fs::create_dir_all(&dest_dir).expect("无法创建 bin/win64 目录");
