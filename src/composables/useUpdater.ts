@@ -3,13 +3,13 @@ import { getVersion } from '@tauri-apps/api/app'
 import { relaunch } from '@tauri-apps/plugin-process'
 import { logger } from '@/utils/logger'
 import { useToast } from '@/components/ui/toast/use-toast'
-import { ref, onMounted } from 'vue'
+import { ref, shallowRef, onMounted } from 'vue'
 
 export function useUpdater() {
     const isChecking = ref(false)
     const isDownloading = ref(false)
     const downloadProgress = ref(0)
-    const pendingUpdate = ref<Update | null>(null)
+    const pendingUpdate = shallowRef<Update | null>(null)
     const currentVersion = ref('')
     const { toast } = useToast()
 
