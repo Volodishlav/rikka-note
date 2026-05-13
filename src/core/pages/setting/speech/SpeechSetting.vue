@@ -89,8 +89,8 @@
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="original">HuggingFace (原始地址)</SelectItem>
-                <SelectItem value="mirror">HF-Mirror (国内镜像)</SelectItem>
+                <SelectItem value="original">{{ t('settings.speech.sourceOriginal') }}</SelectItem>
+                <SelectItem value="mirror">{{ t('settings.speech.sourceMirror') }}</SelectItem>
               </SelectContent>
             </Select>
           </div>

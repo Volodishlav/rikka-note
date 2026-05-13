@@ -31,12 +31,12 @@
             alt="应用图标"
         />
         <!-- 艺术标题 -->
-        <ArtTitle class="w-full max-w-lg mb-8" showBackground="graphic" :animate="true"></ArtTitle>
+        <ArtTitle :text="appName" class="w-full max-w-lg mb-8" showBackground="graphic" :animate="true"></ArtTitle>
 
         <!-- 开发者信息 -->
         <div class="flex flex-col items-center gap-2 text-muted-foreground animate-in fade-in duration-1000 delay-300">
           <div class="flex items-center gap-2">
-            <span class="text-sm font-bold text-black dark:text-white">库地址：</span>
+            <span class="text-sm font-bold text-black dark:text-white">{{ t('settings.about.repoUrl') }}</span>
             <a href="https://github.com/remnant-song/rikka-note"
                target="_blank"
                class="text-sm text-primary hover:underline hover:text-primary/80 transition-colors">
@@ -44,8 +44,8 @@
             </a>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-sm font-bold text-black dark:text-white">版本号：</span>
-            <span class="text-sm text-primary">v0.1.0</span>
+            <span class="text-sm font-bold text-black dark:text-white">{{ t('settings.about.version') }}</span>
+            <span class="text-sm text-primary">v{{ appVersion }}</span>
           </div>
         </div>
       </div>
@@ -61,7 +61,7 @@
       >
         <div v-if="showEscTip"
              class="absolute bottom-16 left-1/2 -translate-x-1/2 px-6 py-2.5 rounded-full bg-foreground/5 backdrop-blur-xl border border-foreground/10 text-sm text-foreground/40 shadow-sm pointer-events-none z-20">
-          按 ESC 退出关于页面
+          {{ t('settings.about.escTip') }}
         </div>
       </Transition>
     </div>
@@ -69,14 +69,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onUnmounted, watch } from 'vue'
+import { ref, onUnmounted, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { getName, getVersion } from '@tauri-apps/api/app'
 import Start from '@/shared/pages/start.vue'
 import ArtTitle from '@/shared/components/ArtTitle.vue'
 import { useLayoutStore } from '@/stores/layout'
+import {logger} from "@/utils/logger.ts";
 
+const { t } = useI18n()
 const layoutStore = useLayoutStore()
 const showEscTip = ref(false)
 const aboutRef = ref<HTMLElement | null>(null)
+
+const appName = ref('rikka-note')
+const appVersion = ref('1.0.0')
 
 const close = () => {
   layoutStore.toggleAboutPage()
@@ -87,6 +94,17 @@ const handleKeyDown = (e: KeyboardEvent) => {
     close()
   }
 }
+
+onMounted(async () => {
+  try {
+    appName.value = await getName()
+    appVersion.value = await getVersion()
+    logger.general.debug('getName:'+appName.value)
+    logger.general.debug('getVersion:'+appVersion.value)
+  } catch (err) {
+    logger.general.error('Failed to get app info:', err)
+  }
+})
 
 watch(() => layoutStore.isAboutVisible, (visible) => {
   if (visible) {

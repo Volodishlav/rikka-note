@@ -712,10 +712,15 @@
       "stopRecording": "停止并识别",
       "noModel": "请先在设置 > 语音识别中下载模型",
       "voiceInput": "语音输入",
-      "emptyResult": "未识别到有效的语音"
+      "emptyResult": "未识别到有效的语音",
+      "sourceOriginal": "HuggingFace (原始地址)",
+      "sourceMirror": "HF-Mirror (国内镜像)"
     },
     "about": {
-      "title": "关于"
+      "title": "关于",
+      "repoUrl": "库地址：",
+      "version": "版本号：",
+      "escTip": "按 ESC 退出关于页面"
     },
     "sync": {
       "title": "同步",
