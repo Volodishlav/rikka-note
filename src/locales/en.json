@@ -680,8 +680,40 @@
         "orangeShadow": "Orange Shadow"
       }
     },
+    "speech": {
+      "title": "Speech Recognition",
+      "description": "Configure offline speech-to-text functionality. Ready to use after downloading models, no internet required.",
+      "asrModel": "Speech Recognition Model (ASR)",
+      "presetModel": "Preset Model",
+      "selectModel": "Please select a model",
+      "downloadSource": "Download Source",
+      "vadModel": "Voice Activity Detection (VAD)",
+      "vadModelDesc": "Automatically remove silence from recordings to speed up recognition. Highly recommended.",
+      "downloadModel": "One-click Download",
+      "modelReady": "Ready",
+      "modelNotReady": "Not Downloaded",
+      "asrModelReady": "ASR Model Ready",
+      "asrModelNotReady": "ASR Model Not Downloaded",
+      "vadModelReady": "VAD Model Ready",
+      "vadModelNotReady": "VAD Model Not Downloaded",
+      "downloadingAsr": "Downloading ASR Model",
+      "downloadingVad": "Downloading VAD Model",
+      "recheck": "Recheck",
+      "downloadSuccess": "Model downloaded successfully",
+      "recording": "Recording...",
+      "recognizing": "Recognizing...",
+      "stopRecording": "Stop and Recognize",
+      "noModel": "Please download models in Settings > Speech Recognition first",
+      "voiceInput": "Voice Input",
+      "emptyResult": "No valid speech detected",
+      "sourceOriginal": "HuggingFace (Original)",
+      "sourceMirror": "HF-Mirror (Mirror)"
+    },
     "about": {
-      "title": "About"
+      "title": "About",
+      "repoUrl": "Repository:",
+      "version": "Version:",
+      "escTip": "Press ESC to exit"
     },
     "sync": {
       "title": "Sync",
