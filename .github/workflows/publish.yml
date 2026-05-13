@@ -51,20 +51,18 @@ jobs:
               mkdir -p src-tauri/bin/win64
           }
           
-          # 递归查找 DLL 和 LIB 以防文件夹结构变动
-          $dll = Get-ChildItem -Path "sherpa-onnx-*" -Filter "sherpa-onnx-c-api.dll" -Recurse | Select-Object -First 1
-          $lib = Get-ChildItem -Path "sherpa-onnx-*" -Filter "sherpa-onnx-c-api.lib" -Recurse | Select-Object -First 1
-          
-          if ($dll -and $lib) {
-              Copy-Item $dll.FullName -Destination "src-tauri/bin/win64/" -Force
-              Copy-Item $lib.FullName -Destination "src-tauri/bin/win64/" -Force
-              Write-Host "Successfully prepared DLL: $($dll.FullName)"
-              Write-Host "Successfully prepared LIB: $($lib.FullName)"
+          # 扫荡式抓取：获取解压目录下的所有 DLL 和 LIB
+          $extracted_dir = Get-ChildItem -Path "sherpa-onnx-*" -Directory | Select-Object -First 1
+          if ($extracted_dir) {
+              Write-Host "Found extracted directory: $($extracted_dir.FullName)"
+              Get-ChildItem -Path $extracted_dir.FullName -Filter "*.dll" -Recurse | Copy-Item -Destination "src-tauri/bin/win64/" -Force
+              Get-ChildItem -Path $extracted_dir.FullName -Filter "*.lib" -Recurse | Copy-Item -Destination "src-tauri/bin/win64/" -Force
+              Write-Host "All DLLs and LIBs have been copied to bin/win64."
           } else {
-              Write-Error "Could not find DLL or LIB in extracted files!"
+              Write-Error "Could not find extracted directory!"
               exit 1
           }
-          Write-Host "DLL and LIB preparation complete."
+          Write-Host "ASR Infrastructure preparation complete."
 
       - name: Build and release
         uses: tauri-apps/tauri-action@v0.5
