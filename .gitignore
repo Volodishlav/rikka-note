@@ -45,4 +45,4 @@ src-tauri/.cargo/
 /CLAUDE.md
 /doc/
 /key/rikka-key.key
-/src-tauri/bin/win64/sherpa-onnx-c-api.dll
+/src-tauri/bin/win64/
