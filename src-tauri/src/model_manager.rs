@@ -221,7 +221,7 @@ pub async fn download_and_extract_llama_cpp(
         let file_path_clone = file_path.clone();
         let engine_dir_clone = engine_dir.clone();
         
-        let extracted = tokio::task::spawn_blocking(move || -> Result<(), String> {
+        let _extracted = tokio::task::spawn_blocking(move || -> Result<(), String> {
             let sync_file = std::fs::File::open(&file_path_clone).map_err(|e| e.to_string())?;
             let mut archive = zip::ZipArchive::new(sync_file).map_err(|e| e.to_string())?;
             
