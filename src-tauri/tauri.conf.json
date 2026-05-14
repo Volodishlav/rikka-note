@@ -28,7 +28,7 @@
         "connect-src": "'self' ipc: http://ipc.localhost",
         "img-src": "'self' asset: http://asset.localhost data: blob: https://s2.loli.net",
         "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
-        "font-src": "'self' https://fonts.gstatic.com",
+        "font-src": "'self' https://fonts.gstatic.com https://unpkg.com",
         "script-src": "'self' 'unsafe-eval' https://unpkg.com"
       },
       "devCsp": {
@@ -36,7 +36,7 @@
         "connect-src": "'self' ipc: http://ipc.localhost *://localhost:*",
         "img-src": "'self' asset: http://asset.localhost data: blob: https://s2.loli.net",
         "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
-        "font-src": "'self' https://fonts.gstatic.com",
+        "font-src": "'self' https://fonts.gstatic.com https://unpkg.com",
         "script-src": "'self' 'unsafe-eval' 'unsafe-inline' https://unpkg.com"
       },
       "assetProtocol": {
