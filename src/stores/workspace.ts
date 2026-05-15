@@ -147,7 +147,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       await initDb(found.path)
       await initAllDatabases()
     } catch (e) {
-      logger.explorer.warn('切换仓库时重置数据库失败', e)
+      logger.explorer.error('切换仓库时重置数据库失败:', e)
+      throw e
     }
 
     // 数据库就绪后再设置状态
