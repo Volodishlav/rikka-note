@@ -64,9 +64,10 @@ export async function closeDb() {
 }
 
 // 获取数据库实例（确保先调用 initDb 初始化）
-export async function getDb() {
+export function getDb(): NonNullable<typeof db> {
     if (!db) {
         logger.db.warn('[DB] getDb() 被调用，但当前 db 实例为 null!')
+        throw new Error('Database not initialized. Call initDb() first.');
     }
     return db;
 }
