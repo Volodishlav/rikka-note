@@ -2,6 +2,7 @@
 import Database from '@tauri-apps/plugin-sql';
 import { join } from '@tauri-apps/api/path';
 import {logger} from "@/utils/logger.ts";
+import { i18n } from '@/locales/index';
 
 // 数据库实例（初始为 null）
 let db: Awaited<ReturnType<typeof Database.load>> | null = null;
@@ -67,7 +68,7 @@ export async function closeDb() {
 export function getDb(): NonNullable<typeof db> {
     if (!db) {
         logger.db.warn('[DB] getDb() 被调用，但当前 db 实例为 null!')
-        throw new Error('Database not initialized. Call initDb() first.');
+        throw new Error(i18n.global.t('workspace.toast.dbNotInit'));
     }
     return db;
 }
@@ -79,7 +80,7 @@ export { db, currentDbPath };
 // 注意：调用此函数前必须先调用 initDb() 建立数据库连接
 export async function initAllDatabases() {
     if (!db) {
-        throw new Error('数据库未初始化，请先调用 initDb()');
+        throw new Error(i18n.global.t('workspace.toast.dbNotInitCallFirst'));
     }
 
     const { initChatsDb } = await import('./chats');

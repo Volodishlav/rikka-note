@@ -148,7 +148,9 @@
       "selectFolder": "Select workspace folder",
       "unnamedWorkspace": "Unnamed Workspace",
       "markerCreateFailed": "Failed to create marker file in the selected folder, possibly due to insufficient permissions.",
-      "workspaceNotFound": "Workspace does not exist"
+      "workspaceNotFound": "Workspace does not exist",
+      "dbNotInit": "Database initialized failed. Please try selecting the workspace folder again, or restart the application.",
+      "dbNotInitCallFirst": "Database not initialized.Please try selecting the workspace folder again, or restart the application."
     }
   },
   "record": {

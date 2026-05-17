@@ -148,7 +148,9 @@
       "selectFolder": "选择笔记仓库文件夹",
       "unnamedWorkspace": "未命名仓库",
       "markerCreateFailed": "无法在选择的文件夹内创建标识文件，可能是权限不足。",
-      "workspaceNotFound": "工作区不存在"
+      "workspaceNotFound": "工作区不存在",
+      "dbNotInit": "数据库未初始化。建议尝试重新选择工作区文件夹，或重启应用。",
+      "dbNotInitCallFirst": "数据库初始化失败。建议尝试重新选择工作区文件夹，或重启应用。"
     }
   },
   "record": {
