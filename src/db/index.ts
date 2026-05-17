@@ -41,11 +41,11 @@ export async function initDb(workspacePath: string) {
         const errorMsg = (e instanceof Error ? e.message : (typeof e === 'string' ? e : JSON.stringify(e))) || 'Unknown Error';
         logger.general.error('[DB] 数据库加载失败:', errorMsg)
         if (errorMsg.includes('plugin sql not found')) {
-            throw new Error('SQL 插件未找到：请检查 main.rs 中是否用 Builder 注册插件');
+            throw new Error(i18n.global.t('workspace.toast.pluginNotFound'));
         } else if (errorMsg.includes('not allowed')) {
-            throw new Error('权限不足：请检查 capabilities/default.json 中的权限配置');
+            throw new Error(i18n.global.t('workspace.toast.permissionDenied'));
         } else {
-            throw new Error(`数据库加载失败：${errorMsg}`);
+            throw new Error(i18n.global.t('workspace.toast.dbLoadFailed', { error: errorMsg }));
         }
     }
 }

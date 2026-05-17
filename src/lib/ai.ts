@@ -223,7 +223,7 @@ export async function fetchEmbedding(text: string, throwError = false, silent = 
       } else {
         const modelInfo = await getEmbeddingModelInfo();
         if (!modelInfo) {
-          throw new Error('未配置嵌入模型或模型配置不正确');
+          throw new Error(i18n.global.t('settings.rag.error.embeddingModelNotConfigured'));
         }
         baseURL = modelInfo.baseURL;
         apiKey = modelInfo.apiKey;
@@ -241,7 +241,7 @@ export async function fetchEmbedding(text: string, throwError = false, silent = 
       if (!baseURL || !model) {
         const missing = !baseURL ? 'baseURL' : 'model';
         logger.rag.error(`嵌入模型配置不完整: 缺失 ${missing}`, { baseURL, model });
-        throw new Error(`嵌入模型配置不完整: 缺失 ${missing}`);
+        throw new Error(i18n.global.t('settings.rag.error.embeddingModelIncomplete', { missing }));
       }
       
       // 发送嵌入请求，增加对本地服务的重试机制（模型加载可能需要几秒钟）
@@ -300,7 +300,7 @@ export async function fetchEmbedding(text: string, throwError = false, silent = 
       
       const data = await response.json() as EmbeddingResponse;
       if (!data || !data.data || !data.data[0] || !data.data[0].embedding) {
-        throw new Error('嵌入结果格式不正确');
+        throw new Error(i18n.global.t('settings.rag.error.embeddingFormatError'));
       }
       
       return data.data[0].embedding;
@@ -364,7 +364,7 @@ export async function rerankDocuments(
     });
     
     if (!response.ok) {
-      throw new Error(`重排序请求失败: ${response.status} ${response.statusText}`);
+      throw new Error(i18n.global.t('settings.rag.error.rerankRequestFailed', { status: response.status, statusText: response.statusText }));
     }
     
     // 解析响应
@@ -372,7 +372,7 @@ export async function rerankDocuments(
     
     // 检查响应格式
     if (!data || !data.results) {
-      throw new Error('重排序结果格式不正确');
+      throw new Error(i18n.global.t('settings.rag.error.rerankFormatError'));
     }
     
     // 处理重排序结果
